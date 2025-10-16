@@ -32,7 +32,7 @@ func NewMessageService(hub *websocket.Hub, producer *kafka.Producer) *MessageSer
 // SendMessage 发送消息
 func (s *MessageService) SendMessage(senderID, receiverID uint, content, msgType string, fileURL *string, fileSize *int64, duration *int, ip, userAgent string) (*model.Message, error) {
 	// 验证接收者存在
-	receiver, err := s.userDAO.GetByID(receiverID)
+	_, err := s.userDAO.GetByID(receiverID)
 	if err != nil {
 		return nil, errors.New("receiver not found")
 	}

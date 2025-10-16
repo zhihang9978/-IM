@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from "react";
 import { Card, Row, Col, Statistic, Tag } from 'antd'
 import { UserOutlined, MessageOutlined, TeamOutlined, FileOutlined } from '@ant-design/icons'
 import ReactECharts from 'echarts-for-react'
 
 function Dashboard() {
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalUsers: 1128,
     totalMessages: 93489,
     totalGroups: 256,

@@ -84,7 +84,7 @@ func (c *Client) DeleteFile(ctx context.Context, objectKey string) error {
 
 // GetPresignedURL 获取预签名URL（用于临时访问）
 func (c *Client) GetPresignedURL(ctx context.Context, objectKey string, expire time.Duration) (string, error) {
-	presignedURL, err := c.client.Object.GetPresignedURL(ctx, http.MethodGet, objectKey, c.client.Credentials, expire, nil)
+	presignedURL, err := c.client.Object.GetPresignedURL(ctx, http.MethodGet, objectKey, "", "", expire, nil)
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +104,8 @@ func (c *Client) GenerateUploadToken(fileName, fileType string) (*UploadTokenRes
 		ctx,
 		http.MethodPut,
 		uniqueKey,
-		c.client.Credentials,
+		"",
+		"",
 		30*time.Minute,
 		nil,
 	)
