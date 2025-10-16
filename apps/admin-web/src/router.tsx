@@ -3,7 +3,6 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import UserManagement from './pages/UserManagement'
 import MessageManagement from './pages/MessageManagement'
-import GroupManagement from './pages/GroupManagement'
 import FileManagement from './pages/FileManagement'
 import DataAnalysis from './pages/DataAnalysis'
 import SystemSettings from './pages/SystemSettings'
@@ -29,7 +28,6 @@ function Router() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="messages" element={<MessageManagement />} />
-        <Route path="groups" element={<GroupManagement />} />
         <Route path="files" element={<FileManagement />} />
         <Route path="analytics" element={<DataAnalysis />} />
         <Route path="settings" element={<SystemSettings />} />
