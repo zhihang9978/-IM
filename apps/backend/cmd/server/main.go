@@ -6,9 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/config"
+	"github.com/lanxin/im-backend/internal/api"
 	"github.com/lanxin/im-backend/internal/middleware"
 	"github.com/lanxin/im-backend/internal/pkg/mysql"
 	"github.com/lanxin/im-backend/internal/pkg/redis"
+	"github.com/lanxin/im-backend/internal/websocket"
+	"github.com/lanxin/im-backend/pkg/kafka"
 )
 
 func main() {
@@ -28,21 +31,30 @@ func main() {
 	redis.Init(cfg.Redis)
 	defer redis.Close()
 
+	// 初始化Kafka Producer
+	producer := kafka.NewProducer(cfg.Kafka.Brokers, cfg.Kafka.Topic.Message)
+	defer producer.Close()
+
+	// 初始化WebSocket Hub
+	hub := websocket.NewHub()
+	go hub.Run()
+
 	// 创建路由
-	router := setupRouter(cfg)
+	router := setupRouter(cfg, hub, producer)
 
 	// 启动服务器
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	log.Printf("Server starting on %s", addr)
 	log.Printf("Server mode: %s", cfg.Server.Mode)
 	log.Printf("Domain: %s", cfg.Server.Domain)
+	log.Printf("WebSocket Hub started")
 	
 	if err := router.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
 
-func setupRouter(cfg *config.Config) *gin.Engine {
+func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Producer) *gin.Engine {
 	r := gin.New()
 
 	// 全局中间件
@@ -54,56 +66,84 @@ func setupRouter(cfg *config.Config) *gin.Engine {
 		r.Use(middleware.RateLimit(cfg.Security.RateLimit.RequestsPerMinute))
 	}
 
+	// 创建Handler
+	authHandler := api.NewAuthHandler(cfg)
+	userHandler := api.NewUserHandler()
+	messageHandler := api.NewMessageHandler(hub, producer)
+	fileHandler, _ := api.NewFileHandler(cfg)
+	trtcHandler := api.NewTRTCHandler(cfg, hub)
+
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
 			"message": "LanXin IM Server is running",
+			"online_users": hub.GetOnlineUserCount(),
 		})
 	})
 
+	// WebSocket路由
+	r.GET("/ws", func(c *gin.Context) {
+		websocket.ServeWS(hub, c, cfg.JWT.Secret)
+	})
+
 	// API路由组
-	api := r.Group("/api/v1")
+	apiV1 := r.Group("/api/v1")
 	{
-		// 公开API
-		public := api.Group("")
+		// 公开API（不需要认证）
+		public := apiV1.Group("")
 		{
 			public.GET("/ping", func(c *gin.Context) {
-				c.JSON(200, gin.H{
-					"message": "pong",
-				})
+				c.JSON(200, gin.H{"message": "pong"})
 			})
 			
-			// TODO: 添加认证相关API
-			// public.POST("/auth/login", authHandler.Login)
-			// public.POST("/auth/register", authHandler.Register)
+			// 认证相关
+			public.POST("/auth/register", authHandler.Register)
+			public.POST("/auth/login", authHandler.Login)
 		}
 
 		// 需要认证的API
-		authorized := api.Group("")
+		authorized := apiV1.Group("")
 		authorized.Use(middleware.JWTAuth(cfg.JWT.Secret))
 		{
-			// TODO: 添加需要认证的API
-			// authorized.GET("/users/me", userHandler.GetProfile)
-			// authorized.GET("/messages", messageHandler.GetMessages)
+			// 认证相关
+			authorized.POST("/auth/refresh", authHandler.RefreshToken)
+			authorized.POST("/auth/logout", authHandler.Logout)
+			
+			// 用户相关
+			authorized.GET("/users/me", userHandler.GetCurrentUser)
+			authorized.PUT("/users/me", userHandler.UpdateProfile)
+			authorized.GET("/users/search", userHandler.SearchUsers)
+			
+			// 消息相关
+			authorized.POST("/messages", messageHandler.SendMessage)
+			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
+			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
+			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
+			
+			// 文件相关
+			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)
+			authorized.POST("/files/upload-callback", fileHandler.UploadCallback)
+			
+			// TRTC相关（纯数据流接口）
+			authorized.POST("/trtc/user-sig", trtcHandler.GetUserSig)
+			authorized.POST("/trtc/call", trtcHandler.InitiateCall)
+			authorized.POST("/trtc/call/end", trtcHandler.EndCall)
+			authorized.POST("/trtc/screen-share/start", trtcHandler.StartScreenShare)
+			authorized.POST("/trtc/screen-share/end", trtcHandler.EndScreenShare)
 		}
 
 		// 管理员API
-		admin := api.Group("/admin")
+		admin := apiV1.Group("/admin")
 		admin.Use(middleware.JWTAuth(cfg.JWT.Secret))
 		admin.Use(middleware.AdminAuth())
 		{
-			// TODO: 添加管理员API
+			// TODO: 添加管理员专属API
 			// admin.GET("/users", adminHandler.GetUsers)
 			// admin.POST("/users/:id/ban", adminHandler.BanUser)
+			// admin.GET("/logs", adminHandler.GetOperationLogs)
 		}
 	}
-
-	// WebSocket路由
-	// TODO: 实现WebSocket服务
-	// r.GET("/ws", func(c *gin.Context) {
-	//     websocket.ServeWS(hub, c)
-	// })
 
 	return r
 }

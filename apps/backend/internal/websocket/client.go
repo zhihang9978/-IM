@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -148,7 +149,7 @@ func (c *Client) handleMessage(message []byte) {
 }
 
 // ServeWS 处理WebSocket请求
-func ServeWS(hub *Hub, c *gin.Context) {
+func ServeWS(hub *Hub, c *gin.Context, secret string) {
 	// 从查询参数获取token
 	tokenString := c.Query("token")
 	if tokenString == "" {
@@ -157,7 +158,7 @@ func ServeWS(hub *Hub, c *gin.Context) {
 	}
 
 	// 验证JWT
-	claims, err := jwt.ParseToken(tokenString, "your_secret_key") // TODO: 从配置获取
+	claims, err := jwt.ParseToken(tokenString, secret)
 	if err != nil {
 		c.JSON(401, gin.H{"code": 401, "message": "Invalid token"})
 		return
