@@ -1,0 +1,248 @@
+package com.lanxin.im.data.remote
+
+import com.lanxin.im.data.model.User
+import com.lanxin.im.data.model.Message
+import com.lanxin.im.data.model.Conversation
+import com.lanxin.im.data.model.Contact
+import retrofit2.Response
+import retrofit2.http.*
+
+/**
+ * Retrofit API接口定义
+ * 基于API_DOCUMENTATION.md
+ */
+interface ApiService {
+    
+    // ==================== 认证模块 ====================
+    
+    @POST("auth/register")
+    suspend fun register(@Body request: RegisterRequest): ApiResponse<UserResponse>
+    
+    @POST("auth/login")
+    suspend fun login(@Body request: LoginRequest): ApiResponse<LoginResponse>
+    
+    @POST("auth/refresh")
+    suspend fun refreshToken(): ApiResponse<TokenResponse>
+    
+    @POST("auth/logout")
+    suspend fun logout(): ApiResponse<Any?>
+    
+    // ==================== 用户模块 ====================
+    
+    @GET("users/me")
+    suspend fun getCurrentUser(): ApiResponse<User>
+    
+    @PUT("users/me")
+    suspend fun updateUserProfile(@Body request: UpdateUserRequest): ApiResponse<User>
+    
+    @PUT("users/me/password")
+    suspend fun changePassword(@Body request: ChangePasswordRequest): ApiResponse<Any?>
+    
+    @GET("users/search")
+    suspend fun searchUsers(
+        @Query("keyword") keyword: String,
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): ApiResponse<UserListResponse>
+    
+    // ==================== 联系人模块 ====================
+    
+    @GET("contacts")
+    suspend fun getContacts(
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 50
+    ): ApiResponse<ContactListResponse>
+    
+    @POST("contacts")
+    suspend fun addContact(@Body request: AddContactRequest): ApiResponse<Contact>
+    
+    @DELETE("contacts/{id}")
+    suspend fun deleteContact(@Path("id") id: Long): ApiResponse<Any?>
+    
+    // ==================== 消息模块 ====================
+    
+    @GET("conversations")
+    suspend fun getConversations(
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): ApiResponse<ConversationListResponse>
+    
+    @GET("conversations/{id}/messages")
+    suspend fun getMessages(
+        @Path("id") conversationId: Long,
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 50
+    ): ApiResponse<MessageListResponse>
+    
+    @POST("messages")
+    suspend fun sendMessage(@Body request: SendMessageRequest): ApiResponse<MessageResponse>
+    
+    @POST("messages/{id}/recall")
+    suspend fun recallMessage(@Path("id") messageId: Long): ApiResponse<Any?>
+    
+    @POST("conversations/{id}/read")
+    suspend fun markAsRead(@Path("id") conversationId: Long): ApiResponse<Any?>
+    
+    // ==================== 文件上传模块 ====================
+    
+    @GET("files/upload-token")
+    suspend fun getUploadToken(
+        @Query("file_type") fileType: String,
+        @Query("file_name") fileName: String
+    ): ApiResponse<UploadTokenResponse>
+    
+    @POST("files/upload-callback")
+    suspend fun uploadCallback(@Body request: UploadCallbackRequest): ApiResponse<Any?>
+    
+    // ==================== TRTC音视频模块 ====================
+    
+    @POST("trtc/user-sig")
+    suspend fun getTRTCUserSig(@Body request: TRTCUserSigRequest): ApiResponse<TRTCUserSigResponse>
+    
+    @POST("trtc/call")
+    suspend fun initiateCall(@Body request: InitiateCallRequest): ApiResponse<CallResponse>
+}
+
+// ==================== 请求数据类 ====================
+
+data class RegisterRequest(
+    val username: String,
+    val password: String,
+    val phone: String? = null,
+    val email: String? = null
+)
+
+data class LoginRequest(
+    val identifier: String,
+    val password: String
+)
+
+data class UpdateUserRequest(
+    val username: String? = null,
+    val avatar: String? = null,
+    val phone: String? = null,
+    val email: String? = null
+)
+
+data class ChangePasswordRequest(
+    val old_password: String,
+    val new_password: String
+)
+
+data class AddContactRequest(
+    val contact_id: Long,
+    val remark: String? = null,
+    val tags: String? = null
+)
+
+data class SendMessageRequest(
+    val receiver_id: Long,
+    val content: String,
+    val type: String = "text", // text, image, voice, video, file
+    val file_url: String? = null,
+    val file_size: Long? = null,
+    val duration: Int? = null
+)
+
+data class UploadCallbackRequest(
+    val key: String,
+    val url: String,
+    val size: Long,
+    val content_type: String
+)
+
+data class TRTCUserSigRequest(
+    val room_id: String,
+    val user_id: Long
+)
+
+data class InitiateCallRequest(
+    val receiver_id: Long,
+    val call_type: String // audio, video
+)
+
+// ==================== 响应数据类 ====================
+
+data class ApiResponse<T>(
+    val code: Int,
+    val message: String,
+    val data: T?
+)
+
+data class UserResponse(
+    val user: User
+)
+
+data class LoginResponse(
+    val token: String,
+    val user: User
+)
+
+data class TokenResponse(
+    val token: String
+)
+
+data class UserListResponse(
+    val total: Int,
+    val page: Int,
+    val page_size: Int,
+    val users: List<User>
+)
+
+data class ContactListResponse(
+    val total: Int,
+    val contacts: List<ContactItem>
+)
+
+data class ContactItem(
+    val id: Long,
+    val contact_id: Long,
+    val user: User,
+    val remark: String?,
+    val tags: String?,
+    val status: String,
+    val created_at: Long
+)
+
+data class ConversationListResponse(
+    val conversations: List<ConversationItem>
+)
+
+data class ConversationItem(
+    val id: Long,
+    val type: String,
+    val user: User?,
+    val last_message: Message?,
+    val unread_count: Int,
+    val updated_at: Long
+)
+
+data class MessageListResponse(
+    val total: Int,
+    val messages: List<Message>
+)
+
+data class MessageResponse(
+    val message: Message
+)
+
+data class UploadTokenResponse(
+    val token: String,
+    val bucket: String,
+    val region: String,
+    val key: String,
+    val expires_at: String
+)
+
+data class TRTCUserSigResponse(
+    val sdk_app_id: Int,
+    val user_sig: String,
+    val room_id: String,
+    val expires_at: String
+)
+
+data class CallResponse(
+    val room_id: String,
+    val call_type: String
+)
+
