@@ -20,7 +20,7 @@ type TRTCHandler struct {
 
 func NewTRTCHandler(cfg *config.Config, hub *websocket.Hub) *TRTCHandler {
 	return &TRTCHandler{
-		trtcService: service.NewTRTCService(cfg.TencentCloud.TRTC.SDKAppID, cfg.TencentCloud.TRTC.SecretKey),
+		trtcService: service.NewTRTCService(cfg.TRTC.SDKAppID, cfg.TRTC.SecretKey),
 		logDAO:      dao.NewOperationLogDAO(),
 		hub:         hub,
 	}

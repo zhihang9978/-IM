@@ -13,26 +13,28 @@ import (
 	"github.com/tencentyun/cos-go-sdk-v5"
 )
 
-// Client 腾讯云COS客户端
+// Client 自建对象存储COS客户端
+// 注意：这是自建的对象存储服务，不是腾讯云COS
 type Client struct {
 	client *cos.Client
 	bucket string
 	region string
 }
 
-// Config COS配置
+// Config 自建COS配置
 type Config struct {
 	SecretID  string
 	SecretKey string
 	Bucket    string
 	Region    string
-	BaseURL   string
+	BaseURL   string // 自建COS服务地址
 }
 
-// NewClient 创建COS客户端
+// NewClient 创建自建COS客户端
 func NewClient(cfg Config) (*Client, error) {
-	bucketURL, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", cfg.Bucket, cfg.Region))
-	baseURL, _ := url.Parse(fmt.Sprintf("https://cos.%s.myqcloud.com", cfg.Region))
+	// 使用自建COS服务地址
+	bucketURL, _ := url.Parse(fmt.Sprintf("%s/%s", cfg.BaseURL, cfg.Bucket))
+	baseURL, _ := url.Parse(cfg.BaseURL)
 
 	cosClient := cos.NewClient(&cos.BaseURL{
 		BucketURL: bucketURL,
@@ -71,8 +73,8 @@ func (c *Client) UploadFile(ctx context.Context, fileReader io.Reader, fileName,
 		return "", err
 	}
 
-	// 返回文件URL
-	fileURL := fmt.Sprintf("https://%s.cos.%s.myqcloud.com/%s", c.bucket, c.region, objectKey)
+	// 返回文件URL（自建COS服务）
+	fileURL := fmt.Sprintf("%s/%s/%s", c.client.BaseURL.BucketURL.String(), c.bucket, objectKey)
 	return fileURL, nil
 }
 

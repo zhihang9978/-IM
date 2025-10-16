@@ -17,12 +17,13 @@ type FileHandler struct {
 }
 
 func NewFileHandler(cfg *config.Config) (*FileHandler, error) {
+	// 使用自建COS服务
 	cosClient, err := cos.NewClient(cos.Config{
-		SecretID:  cfg.TencentCloud.COS.SecretID,
-		SecretKey: cfg.TencentCloud.COS.SecretKey,
-		Bucket:    cfg.TencentCloud.COS.Bucket,
-		Region:    cfg.TencentCloud.COS.Region,
-		BaseURL:   cfg.TencentCloud.COS.BaseURL,
+		SecretID:  cfg.Storage.COS.SecretID,
+		SecretKey: cfg.Storage.COS.SecretKey,
+		Bucket:    cfg.Storage.COS.Bucket,
+		Region:    cfg.Storage.COS.Region,
+		BaseURL:   cfg.Storage.COS.BaseURL,
 	})
 	if err != nil {
 		return nil, err

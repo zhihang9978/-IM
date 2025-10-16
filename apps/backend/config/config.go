@@ -7,14 +7,15 @@ import (
 )
 
 type Config struct {
-	Server       ServerConfig       `mapstructure:"server"`
-	Database     DatabaseConfig     `mapstructure:"database"`
-	Redis        RedisConfig        `mapstructure:"redis"`
-	Kafka        KafkaConfig        `mapstructure:"kafka"`
-	JWT          JWTConfig          `mapstructure:"jwt"`
-	TencentCloud TencentCloudConfig `mapstructure:"tencent_cloud"`
-	WebSocket    WebSocketConfig    `mapstructure:"websocket"`
-	Security     SecurityConfig     `mapstructure:"security"`
+	Server    ServerConfig    `mapstructure:"server"`
+	Database  DatabaseConfig  `mapstructure:"database"`
+	Redis     RedisConfig     `mapstructure:"redis"`
+	Kafka     KafkaConfig     `mapstructure:"kafka"`
+	JWT       JWTConfig       `mapstructure:"jwt"`
+	Storage   StorageConfig   `mapstructure:"storage"`
+	TRTC      TRTCConfig      `mapstructure:"trtc"`
+	WebSocket WebSocketConfig `mapstructure:"websocket"`
+	Security  SecurityConfig  `mapstructure:"security"`
 }
 
 type ServerConfig struct {
@@ -63,9 +64,8 @@ type JWTConfig struct {
 	RefreshExpireHours int    `mapstructure:"refresh_expire_hours"`
 }
 
-type TencentCloudConfig struct {
-	COS  COSConfig  `mapstructure:"cos"`
-	TRTC TRTCConfig `mapstructure:"trtc"`
+type StorageConfig struct {
+	COS COSConfig `mapstructure:"cos"`
 }
 
 type COSConfig struct {
@@ -73,7 +73,7 @@ type COSConfig struct {
 	SecretKey string `mapstructure:"secret_key"`
 	Bucket    string `mapstructure:"bucket"`
 	Region    string `mapstructure:"region"`
-	BaseURL   string `mapstructure:"base_url"`
+	BaseURL   string `mapstructure:"base_url"` // 自建COS服务地址
 }
 
 type TRTCConfig struct {
@@ -135,14 +135,16 @@ func Load() *Config {
 	if secret := os.Getenv("JWT_SECRET"); secret != "" {
 		config.JWT.Secret = secret
 	}
+	// 自建COS配置
 	if secretID := os.Getenv("COS_SECRET_ID"); secretID != "" {
-		config.TencentCloud.COS.SecretID = secretID
+		config.Storage.COS.SecretID = secretID
 	}
 	if secretKey := os.Getenv("COS_SECRET_KEY"); secretKey != "" {
-		config.TencentCloud.COS.SecretKey = secretKey
+		config.Storage.COS.SecretKey = secretKey
 	}
+	// 腾讯云TRTC配置
 	if secretKey := os.Getenv("TRTC_SECRET_KEY"); secretKey != "" {
-		config.TencentCloud.TRTC.SecretKey = secretKey
+		config.TRTC.SecretKey = secretKey
 	}
 
 	return &config
