@@ -6,12 +6,13 @@ class AuthService {
    * 用户登录
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/login', data);
-    if (response.token) {
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+    const response = await api.post<any>('/auth/login', data);
+    if (response.data && response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      return response.data;
     }
-    return response;
+    throw new Error(response.message || '登录失败');
   }
 
   /**
@@ -23,7 +24,11 @@ class AuthService {
     phone?: string;
     email?: string;
   }): Promise<{ user: User }> {
-    return api.post('/auth/register', data);
+    const response = await api.post<any>('/auth/register', data);
+    if (response.data) {
+      return response.data;
+    }
+    throw new Error(response.message || '注册失败');
   }
 
   /**
@@ -61,7 +66,12 @@ class AuthService {
    * 刷新Token
    */
   async refreshToken(): Promise<{ token: string }> {
-    return api.post('/auth/refresh');
+    const response = await api.post<any>('/auth/refresh');
+    if (response.data && response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      return response.data;
+    }
+    throw new Error(response.message || 'Token刷新失败');
   }
 }
 
