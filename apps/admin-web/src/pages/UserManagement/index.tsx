@@ -29,7 +29,7 @@ function UserManagement() {
         status: statusFilter,
         role: roleFilter,
       })
-      setUsers(response.data)
+      setUsers(response.users)
       setTotal(response.total)
     } catch (error: any) {
       message.error(error?.message || '加载用户列表失败')
@@ -48,7 +48,7 @@ function UserManagement() {
     setLoading(true)
     try {
       const response = await userService.searchUsers(searchKeyword, page, pageSize)
-      setUsers(response.data)
+      setUsers(response.users)
       setTotal(response.total)
     } catch (error: any) {
       message.error(error?.message || '搜索失败')

@@ -73,6 +73,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	fileHandler, _ := api.NewFileHandler(cfg)
 	trtcHandler := api.NewTRTCHandler(cfg, hub)
 	groupHandler := api.NewGroupHandler()
+	adminHandler := api.NewAdminHandler()
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -149,7 +150,12 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		admin.Use(middleware.AdminAuth())
 		{
 			// 用户管理
-			admin.GET("/users", userHandler.SearchUsers)
+			admin.GET("/users", adminHandler.GetUsers)
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.PUT("/users/:id", adminHandler.UpdateUser)
+			admin.DELETE("/users/:id", adminHandler.DeleteUser)
+			admin.POST("/users/:id/ban", adminHandler.BanUser)
+			admin.POST("/users/:id/unban", adminHandler.UnbanUser)
 			
 			// 群组管理
 			admin.POST("/groups/:id/disband", groupHandler.DisbandGroup)
