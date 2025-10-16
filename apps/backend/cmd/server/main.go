@@ -151,6 +151,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		{
 			// 用户管理
 			admin.GET("/users", adminHandler.GetUsers)
+			admin.GET("/users/export", adminHandler.ExportUsers)
 			admin.POST("/users", adminHandler.CreateUser)
 			admin.PUT("/users/:id", adminHandler.UpdateUser)
 			admin.DELETE("/users/:id", adminHandler.DeleteUser)

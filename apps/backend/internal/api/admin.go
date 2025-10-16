@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -303,6 +304,61 @@ func (h *AdminHandler) UnbanUser(c *gin.Context) {
 		"message": "success",
 		"data":    nil,
 	})
+}
+
+func (h *AdminHandler) ExportUsers(c *gin.Context) {
+	filters := make(map[string]interface{})
+	if status := c.Query("status"); status != "" {
+		filters["status"] = status
+	}
+	if role := c.Query("role"); role != "" {
+		filters["role"] = role
+	}
+	
+	users, _, err := h.userDAO.List(1, 10000, filters)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to query users for export",
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.Header("Content-Type", "text/csv; charset=utf-8")
+	c.Header("Content-Disposition", "attachment; filename=users_export.csv")
+	
+	writer := csv.NewWriter(c.Writer)
+	defer writer.Flush()
+	
+	c.Writer.Write([]byte{0xEF, 0xBB, 0xBF})
+	
+	headers := []string{"ID", "用户名", "蓝信号", "手机号", "邮箱", "角色", "状态", "最后登录时间", "创建时间"}
+	if err := writer.Write(headers); err != nil {
+		return
+	}
+	
+	for _, user := range users {
+		lastLoginAt := ""
+		if user.LastLoginAt != nil {
+			lastLoginAt = user.LastLoginAt.Format("2006-01-02 15:04:05")
+		}
+		
+		record := []string{
+			fmt.Sprintf("%d", user.ID),
+			user.Username,
+			user.LanxinID,
+			user.Phone,
+			user.Email,
+			user.Role,
+			user.Status,
+			lastLoginAt,
+			user.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+		if err := writer.Write(record); err != nil {
+			return
+		}
+	}
 }
 
 func generateLanxinID() string {
