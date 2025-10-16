@@ -21,14 +21,14 @@ function DataAnalysis() {
         name: '日活用户',
         type: 'line',
         smooth: true,
-        data: [820, 932, 901, 934, 1290, 1330, 1420],
+        data: [0, 0, 0, 0, 0, 0, 0],
         itemStyle: { color: '#3b82f6' },
       },
       {
         name: '新增用户',
         type: 'line',
         smooth: true,
-        data: [45, 67, 52, 61, 89, 95, 108],
+        data: [0, 0, 0, 0, 0, 0, 0],
         itemStyle: { color: '#10b981' },
       },
     ],
@@ -47,7 +47,7 @@ function DataAnalysis() {
       {
         name: '消息量',
         type: 'bar',
-        data: [320, 150, 450, 820, 980, 1200, 560],
+        data: [0, 0, 0, 0, 0, 0, 0],
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#60a5fa' },
@@ -70,9 +70,9 @@ function DataAnalysis() {
         radius: ['40%', '70%'],
         avoidLabelOverlap: false,
         data: [
-          { value: 658, name: 'Android', itemStyle: { color: '#10b981' } },
-          { value: 342, name: 'Web浏览器', itemStyle: { color: '#3b82f6' } },
-          { value: 128, name: 'iOS', itemStyle: { color: '#8b5cf6' } },
+          { value: 0, name: 'Android', itemStyle: { color: '#10b981' } },
+          { value: 0, name: 'Web浏览器', itemStyle: { color: '#3b82f6' } },
+          { value: 0, name: 'iOS', itemStyle: { color: '#8b5cf6' } },
         ],
         emphasis: {
           itemStyle: {
@@ -98,7 +98,7 @@ function DataAnalysis() {
       {
         name: '存储空间',
         type: 'bar',
-        data: [25.6, 48.3, 12.1, 18.9, 5.4],
+        data: [0, 0, 0, 0, 0],
         itemStyle: { color: '#f59e0b' },
       },
     ],
