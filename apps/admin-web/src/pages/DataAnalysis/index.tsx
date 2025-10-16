@@ -1,5 +1,6 @@
 import { Card, Row, Col, DatePicker, Select, Space } from 'antd'
 import ReactECharts from 'echarts-for-react'
+import * as echarts from 'echarts'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
@@ -48,7 +49,7 @@ function DataAnalysis() {
         type: 'bar',
         data: [320, 150, 450, 820, 980, 1200, 560],
         itemStyle: {
-          color: new (window as any).echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#60a5fa' },
             { offset: 1, color: '#3b82f6' },
           ]),
