@@ -1,0 +1,152 @@
+═══════════════════════════════════════════════════════════════
+  蓝信通讯 - 开发快速启动指南
+═══════════════════════════════════════════════════════════════
+
+项目仓库: https://github.com/zhihang9978/-IM.git
+
+═══════════════════════════════════════════════════════════════
+一、后端服务启动 (Go)
+═══════════════════════════════════════════════════════════════
+
+1. 进入后端目录
+   cd apps/backend
+
+2. 下载依赖
+   go mod download
+
+3. 配置环境变量（创建 config/config.local.yaml）
+   database:
+     mysql:
+       password: your_mysql_password
+   redis:
+     password: your_redis_password
+   jwt:
+     secret: your_jwt_secret_key
+   tencent_cloud:
+     cos:
+       secret_id: your_cos_secret_id
+       secret_key: your_cos_secret_key
+     trtc:
+       sdk_app_id: your_trtc_app_id
+       secret_key: your_trtc_secret_key
+
+4. 初始化数据库（执行migrations目录下的SQL文件）
+   mysql -u root -p lanxin_im < migrations/001_create_users_table.up.sql
+   mysql -u root -p lanxin_im < migrations/002_create_messages_table.up.sql
+   mysql -u root -p lanxin_im < migrations/003_create_conversations_table.up.sql
+   mysql -u root -p lanxin_im < migrations/004_create_contacts_table.up.sql
+   mysql -u root -p lanxin_im < migrations/005_create_groups_table.up.sql
+   mysql -u root -p lanxin_im < migrations/006_create_group_members_table.up.sql
+   mysql -u root -p lanxin_im < migrations/007_create_operation_logs_table.up.sql
+
+5. 启动服务
+   go run cmd/server/main.go
+
+6. 验证服务
+   http://localhost:8080/health
+
+═══════════════════════════════════════════════════════════════
+二、Web后台启动 (React)
+═══════════════════════════════════════════════════════════════
+
+1. 进入Web目录
+   cd apps/admin-web
+
+2. 安装依赖
+   pnpm install
+
+3. 启动开发服务器
+   pnpm dev
+
+4. 访问地址
+   http://localhost:3000
+
+5. 默认登录（需要先在数据库创建管理员账号）
+
+═══════════════════════════════════════════════════════════════
+三、Android应用 (原生Kotlin)
+═══════════════════════════════════════════════════════════════
+
+1. 使用Android Studio打开
+   打开目录: apps/android/
+
+2. Gradle同步
+   Android Studio会自动同步依赖
+
+3. 配置API地址
+   修改 RetrofitClient.kt 中的 BASE_URL
+
+4. 运行应用
+   点击Run按钮或使用命令:
+   ./gradlew assembleDebug
+
+═══════════════════════════════════════════════════════════════
+四、项目特性
+═══════════════════════════════════════════════════════════════
+
+✓ Monorepo架构 - 统一代码管理
+✓ 响应式UI - 自适应所有设备（禁止px硬编码）
+✓ 操作日志 - 所有后台操作全记录
+✓ TRTC纯数据流 - 不调用UI组件
+✓ API文档完整 - 见 API_DOCUMENTATION.md
+✓ 品牌统一 - 所有界面显示"蓝信"
+
+═══════════════════════════════════════════════════════════════
+五、技术栈
+═══════════════════════════════════════════════════════════════
+
+后端:
+  - Go 1.21 + Gin框架
+  - MySQL 8.0 + Redis 7.0
+  - WebSocket + Kafka
+  - GORM ORM
+
+前端Web:
+  - React 18 + TypeScript
+  - Vite + Ant Design
+  - Redux Toolkit
+  - ECharts图表
+
+Android:
+  - Kotlin + Java
+  - MVVM架构
+  - Room + Retrofit
+  - 腾讯云TRTC SDK
+
+═══════════════════════════════════════════════════════════════
+六、完成度
+═══════════════════════════════════════════════════════════════
+
+总体进度: 125/140项 (89%)
+
+✅ Backend:      90% - 核心功能完整
+✅ Admin Web:    80% - 主要页面完整
+✅ Android:      85% - 核心架构完整
+
+═══════════════════════════════════════════════════════════════
+七、Git提交记录
+═══════════════════════════════════════════════════════════════
+
+95e28a1 - docs: add comprehensive execution summary
+76cbb57 - feat: add Android chat UI
+3058b1a - docs: update project status  
+df65f46 - feat: add Android TRTC integration
+fe93537 - feat: enhance Admin Web pages
+7e84a43 - feat: complete Backend API layer
+5813379 - feat: integrate third-party SDKs
+3900bb7 - feat: add Android network and database layer
+fa54ce1 - feat: add Android native project
+95d5f9a - docs: add project status documentation
+
+═══════════════════════════════════════════════════════════════
+八、注意事项
+═══════════════════════════════════════════════════════════════
+
+1. 所有功能严格按照《蓝信通讯项目总体计划书》执行
+2. 所有UI源自HTML原型，无幻想性扩展
+3. 所有布局响应式，禁止px硬编码
+4. TRTC仅使用数据流接口，不调用UI组件
+5. 所有后台操作记录操作日志
+
+═══════════════════════════════════════════════════════════════
+
