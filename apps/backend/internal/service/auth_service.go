@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lanxin/im-backend/config"
@@ -129,6 +130,6 @@ func (s *AuthService) RefreshToken(oldToken string) (string, error) {
 func generateLanxinID() string {
 	// 使用时间戳作为基础
 	timestamp := time.Now().Unix()
-	return "lx" + string(timestamp%1000000000)
+	return "LX" + fmt.Sprintf("%d", timestamp)
 }
 

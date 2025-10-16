@@ -1,12 +1,15 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminHandler struct {
@@ -80,11 +83,25 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 		req.Role = "user"
 	}
 	
+	// 加密密码
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to hash password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	lanxinID := generateLanxinID()
+	
 	user := &model.User{
 		Username: req.Username,
-		Password: req.Password, // 应该加密
+		Password: string(hashedPassword),
 		Phone:    req.Phone,
 		Email:    req.Email,
+		LanxinID: lanxinID,
 		Role:     req.Role,
 		Status:   "active",
 	}
@@ -286,4 +303,9 @@ func (h *AdminHandler) UnbanUser(c *gin.Context) {
 		"message": "success",
 		"data":    nil,
 	})
+}
+
+func generateLanxinID() string {
+	timestamp := time.Now().Unix()
+	return "LX" + fmt.Sprintf("%d", timestamp)
 }
