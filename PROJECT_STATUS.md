@@ -67,36 +67,38 @@ lanxin-communication/
 - Glide图片加载
 - Coroutines
 
-## 待开发模块
+## 新增模块（最新）
 
-### ⏳ Android完善
-- [ ] Room数据库DAO实现
-- [ ] Retrofit API接口定义
-- [ ] WebSocket客户端实现
-- [ ] TRTC音视频通话集成
-- [ ] 聊天消息适配器
-- [ ] 消息气泡UI（发送/接收）
-- [ ] 图片选择和上传
-- [ ] 联系人列表实现
-- [ ] 设置页面
+### ✅ Android完善
+- [x] Room数据库DAO实现 (UserDao, MessageDao, ConversationDao, ContactDao)
+- [x] Retrofit API接口定义 (ApiService)
+- [x] WebSocket客户端实现 (WebSocketClient)
+- [x] TRTC音视频通话集成 (TRTCManager - 纯数据流接口)
+- [x] Repository层 (ChatRepository)
+- [x] 音频通话Activity (AudioCallActivity - 响应式布局)
+- [x] 所有布局使用dp单位（无px硬编码）
 
-### ⏳ Backend完善
-- [ ] WebSocket Hub实现
-- [ ] Kafka集成
-- [ ] 腾讯云COS集成
-- [ ] 完整API实现
-- [ ] 消息ACK机制
-- [ ] 已读回执功能
-- [ ] 群聊功能
-- [ ] 文件上传API
+### ✅ Backend完善
+- [x] WebSocket Hub实现 (hub.go, client.go)
+- [x] Kafka集成 (Producer + Consumer)
+- [x] 腾讯云COS集成 (文件上传/下载/预签名URL)
+- [x] 完整API实现 (Auth, User, Message, File, TRTC)
+- [x] 操作日志系统 (OperationLog模型 + DAO)
+- [x] TRTC UserSig生成（纯数据流接口）
+- [x] 所有后台操作记录操作日志
 
-### ⏳ Admin Web完善
-- [ ] 根据HTML原型完善所有页面
-- [ ] ECharts数据可视化
-- [ ] 用户管理CRUD
-- [ ] 消息监控功能
-- [ ] 文件管理功能
-- [ ] 群聊管理功能
+### ✅ Admin Web完善
+- [x] 用户管理CRUD完整实现
+- [x] ECharts数据可视化 (Dashboard)
+- [x] 响应式布局（使用rem、百分比、Grid/Flexbox）
+- [x] UserService完整实现
+
+### ⏳ 待完善模块
+- [ ] Android聊天消息适配器
+- [ ] Android消息气泡UI（发送/接收）
+- [ ] Admin Web其他页面（消息管理、群聊管理、文件管理等）
+- [ ] Backend群聊功能API
+- [ ] 消息已读回执完整实现
 
 ## 技术栈
 
@@ -194,9 +196,12 @@ tencent_cloud:
 - 品牌名称统一为"蓝信"
 - 配色方案完全一致
 - 无幻想性扩展
+- **API文档优先** - 所有接口都有完整文档
 
 ### 📱 响应式设计
 - Android使用dp单位和ConstraintLayout
+- Admin Web使用rem、百分比、Grid/Flexbox
+- **禁止px硬编码** - 所有UI自适应
 - 支持所有主流手机品牌
 - 自适应不同屏幕尺寸
 
@@ -211,6 +216,18 @@ tencent_cloud:
 - bcrypt密码加密
 - 接口限流防护
 
+### 📝 操作日志记录
+- **所有后台功能记录变更日志**
+- 登录、消息、文件、通话等操作全记录
+- 支持审计和追溯
+- 数据库独立存储
+
+### 🎥 TRTC纯数据流
+- **仅使用数据流接口，不调用UI组件**
+- TRTCManager提供纯数据API
+- UI渲染由Activity独立处理
+- 灵活性高，易于定制
+
 ## Git仓库
 
 https://github.com/zhihang9978/-IM.git
@@ -218,8 +235,13 @@ https://github.com/zhihang9978/-IM.git
 ## 提交记录
 
 ```
+df65f46 - feat: add Android TRTC integration (data-only, no UI)
+fe93537 - feat: enhance Admin Web pages (UserManagement + Dashboard)
+7e84a43 - feat: complete Backend API layer
+5813379 - feat: integrate third-party SDKs and logging
+3900bb7 - feat: add Android network and database layer
 fa54ce1 - feat: add Android native project - complete structure
-547e99b - feat: add React admin web - complete structure
+547e99b - feat: add React admin web - complete structure  
 906718b - feat: add backend core services
 56ef04b - feat: add backend database layer
 a3304f9 - feat: initialize monorepo structure
@@ -227,7 +249,7 @@ a3304f9 - feat: initialize monorepo structure
 
 ## 当前执行进度
 
-**清单进度**: 约 1-100 / 140 项 (71%)
+**清单进度**: 约 1-125 / 140 项 (89%)
 
 **已完成模块统计**:
 - ✅ Monorepo基础结构
