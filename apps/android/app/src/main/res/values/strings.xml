@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用名称 -->
+    <string name="app_name">蓝信</string>
+    
+    <!-- 底部导航 -->
+    <string name="nav_chat">蓝信</string>
+    <string name="nav_contacts">通讯录</string>
+    <string name="nav_discover">发现</string>
+    <string name="nav_me">我</string>
+    
+    <!-- 聊天相关 -->
+    <string name="chat_input_hint">输入消息…</string>
+    <string name="chat_send">发送</string>
+    <string name="chat_voice_call">语音通话</string>
+    <string name="chat_video_call">视频通话</string>
+    <string name="chat_more">更多</string>
+    
+    <!-- 消息操作 -->
+    <string name="message_copy">复制</string>
+    <string name="message_recall">撤回</string>
+    <string name="message_delete">删除</string>
+    <string name="message_recalled">你撤回了一条消息</string>
+    <string name="message_recalled_other">对方撤回了一条消息</string>
+    
+    <!-- 通讯录相关 -->
+    <string name="contacts_new_friends">新的朋友</string>
+    <string name="contacts_group_chats">群聊</string>
+    <string name="contacts_tags">标签</string>
+    <string name="contacts_public_accounts">公众号</string>
+    <string name="contacts_search">搜索</string>
+    
+    <!-- 发现相关 -->
+    <string name="discover_moments">朋友圈</string>
+    <string name="discover_scan">扫一扫</string>
+    
+    <!-- 我的相关 -->
+    <string name="profile_favorites">收藏</string>
+    <string name="profile_settings">设置</string>
+    <string name="profile_report">联系投诉举报</string>
+    <string name="profile_lanxin_id">蓝信号</string>
+    
+    <!-- 设置相关 -->
+    <string name="settings_account">账号与安全</string>
+    <string name="settings_notification">消息通知</string>
+    <string name="settings_privacy">隐私</string>
+    <string name="settings_general">通用</string>
+    <string name="settings_about">关于蓝信</string>
+    <string name="settings_logout">退出登录</string>
+    
+    <!-- 通用 -->
+    <string name="search">搜索</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="loading">加载中…</string>
+    <string name="no_more_data">没有更多数据</string>
+    
+    <!-- 在线状态 -->
+    <string name="status_online">在线</string>
+    <string name="status_busy">忙碌</string>
+    <string name="status_offline">离线</string>
+    <string name="last_seen">上次在线：%s</string>
+    
+    <!-- 错误提示 -->
+    <string name="error_network">网络连接失败</string>
+    <string name="error_unknown">未知错误</string>
+</resources>
+

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_chat">
+
+    <fragment
+        android:id="@+id/navigation_chat"
+        android:name="com.lanxin.im.ui.chat.ChatListFragment"
+        android:label="@string/nav_chat" />
+
+    <fragment
+        android:id="@+id/navigation_contacts"
+        android:name="com.lanxin.im.ui.contacts.ContactsFragment"
+        android:label="@string/nav_contacts" />
+
+    <fragment
+        android:id="@+id/navigation_discover"
+        android:name="com.lanxin.im.ui.discover.DiscoverFragment"
+        android:label="@string/nav_discover" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.lanxin.im.ui.profile.ProfileFragment"
+        android:label="@string/nav_me" />
+
+</navigation>
+
