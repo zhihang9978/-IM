@@ -400,3 +400,43 @@ server {
 - WebSocket 端点: wss://im.lanxin168.com/ws
 - 通过 Cloudflare 自动升级为安全连接
 - Nginx 配置支持 WebSocket 代理
+
+## 最终SSL配置 (Cloudflare Origin Certificate)
+
+### 证书详情
+- **类型**: Cloudflare Origin Certificate (PEM格式)
+- **有效期**: 15年 (2025-10-16 至 2040-10-12)
+- **覆盖域名**: *.lanxin168.com 和 lanxin168.com
+- **证书位置**:
+  - Main Server: /etc/ssl/certs/cloudflare-origin.crt
+  - Private Key: /etc/ssl/private/cloudflare-origin.key
+- **备份服务器**: 证书已同步
+
+### Cloudflare SSL 模式
+**推荐设置**: 完全(严格) Full (Strict)
+- 用户 ↔ Cloudflare: HTTPS (由 Cloudflare Universal SSL 提供)
+- Cloudflare ↔ 源服务器: HTTPS (由 Cloudflare Origin Certificate 验证)
+- 提供端到端加密保护
+
+### 已验证的HTTPS访问
+```bash
+# API健康检查
+curl https://api.lanxin168.com/health
+# 返回: {"status":"ok","message":"LanXin IM Server is running","online_users":0}
+
+# 管理后台
+https://admin.lanxin168.com
+
+# 即时通讯
+https://im.lanxin168.com
+
+# WebSocket连接
+wss://im.lanxin168.com/ws
+```
+
+### 安全配置
+- SSL协议: TLSv1.2, TLSv1.3
+- 密码套件: ECDHE-RSA-AES256-GCM-SHA384 等强加密算法
+- Session Cache: 10MB 共享缓存
+- Session Timeout: 10分钟
+
