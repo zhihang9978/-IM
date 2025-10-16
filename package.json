@@ -1,0 +1,29 @@
+{
+  "name": "lanxin-communication",
+  "version": "1.0.0",
+  "private": true,
+  "description": "蓝信通讯 - 企业级即时通讯系统",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "pnpm --filter admin-web dev",
+    "build:admin": "pnpm --filter admin-web build",
+    "dev:backend": "cd apps/backend && go run cmd/server/main.go",
+    "build:backend": "cd apps/backend && go build -o bin/server cmd/server/main.go"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "im",
+    "chat",
+    "communication",
+    "lanxin"
+  ],
+  "author": "LanXin Team",
+  "license": "MIT"
+}
+

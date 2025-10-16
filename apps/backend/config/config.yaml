@@ -1,0 +1,73 @@
+server:
+  port: 8080
+  mode: debug  # debug, release
+  domain: lanxin168.com
+
+database:
+  mysql:
+    host: localhost
+    port: 3306
+    username: root
+    password: ""  # 请设置环境变量 MYSQL_PASSWORD
+    database: lanxin_im
+    charset: utf8mb4
+    max_idle_conns: 10
+    max_open_conns: 100
+    log_mode: true
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""  # 请设置环境变量 REDIS_PASSWORD
+  db: 0
+  pool_size: 10
+
+kafka:
+  brokers:
+    - localhost:9092
+  topic:
+    message: lanxin_message
+    notification: lanxin_notification
+
+jwt:
+  secret: ""  # 请设置环境变量 JWT_SECRET
+  expire_hours: 24
+  refresh_expire_hours: 168
+
+tencent_cloud:
+  cos:
+    secret_id: ""  # 请设置环境变量 COS_SECRET_ID
+    secret_key: ""  # 请设置环境变量 COS_SECRET_KEY
+    bucket: lanxin-files
+    region: ap-guangzhou
+    base_url: https://lanxin-files.cos.ap-guangzhou.myqcloud.com
+  trtc:
+    sdk_app_id: 0  # 请设置环境变量 TRTC_SDK_APP_ID
+    secret_key: ""  # 请设置环境变量 TRTC_SECRET_KEY
+    expire_time: 86400
+
+websocket:
+  read_buffer_size: 1024
+  write_buffer_size: 1024
+  heartbeat_interval: 30
+  max_message_size: 10240
+
+security:
+  bcrypt_cost: 12
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+  cors:
+    allowed_origins:
+      - http://localhost:3000
+      - https://admin.lanxin168.com
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Authorization
+      - Content-Type
+
