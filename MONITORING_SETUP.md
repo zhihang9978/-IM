@@ -459,3 +459,89 @@ up{server=~"main|backup"}
 **更新日期**: 2025-10-17  
 **配置人员**: Devin (AI Assistant)  
 **监控状态**: ✅ 完全正常运行
+
+---
+
+## 监控仪表盘更新 - 独立面板设计 (2025-10-17)
+
+### 设计变更
+
+根据用户需求，将主服务器和备份服务器的监控面板完全分开，便于单独观察每个服务器的状态。
+
+### 新仪表盘信息
+
+- **名称**: 蓝信通讯系统 - 服务器监控总览
+- **UID**: 22732c0c-7436-40f6-8f9a-2b0758e90c21
+- **URL**: http://154.37.212.67:3000/d/22732c0c-7436-40f6-8f9a-2b0758e90c21
+- **已设为默认首页**: ✅
+
+### 面板布局设计
+
+仪表盘采用左右对称布局，共10个独立面板：
+
+#### 左列 - 主服务器独立监控（5个面板）
+
+1. **主服务器 - CPU使用率**
+   - 查询: `100 - (avg by(alias) (irate(node_cpu_seconds_total{mode="idle",server="main"}[5m])) * 100)`
+   - 阈值: 绿色(0-60%) | 黄色(60-80%) | 红色(80-100%)
+
+2. **主服务器 - 内存使用率**
+   - 查询: `(1 - (node_memory_MemAvailable_bytes{server="main"} / node_memory_MemTotal_bytes{server="main"})) * 100`
+   - 阈值: 绿色(0-70%) | 黄色(70-85%) | 红色(85-100%)
+
+3. **主服务器 - 磁盘使用率**
+   - 查询: `(1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs",server="main"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs",server="main"})) * 100`
+   - 阈值: 绿色(0-80%) | 黄色(80-90%) | 红色(90-100%)
+
+4. **主服务器 - 网络流量**
+   - 查询: 
+     - 接收: `irate(node_network_receive_bytes_total{device!~"lo|docker.*|veth.*",server="main"}[5m])`
+     - 发送: `irate(node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*",server="main"}[5m])`
+
+5. **主服务器 - 在线状态**
+   - 查询: `up{server="main"}`
+   - 显示: 绿色背景(在线) | 红色背景(离线)
+
+#### 右列 - 备份服务器独立监控（5个面板）
+
+6. **备份服务器 - CPU使用率**
+   - 查询: `100 - (avg by(alias) (irate(node_cpu_seconds_total{mode="idle",server="backup"}[5m])) * 100)`
+   - 阈值: 绿色(0-60%) | 黄色(60-80%) | 红色(80-100%)
+
+7. **备份服务器 - 内存使用率**
+   - 查询: `(1 - (node_memory_MemAvailable_bytes{server="backup"} / node_memory_MemTotal_bytes{server="backup"})) * 100`
+   - 阈值: 绿色(0-70%) | 黄色(70-85%) | 红色(85-100%)
+
+8. **备份服务器 - 磁盘使用率**
+   - 查询: `(1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs",server="backup"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs",server="backup"})) * 100`
+   - 阈值: 绿色(0-80%) | 黄色(80-90%) | 红色(90-100%)
+
+9. **备份服务器 - 网络流量**
+   - 查询:
+     - 接收: `irate(node_network_receive_bytes_total{device!~"lo|docker.*|veth.*",server="backup"}[5m])`
+     - 发送: `irate(node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*",server="backup"}[5m])`
+
+10. **备份服务器 - 在线状态**
+    - 查询: `up{server="backup"}`
+    - 显示: 绿色背景(在线) | 红色背景(离线)
+
+### 优势特点
+
+✅ **清晰对比**: 左右对称布局，便于对比两台服务器状态  
+✅ **独立监控**: 每台服务器有自己完整的5个监控面板  
+✅ **颜色阈值**: 根据使用率自动变色，快速识别异常  
+✅ **实时数据**: 所有面板实时更新，15秒刷新间隔  
+✅ **中文标题**: 所有面板标题完全中文化  
+
+### 使用建议
+
+- **日常巡检**: 快速浏览左右两列，对比两台服务器状态
+- **异常告警**: 面板颜色变黄或红色时重点关注
+- **趋势分析**: 时间序列图表可查看6小时内的变化趋势
+- **在线监控**: 底部两个大屏实时显示服务器在线状态
+
+---
+
+**更新时间**: 2025-10-17  
+**设计理念**: 独立清晰，便于单独观察每个服务器状态  
+**当前状态**: ✅ 已设为默认首页，登录后自动显示
