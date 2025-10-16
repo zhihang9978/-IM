@@ -13,11 +13,20 @@ function Login() {
 
   const onFinish = async (values: { identifier: string; password: string }) => {
     try {
+      console.log('开始登录...', values)
       const response = await authService.login(values)
+      console.log('登录响应:', response)
+      console.log('Token:', response.token)
+      console.log('User:', response.user)
+      
       dispatch(setCredentials({ user: response.user, token: response.token }))
       message.success('登录成功！')
+      
+      console.log('准备跳转到 /dashboard')
       navigate('/dashboard')
+      console.log('navigate 已调用')
     } catch (error: any) {
+      console.error('登录错误:', error)
       message.error(error?.message || '登录失败，请检查用户名和密码')
     }
   }

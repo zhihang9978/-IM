@@ -6,12 +6,20 @@ class AuthService {
    * 用户登录
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
+    console.log('[AuthService] 发送登录请求:', data);
     const response = await api.post<any>('/auth/login', data);
+    console.log('[AuthService] 收到响应:', response);
+    console.log('[AuthService] response.data:', response.data);
+    console.log('[AuthService] response.data.token:', response.data?.token);
+    
     if (response.data && response.data.token) {
+      console.log('[AuthService] 保存token到localStorage');
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('[AuthService] 登录成功，返回数据');
       return response.data;
     }
+    console.error('[AuthService] 响应格式错误:', response);
     throw new Error(response.message || '登录失败');
   }
 
