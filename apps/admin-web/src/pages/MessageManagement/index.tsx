@@ -1,11 +1,155 @@
-import { Card } from 'antd'
+import { useState } from 'react'
+import { Card, Table, Button, Input, DatePicker, Select, Space, Tag, message } from 'antd'
+import { MessageOutlined, SearchOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import dayjs from 'dayjs'
+
+const { RangePicker } = DatePicker
+const { Option } = Select
+
+interface Message {
+  id: number;
+  sender: string;
+  receiver: string;
+  content: string;
+  type: string;
+  status: string;
+  created_at: string;
+}
 
 function MessageManagement() {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [messageType, setMessageType] = useState<string>()
+  const [dateRange, setDateRange] = useState<any>()
+
+  // 表格列定义
+  const columns: ColumnsType<Message> = [
+    {
+      title: '消息ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 100,
+    },
+    {
+      title: '发送者',
+      dataIndex: 'sender',
+      key: 'sender',
+      width: 150,
+    },
+    {
+      title: '接收者',
+      dataIndex: 'receiver',
+      key: 'receiver',
+      width: 150,
+    },
+    {
+      title: '消息内容',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
+      width: 300,
+    },
+    {
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      width: 100,
+      render: (type: string) => {
+        const typeMap: any = {
+          text: { color: 'default', text: '文本' },
+          image: { color: 'blue', text: '图片' },
+          voice: { color: 'green', text: '语音' },
+          video: { color: 'purple', text: '视频' },
+          file: { color: 'orange', text: '文件' },
+        }
+        const t = typeMap[type] || typeMap.text
+        return <Tag color={t.color}>{t.text}</Tag>
+      },
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: string) => {
+        const statusMap: any = {
+          sent: { color: 'processing', text: '已发送' },
+          delivered: { color: 'success', text: '已送达' },
+          read: { color: 'success', text: '已读' },
+          recalled: { color: 'default', text: '已撤回' },
+        }
+        const s = statusMap[status] || statusMap.sent
+        return <Tag color={s.color}>{s.text}</Tag>
+      },
+    },
+    {
+      title: '发送时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 180,
+      render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'),
+    },
+  ]
+
   return (
     <div>
-      <h1>消息管理</h1>
-      <Card style={{ marginTop: 24 }}>
-        <p>消息管理功能开发中...</p>
+      <h1 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>消息管理</h1>
+      
+      <Card>
+        {/* 搜索和筛选栏 */}
+        <Space style={{ marginBottom: '1rem', width: '100%', flexWrap: 'wrap' }} size="middle">
+          <Input
+            placeholder="搜索用户名或消息内容"
+            prefix={<SearchOutlined />}
+            style={{ width: '16rem' }}
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            allowClear
+          />
+          
+          <Select
+            placeholder="消息类型"
+            style={{ width: '10rem' }}
+            value={messageType}
+            onChange={setMessageType}
+            allowClear
+          >
+            <Option value="text">文本</Option>
+            <Option value="image">图片</Option>
+            <Option value="voice">语音</Option>
+            <Option value="video">视频</Option>
+            <Option value="file">文件</Option>
+          </Select>
+          
+          <RangePicker
+            style={{ width: '20rem' }}
+            value={dateRange}
+            onChange={setDateRange}
+          />
+          
+          <Button type="primary" icon={<SearchOutlined />}>
+            搜索
+          </Button>
+          
+          <Button icon={<DownloadOutlined />}>
+            导出
+          </Button>
+        </Space>
+
+        <Table
+          columns={columns}
+          dataSource={messages}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1300 }}
+          pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `共 ${total} 条消息`,
+          }}
+        />
       </Card>
     </div>
   )
