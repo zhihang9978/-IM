@@ -32,10 +32,19 @@ class ApiClient {
       }
     );
 
-    // 响应拦截器 - 处理错误
+    // 响应拦截器 - 处理错误和解包后端标准格式
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
-        return response.data;
+        // 后端标准响应格式: { code: 0, message: "success", data: {...} }
+        const { code, message, data } = response.data;
+        
+        if (code === 0) {
+          // 成功，返回data部分
+          return data;
+        } else {
+          // 业务错误
+          return Promise.reject({ code, message });
+        }
       },
       (error) => {
         if (error.response) {
