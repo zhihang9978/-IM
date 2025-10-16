@@ -345,3 +345,117 @@ docker compose logs -f
 
 **文档更新**: 2025-10-17  
 **配置完成度**: 100%
+
+---
+
+## 监控目标更新 (2025-10-17)
+
+### 监控范围调整
+
+监控系统已更新为监控主服务器和备份服务器，而不是监控服务器本身。
+
+### 监控目标
+
+Prometheus现在监控以下三台服务器：
+
+#### 1. 主服务器 (Main Server)
+- **IP地址**: 154.40.45.121
+- **角色**: 应用服务器 (application)
+- **监控端口**: 9100
+- **状态**: ✅ 在线
+- **Node Exporter**: 已安装并运行 (PID 133158)
+
+#### 2. 备份服务器 (Backup Server)  
+- **IP地址**: 154.40.45.98
+- **角色**: 存储服务器 (storage)
+- **监控端口**: 9100
+- **状态**: ✅ 在线
+- **Node Exporter**: 已安装并运行 (PID 79901)
+
+#### 3. 监控服务器 (Monitor Server)
+- **IP地址**: 154.37.212.67 (通过node-exporter容器)
+- **角色**: 监控节点 (monitoring)
+- **监控端口**: 9100
+- **状态**: ✅ 在线
+- **Node Exporter**: Docker容器运行 (container: node-exporter)
+
+### Prometheus配置
+
+配置文件: `/opt/monitoring/prometheus/prometheus.yml`
+
+```yaml
+scrape_configs:
+  - job_name: '主服务器 (Main Server)'
+    static_configs:
+      - targets: ['154.40.45.121:9100']
+        labels:
+          server: 'main'
+          role: 'application'
+          alias: '主服务器'
+  
+  - job_name: '备份服务器 (Backup Server)'
+    static_configs:
+      - targets: ['154.40.45.98:9100']
+        labels:
+          server: 'backup'
+          role: 'storage'
+          alias: '备份服务器'
+  
+  - job_name: '监控服务器 (Monitor Server)'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          server: 'monitor'
+          role: 'monitoring'
+          alias: '监控服务器'
+```
+
+### Grafana仪表盘
+
+新建仪表盘专门监控主服务器和备份服务器：
+
+- **名称**: 蓝信通讯系统 - 主服务器与备份服务器监控
+- **UID**: 94c38101-68f9-4034-9a6e-715695f69d26
+- **URL**: http://154.37.212.67:3000/d/94c38101-68f9-4034-9a6e-715695f69d26
+
+### 监控面板查询
+
+所有面板使用label过滤只显示主服务器和备份服务器数据：
+
+```promql
+# CPU使用率
+100 - (avg by(alias) (irate(node_cpu_seconds_total{mode="idle",server=~"main|backup"}[5m])) * 100)
+
+# 内存使用率  
+(1 - (node_memory_MemAvailable_bytes{server=~"main|backup"} / node_memory_MemTotal_bytes{server=~"main|backup"})) * 100
+
+# 磁盘使用率
+(1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs",server=~"main|backup"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs",server=~"main|backup"})) * 100
+
+# 网络流量
+irate(node_network_receive_bytes_total{device!~"lo|docker.*|veth.*",server=~"main|backup"}[5m])
+irate(node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*",server=~"main|backup"}[5m])
+
+# 在线状态
+up{server=~"main|backup"}
+```
+
+### 验证结果
+
+✅ 所有目标状态健康：
+- 主服务器: **up**
+- 备份服务器: **up**  
+- 监控服务器: **up**
+
+✅ 仪表盘显示正常：
+- CPU使用率曲线正常
+- 内存使用率曲线正常
+- 磁盘使用率曲线正常
+- 网络流量双曲线正常
+- 服务器在线状态显示绿色
+
+---
+
+**更新日期**: 2025-10-17  
+**配置人员**: Devin (AI Assistant)  
+**监控状态**: ✅ 完全正常运行
