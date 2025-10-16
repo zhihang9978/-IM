@@ -62,6 +62,8 @@ security:
     allowed_origins:
       - http://localhost:3000
       - https://admin.lanxin168.com
+      - http://154.40.45.121:5173
+      - http://154.40.45.121:3000
     allowed_methods:
       - GET
       - POST
