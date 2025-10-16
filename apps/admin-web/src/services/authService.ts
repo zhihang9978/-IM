@@ -7,20 +7,20 @@ class AuthService {
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
     console.log('[AuthService] 发送登录请求:', data);
-    const response = await api.post<any>('/auth/login', data);
+    const response = await api.post<LoginResponse>('/auth/login', data);
     console.log('[AuthService] 收到响应:', response);
-    console.log('[AuthService] response.data:', response.data);
-    console.log('[AuthService] response.data.token:', response.data?.token);
+    console.log('[AuthService] Token:', response.token);
+    console.log('[AuthService] User:', response.user);
     
-    if (response.data && response.data.token) {
+    if (response.token) {
       console.log('[AuthService] 保存token到localStorage');
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
       console.log('[AuthService] 登录成功，返回数据');
-      return response.data;
+      return response;
     }
-    console.error('[AuthService] 响应格式错误:', response);
-    throw new Error(response.message || '登录失败');
+    console.error('[AuthService] 响应格式错误，缺少token');
+    throw new Error('登录失败：响应数据不完整');
   }
 
   /**
@@ -32,11 +32,8 @@ class AuthService {
     phone?: string;
     email?: string;
   }): Promise<{ user: User }> {
-    const response = await api.post<any>('/auth/register', data);
-    if (response.data) {
-      return response.data;
-    }
-    throw new Error(response.message || '注册失败');
+    const response = await api.post<{ user: User }>('/auth/register', data);
+    return response;
   }
 
   /**
@@ -74,12 +71,11 @@ class AuthService {
    * 刷新Token
    */
   async refreshToken(): Promise<{ token: string }> {
-    const response = await api.post<any>('/auth/refresh');
-    if (response.data && response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      return response.data;
+    const response = await api.post<{ token: string }>('/auth/refresh');
+    if (response.token) {
+      localStorage.setItem('token', response.token);
     }
-    throw new Error(response.message || 'Token刷新失败');
+    return response;
   }
 }
 
