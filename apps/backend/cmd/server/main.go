@@ -72,7 +72,6 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	messageHandler := api.NewMessageHandler(hub, producer)
 	fileHandler, _ := api.NewFileHandler(cfg)
 	trtcHandler := api.NewTRTCHandler(cfg, hub)
-	groupHandler := api.NewGroupHandler()
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -132,15 +131,6 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.POST("/trtc/call/end", trtcHandler.EndCall)
 			authorized.POST("/trtc/screen-share/start", trtcHandler.StartScreenShare)
 			authorized.POST("/trtc/screen-share/end", trtcHandler.EndScreenShare)
-			
-			// 群组相关
-			authorized.POST("/groups", groupHandler.CreateGroup)
-			authorized.GET("/groups/:id", groupHandler.GetGroup)
-			authorized.GET("/groups", groupHandler.GetUserGroups)
-			authorized.PUT("/groups/:id", groupHandler.UpdateGroup)
-			authorized.POST("/groups/:id/members", groupHandler.AddMember)
-			authorized.DELETE("/groups/:id/members/:member_id", groupHandler.RemoveMember)
-			authorized.GET("/groups/:id/members", groupHandler.GetMembers)
 		}
 
 		// 管理员API
@@ -150,9 +140,6 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		{
 			// 用户管理
 			admin.GET("/users", userHandler.SearchUsers)
-			
-			// 群组管理
-			admin.POST("/groups/:id/disband", groupHandler.DisbandGroup)
 			
 			// TODO: 添加更多管理员API
 			// admin.GET("/logs", adminHandler.GetOperationLogs)
