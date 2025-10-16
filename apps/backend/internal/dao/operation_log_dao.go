@@ -2,6 +2,7 @@ package dao
 
 import (
 	"encoding/json"
+	"time"
 	"github.com/lanxin/im-backend/internal/model"
 	"github.com/lanxin/im-backend/internal/pkg/mysql"
 	"gorm.io/gorm"

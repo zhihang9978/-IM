@@ -22,13 +22,14 @@
      password: your_redis_password
    jwt:
      secret: your_jwt_secret_key
-   tencent_cloud:
+   storage:
      cos:
-       secret_id: your_cos_secret_id
-       secret_key: your_cos_secret_key
-     trtc:
-       sdk_app_id: your_trtc_app_id
-       secret_key: your_trtc_secret_key
+       secret_id: your_cos_access_key        # 自建COS访问密钥
+       secret_key: your_cos_secret_key       # 自建COS密钥
+       base_url: http://localhost:9000       # 自建COS地址（MinIO）
+   trtc:
+     sdk_app_id: your_trtc_app_id            # 腾讯云TRTC应用ID
+     secret_key: your_trtc_secret_key        # 腾讯云TRTC密钥
 
 4. 初始化数据库（执行migrations目录下的SQL文件）
    mysql -u root -p lanxin_im < migrations/001_create_users_table.up.sql
@@ -81,7 +82,28 @@
    ./gradlew assembleDebug
 
 ═══════════════════════════════════════════════════════════════
-四、项目特性
+四、自建COS对象存储部署（MinIO推荐）
+═══════════════════════════════════════════════════════════════
+
+1. 安装MinIO（S3兼容的对象存储）
+   Docker方式:
+   docker run -p 9000:9000 -p 9001:9001 \
+     -e "MINIO_ROOT_USER=minioadmin" \
+     -e "MINIO_ROOT_PASSWORD=minioadmin" \
+     minio/minio server /data --console-address ":9001"
+
+2. 创建Bucket
+   访问 http://localhost:9001
+   创建名为 "lanxin-files" 的Bucket
+
+3. 配置访问策略
+   设置Bucket为Private（私有读写）
+
+4. 获取AccessKey和SecretKey
+   在MinIO控制台创建访问密钥
+
+═══════════════════════════════════════════════════════════════
+五、项目特性
 ═══════════════════════════════════════════════════════════════
 
 ✓ Monorepo架构 - 统一代码管理

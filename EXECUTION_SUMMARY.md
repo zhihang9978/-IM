@@ -58,9 +58,9 @@
 - ✅ Kafka Producer (消息持久化)
 - ✅ Kafka Consumer (消息消费)
 
-#### 第三方集成 ✅
-- ✅ 腾讯云COS客户端 (上传、删除、预签名URL)
-- ✅ 腾讯云TRTC UserSig生成
+#### 存储与音视频集成 ✅
+- ✅ 自建COS客户端 (上传、删除、预签名URL - S3兼容)
+- ✅ 腾讯云TRTC UserSig生成（纯数据流接口）
 
 #### 操作日志 ✅
 - ✅ OperationLog模型和表
@@ -335,7 +335,7 @@ pnpm dev
 | 后端语言 | Go | 高并发、轻量部署 |
 | 数据库 | MySQL + Redis | 成熟稳健、主从同步 |
 | 消息队列 | Kafka | 高吞吐、顺序保证 |
-| 文件存储 | 腾讯云COS | 海量存储、CDN加速 |
+| 文件存储 | **自建COS** | 数据自主可控、S3兼容 |
 | 音视频 | 腾讯云TRTC | 低延迟、高质量 |
 
 ---
@@ -415,15 +415,18 @@ pnpm dev
    - JDK 17
    - Android SDK 34
 
-### 第三方服务配置
-1. **腾讯云COS**:
+### 服务配置
+1. **自建COS对象存储**:
+   - 推荐使用MinIO（S3兼容）
    - 创建Bucket: `lanxin-files`
-   - 配置CORS
-   - 获取SecretID和SecretKey
+   - 配置CORS策略
+   - 获取AccessKey和SecretKey
+   - 默认端口: 9000
 
-2. **腾讯云TRTC**:
+2. **腾讯云TRTC**（音视频服务）:
    - 创建应用获取SDKAppID
    - 获取SecretKey
+   - 配置回调地址
 
 ### 环境变量
 必须配置的环境变量：

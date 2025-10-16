@@ -78,10 +78,10 @@ dependencies {
     // WebSocket (OkHttp)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
-    // 腾讯云 TRTC SDK
+    // 腾讯云 TRTC SDK（音视频通话）
     implementation("com.tencent.liteav:LiteAVSDK_TRTC:11.5.0")
     
-    // 腾讯云 COS SDK
+    // 自建COS SDK（S3兼容对象存储，可用MinIO）
     implementation("com.tencent.qcloud:cosxml:5.9.8")
     
     // Glide 图片加载

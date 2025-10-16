@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/model"
-	"gorm.io/gorm"
 )
 
 type UserService struct {

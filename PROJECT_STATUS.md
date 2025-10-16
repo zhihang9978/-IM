@@ -62,8 +62,8 @@ lanxin-communication/
 - Navigation Components
 - Room Database
 - Retrofit + OkHttp
-- 腾讯云TRTC SDK
-- 腾讯云COS SDK
+- 腾讯云TRTC SDK（仅音视频）
+- 自建COS SDK（对象存储）
 - Glide图片加载
 - Coroutines
 
@@ -81,10 +81,10 @@ lanxin-communication/
 ### ✅ Backend完善
 - [x] WebSocket Hub实现 (hub.go, client.go)
 - [x] Kafka集成 (Producer + Consumer)
-- [x] 腾讯云COS集成 (文件上传/下载/预签名URL)
+- [x] 自建COS集成 (文件上传/下载/预签名URL - S3兼容)
 - [x] 完整API实现 (Auth, User, Message, File, TRTC)
 - [x] 操作日志系统 (OperationLog模型 + DAO)
-- [x] TRTC UserSig生成（纯数据流接口）
+- [x] 腾讯云TRTC UserSig生成（纯数据流接口）
 - [x] 所有后台操作记录操作日志
 
 ### ✅ Admin Web完善
