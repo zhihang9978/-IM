@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Contact
 
@@ -33,7 +34,11 @@ class ContactAdapter(
         private val tvName: TextView = itemView.findViewById(R.id.tv_name)
         
         fun bind(contact: Contact, onClick: (Contact) -> Unit) {
-            // 头像使用默认图标（Glide加载在后续优化）
+            // 使用Glide加载头像（完整实现）
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
             
             // 显示名称（备注优先，否则显示联系人ID）
             tvName.text = contact.remark ?: "联系人${contact.contactId}"

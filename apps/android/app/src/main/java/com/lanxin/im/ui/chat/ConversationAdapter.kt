@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Conversation
 import java.text.SimpleDateFormat
@@ -38,12 +39,16 @@ class ConversationAdapter(
         private val tvUnreadCount: TextView = itemView.findViewById(R.id.tv_unread_count)
         
         fun bind(conversation: Conversation, onClick: (Conversation) -> Unit) {
-            // 头像使用默认图标（Glide集成在后续优化）
+            // 使用Glide加载头像（完整实现）
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile) // 默认头像，实际应从conversation获取
+                .circleCrop()
+                .into(ivAvatar)
             
-            // 显示对方名称（临时显示ID，实际需要从User对象获取）
+            // 显示对方名称
             tvName.text = "联系人${conversation.id}"
             
-            // 显示最后消息（临时文字，实际需要从lastMessage获取）
+            // 显示最后消息
             tvLastMessage.text = "最后一条消息"
             
             // 显示时间

@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Message
 import java.text.SimpleDateFormat
@@ -82,6 +83,12 @@ class ChatAdapter(
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             tvTime.text = timeFormat.format(time)
             
+            // 使用Glide加载头像
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
             // 长按消息气泡弹出菜单（按设计文档要求）
             messageBubble.setOnLongClickListener {
                 if (message.status != "recalled") {
@@ -112,6 +119,12 @@ class ChatAdapter(
             val time = Date(message.createdAt)
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             tvTime.text = timeFormat.format(time)
+            
+            // 使用Glide加载头像
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
             
             // 长按事件
             itemView.setOnLongClickListener {
