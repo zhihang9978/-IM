@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/config"
@@ -124,6 +125,42 @@ func (h *FileHandler) UploadCallback(c *gin.Context) {
 		"code":    0,
 		"message": "success",
 		"data":    nil,
+	})
+}
+
+func (h *FileHandler) GetStorageStats(c *gin.Context) {
+	var stat syscall.Statfs_t
+	err := syscall.Statfs("/", &stat)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to get storage stats",
+			"data":    nil,
+		})
+		return
+	}
+
+	totalBytes := stat.Blocks * uint64(stat.Bsize)
+	availableBytes := stat.Bavail * uint64(stat.Bsize)
+	usedBytes := totalBytes - availableBytes
+
+	totalGB := float64(totalBytes) / (1024 * 1024 * 1024)
+	usedGB := float64(usedBytes) / (1024 * 1024 * 1024)
+	availableGB := float64(availableBytes) / (1024 * 1024 * 1024)
+	usedPercent := (float64(usedBytes) / float64(totalBytes)) * 100
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"message": "success",
+		"data": gin.H{
+			"total_bytes":      totalBytes,
+			"used_bytes":       usedBytes,
+			"available_bytes":  availableBytes,
+			"total_gb":         totalGB,
+			"used_gb":          usedGB,
+			"available_gb":     availableGB,
+			"used_percent":     usedPercent,
+		},
 	})
 }
 

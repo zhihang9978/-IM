@@ -28,13 +28,41 @@ class DiscoverFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        view.findViewById<View>(R.id.btn_moments).setOnClickListener {
+        view.findViewById<View>(R.id.btn_moments)?.setOnClickListener {
             Toast.makeText(requireContext(), "朋友圈功能开发中", Toast.LENGTH_SHORT).show()
         }
         
-        view.findViewById<View>(R.id.btn_scan).setOnClickListener {
+        view.findViewById<View>(R.id.btn_scan)?.setOnClickListener {
             val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ScanQRCodeActivity::class.java)
             startActivity(intent)
+        }
+        
+        view.findViewById<View>(R.id.btn_shake)?.setOnClickListener {
+            Toast.makeText(requireContext(), "摇一摇功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_top_stories)?.setOnClickListener {
+            Toast.makeText(requireContext(), "看一看功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_search)?.setOnClickListener {
+            Toast.makeText(requireContext(), "搜一搜功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_live)?.setOnClickListener {
+            Toast.makeText(requireContext(), "直播和附近功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_shopping)?.setOnClickListener {
+            Toast.makeText(requireContext(), "购物功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_games)?.setOnClickListener {
+            Toast.makeText(requireContext(), "游戏功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.btn_mini_program)?.setOnClickListener {
+            Toast.makeText(requireContext(), "小程序功能开发中", Toast.LENGTH_SHORT).show()
         }
     }
 }

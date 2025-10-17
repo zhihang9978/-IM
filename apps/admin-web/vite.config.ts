@@ -14,12 +14,15 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://api.lanxin168.com',
         changeOrigin: true,
+        secure: false,
       },
       '/ws': {
-        target: 'ws://localhost:8080',
+        target: 'wss://api.lanxin168.com',
         ws: true,
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

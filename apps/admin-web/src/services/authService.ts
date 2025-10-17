@@ -6,12 +6,21 @@ class AuthService {
    * 用户登录
    */
   async login(data: LoginRequest): Promise<LoginResponse> {
+    console.log('[AuthService] 发送登录请求:', data);
     const response = await api.post<LoginResponse>('/auth/login', data);
+    console.log('[AuthService] 收到响应:', response);
+    console.log('[AuthService] Token:', response.token);
+    console.log('[AuthService] User:', response.user);
+    
     if (response.token) {
+      console.log('[AuthService] 保存token到localStorage');
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('[AuthService] 登录成功，返回数据');
+      return response;
     }
-    return response;
+    console.error('[AuthService] 响应格式错误，缺少token');
+    throw new Error('登录失败：响应数据不完整');
   }
 
   /**
@@ -23,7 +32,8 @@ class AuthService {
     phone?: string;
     email?: string;
   }): Promise<{ user: User }> {
-    return api.post('/auth/register', data);
+    const response = await api.post<{ user: User }>('/auth/register', data);
+    return response;
   }
 
   /**
@@ -61,7 +71,11 @@ class AuthService {
    * 刷新Token
    */
   async refreshToken(): Promise<{ token: string }> {
-    return api.post('/auth/refresh');
+    const response = await api.post<{ token: string }>('/auth/refresh');
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+    }
+    return response;
   }
 }
 

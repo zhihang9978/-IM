@@ -72,6 +72,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	messageHandler := api.NewMessageHandler(hub, producer)
 	fileHandler, _ := api.NewFileHandler(cfg)
 	trtcHandler := api.NewTRTCHandler(cfg, hub)
+	adminHandler := api.NewAdminHandler()
 	conversationHandler := api.NewConversationHandler()
 	contactHandler := api.NewContactHandler()
 
@@ -102,6 +103,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 认证相关
 			public.POST("/auth/register", authHandler.Register)
 			public.POST("/auth/login", authHandler.Login)
+			
+			public.POST("/admin/reset-password", adminHandler.ResetAdminPassword)
 		}
 
 		// 需要认证的API
@@ -111,6 +114,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 认证相关
 			authorized.POST("/auth/refresh", authHandler.RefreshToken)
 			authorized.POST("/auth/logout", authHandler.Logout)
+			authorized.POST("/auth/change-password", authHandler.ChangePassword)
 			
 			// 用户相关
 			authorized.GET("/users/me", userHandler.GetCurrentUser)
@@ -122,12 +126,15 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			
 			// 联系人相关（Android客户端需要）
 			authorized.GET("/contacts", contactHandler.GetContacts)
+			authorized.POST("/contacts", contactHandler.AddContact)
+			authorized.DELETE("/contacts", contactHandler.DeleteContact)
 			
 			// 消息相关
 			authorized.POST("/messages", messageHandler.SendMessage)
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
+			authorized.GET("/messages/search", messageHandler.SearchMessages)
 			
 			// 文件相关
 			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)
@@ -147,11 +154,15 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		admin.Use(middleware.AdminAuth())
 		{
 			// 用户管理
-			admin.GET("/users", userHandler.SearchUsers)
+			admin.GET("/users", adminHandler.GetUsers)
+			admin.GET("/users/export", adminHandler.ExportUsers)
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.PUT("/users/:id", adminHandler.UpdateUser)
+			admin.DELETE("/users/:id", adminHandler.DeleteUser)
+			admin.POST("/users/:id/ban", adminHandler.BanUser)
+			admin.POST("/users/:id/unban", adminHandler.UnbanUser)
 			
-			// TODO: 添加更多管理员API
-			// admin.GET("/logs", adminHandler.GetOperationLogs)
-			// admin.GET("/stats", adminHandler.GetStatistics)
+			admin.GET("/storage/stats", fileHandler.GetStorageStats)
 		}
 	}
 

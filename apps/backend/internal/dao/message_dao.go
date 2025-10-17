@@ -103,3 +103,27 @@ func (d *MessageDAO) GetLatestMessage(conversationID uint) (*model.Message, erro
 	return &message, nil
 }
 
+func (d *MessageDAO) SearchMessages(userID uint, keyword string, page, pageSize int) ([]model.Message, int64, error) {
+	var messages []model.Message
+	var total int64
+
+	query := d.db.Model(&model.Message{}).
+		Where("(sender_id = ? OR receiver_id = ?) AND type = ? AND content LIKE ?",
+			userID, userID, model.MessageTypeText, "%"+keyword+"%").
+		Where("status != ?", model.MessageStatusRecalled)
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Preload("Sender").Preload("Receiver").
+		Order("created_at DESC").
+		Offset(offset).Limit(pageSize).
+		Find(&messages).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return messages, total, nil
+}
+

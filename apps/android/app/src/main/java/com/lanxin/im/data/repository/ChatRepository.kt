@@ -32,9 +32,13 @@ class ChatRepository(
                     val conversation = Conversation(
                         id = item.id,
                         type = item.type,
-                        peerId = item.user?.id ?: 0,
-                        lastMessage = item.last_message?.content ?: "",
+                        user1Id = if (item.type == "single") item.user?.id else null,
+                        user2Id = null,
+                        groupId = null,
+                        lastMessageId = item.last_message?.id,
+                        lastMessageAt = item.updated_at,
                         unreadCount = item.unread_count,
+                        createdAt = item.updated_at,
                         updatedAt = item.updated_at
                     )
                     conversationDao.insertConversation(conversation)

@@ -11,6 +11,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        // 腾讯云TRTC SDK Maven仓库
+        maven { url = uri("https://mirrors.tencent.com/repository/maven/") }
     }
 }
 

@@ -29,7 +29,7 @@ function UserManagement() {
         status: statusFilter,
         role: roleFilter,
       })
-      setUsers(response.data)
+      setUsers(response.users)
       setTotal(response.total)
     } catch (error: any) {
       message.error(error?.message || '加载用户列表失败')
@@ -48,7 +48,7 @@ function UserManagement() {
     setLoading(true)
     try {
       const response = await userService.searchUsers(searchKeyword, page, pageSize)
-      setUsers(response.data)
+      setUsers(response.users)
       setTotal(response.total)
     } catch (error: any) {
       message.error(error?.message || '搜索失败')
@@ -149,24 +149,28 @@ function UserManagement() {
       dataIndex: 'username',
       key: 'username',
       width: 150,
+      render: (text: string) => text || '-',
     },
     {
       title: '蓝信号',
       dataIndex: 'lanxin_id',
       key: 'lanxin_id',
       width: 150,
+      render: (text: string) => text || '-',
     },
     {
       title: '手机号',
       dataIndex: 'phone',
       key: 'phone',
       width: 150,
+      render: (text: string) => text || '-',
     },
     {
       title: '邮箱',
       dataIndex: 'email',
       key: 'email',
       width: 200,
+      render: (text: string) => text || '-',
     },
     {
       title: '角色',

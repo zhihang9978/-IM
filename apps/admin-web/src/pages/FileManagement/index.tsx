@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Card, Table, Button, Input, Select, Space, Tag, Progress } from 'antd'
+import { useState, useEffect } from 'react'
+import { Card, Table, Button, Input, Select, Space, Tag, Progress, message } from 'antd'
 import { FileOutlined, SearchOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
+import api from '../../services/api'
 
 const { Option } = Select
 
@@ -16,11 +17,38 @@ interface FileItem {
   created_at: string;
 }
 
+interface StorageStats {
+  total_gb: number;
+  used_gb: number;
+  available_gb: number;
+  used_percent: number;
+}
+
 function FileManagement() {
   const [files, setFiles] = useState<FileItem[]>([])
   const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [fileType, setFileType] = useState<string>()
+  const [storageStats, setStorageStats] = useState<StorageStats>({
+    total_gb: 0,
+    used_gb: 0,
+    available_gb: 0,
+    used_percent: 0,
+  })
+
+  useEffect(() => {
+    fetchStorageStats()
+  }, [])
+
+  const fetchStorageStats = async () => {
+    try {
+      const data = await api.get<StorageStats>('/admin/storage/stats')
+      setStorageStats(data)
+    } catch (error) {
+      console.error('Failed to fetch storage stats:', error)
+      message.error('获取存储统计失败')
+    }
+  }
 
   // 格式化文件大小
   const formatFileSize = (bytes: number) => {
@@ -110,13 +138,15 @@ function FileManagement() {
       <h1 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>文件管理</h1>
       
       <Card>
-        {/* 存储统计 */}
         <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
           <Space direction="vertical" style={{ width: '100%' }}>
             <span style={{ fontWeight: 500 }}>存储空间使用</span>
-            <Progress percent={45} strokeColor="#3b82f6" />
+            <Progress 
+              percent={Math.round(storageStats.used_percent)} 
+              strokeColor="#3b82f6" 
+            />
             <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-              已使用 45.2 GB / 总共 100 GB
+              已使用 {storageStats.used_gb.toFixed(2)} GB / 总共 {storageStats.total_gb.toFixed(2)} GB
             </span>
           </Space>
         </div>

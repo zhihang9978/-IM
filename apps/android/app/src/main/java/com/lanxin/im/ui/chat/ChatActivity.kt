@@ -181,7 +181,7 @@ class ChatActivity : AppCompatActivity() {
         
         // 初始化语音录制器和播放器
         voiceRecorder = VoiceRecorder(this)
-        voicePlayer = VoicePlayer(this)
+        voicePlayer = VoicePlayer()
     }
     
     private fun setupListeners() {
@@ -783,10 +783,25 @@ class ChatActivity : AppCompatActivity() {
     private fun sendImageMessage(imagePath: String) {
         lifecycleScope.launch {
             try {
+                Toast.makeText(this@ChatActivity, "正在上传图片...", Toast.LENGTH_SHORT).show()
+                
+                // 上传图片到MinIO
+                val imageUri = Uri.parse(imagePath)
+                val fileUrl = com.lanxin.im.utils.FileUploadHelper.uploadFile(
+                    this@ChatActivity,
+                    imageUri,
+                    "image"
+                )
+                
+                if (fileUrl == null) {
+                    Toast.makeText(this@ChatActivity, "图片上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
                 Toast.makeText(this@ChatActivity, "正在发送图片...", Toast.LENGTH_SHORT).show()
                 val request = com.lanxin.im.data.remote.SendMessageRequest(
                     receiver_id = peerId,
-                    content = imagePath,
+                    content = fileUrl,
                     type = "image"
                 )
                 val response = RetrofitClient.apiService.sendMessage(request)
@@ -812,10 +827,25 @@ class ChatActivity : AppCompatActivity() {
     private fun sendVideoMessage(videoPath: String) {
         lifecycleScope.launch {
             try {
+                Toast.makeText(this@ChatActivity, "正在上传视频...", Toast.LENGTH_SHORT).show()
+                
+                // 上传视频到MinIO
+                val videoUri = Uri.parse(videoPath)
+                val fileUrl = com.lanxin.im.utils.FileUploadHelper.uploadFile(
+                    this@ChatActivity,
+                    videoUri,
+                    "video"
+                )
+                
+                if (fileUrl == null) {
+                    Toast.makeText(this@ChatActivity, "视频上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
                 Toast.makeText(this@ChatActivity, "正在发送视频...", Toast.LENGTH_SHORT).show()
                 val request = com.lanxin.im.data.remote.SendMessageRequest(
                     receiver_id = peerId,
-                    content = videoPath,
+                    content = fileUrl,
                     type = "video"
                 )
                 val response = RetrofitClient.apiService.sendMessage(request)
@@ -841,10 +871,25 @@ class ChatActivity : AppCompatActivity() {
     private fun sendFileMessage(filePath: String, fileName: String, fileSize: Long) {
         lifecycleScope.launch {
             try {
+                Toast.makeText(this@ChatActivity, "正在上传文件...", Toast.LENGTH_SHORT).show()
+                
+                // 上传文件到MinIO
+                val fileUri = Uri.parse(filePath)
+                val fileUrl = com.lanxin.im.utils.FileUploadHelper.uploadFile(
+                    this@ChatActivity,
+                    fileUri,
+                    "file"
+                )
+                
+                if (fileUrl == null) {
+                    Toast.makeText(this@ChatActivity, "文件上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
                 Toast.makeText(this@ChatActivity, "正在发送文件...", Toast.LENGTH_SHORT).show()
                 val request = com.lanxin.im.data.remote.SendMessageRequest(
                     receiver_id = peerId,
-                    content = "$fileName|$fileSize|$filePath",
+                    content = "$fileName|$fileSize|$fileUrl",
                     type = "file"
                 )
                 val response = RetrofitClient.apiService.sendMessage(request)

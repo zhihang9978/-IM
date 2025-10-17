@@ -25,7 +25,7 @@ export interface UserListResponse {
   total: number;
   page: number;
   page_size: number;
-  data: User[];
+  users: User[];
 }
 
 export interface UpdateUserRequest {

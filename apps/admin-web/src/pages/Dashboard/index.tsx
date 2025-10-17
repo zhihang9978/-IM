@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from "react";
 import { Card, Row, Col, Statistic, Tag } from 'antd'
 import { UserOutlined, MessageOutlined, TeamOutlined, FileOutlined } from '@ant-design/icons'
 import ReactECharts from 'echarts-for-react'
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 1128,
-    totalMessages: 93489,
-    totalGroups: 256,
-    totalFiles: 4532,
+  const [stats] = useState({
+    totalUsers: 1,
+    totalMessages: 0,
+    totalGroups: 0,
+    totalFiles: 0,
   })
 
   // 用户增长趋势图配置
@@ -25,7 +25,7 @@ function Dashboard() {
         name: '新增用户',
         type: 'line',
         smooth: true,
-        data: [120, 200, 150, 180, 220, 250, 300],
+        data: [0, 0, 0, 0, 0, 0, 1],
         itemStyle: { color: '#3b82f6' },
       },
     ],
@@ -44,7 +44,7 @@ function Dashboard() {
       {
         name: '消息数量',
         type: 'bar',
-        data: [45000, 25000, 12000, 8000, 3489],
+        data: [0, 0, 0, 0, 0],
         itemStyle: { color: '#10b981' },
       },
     ],
@@ -60,9 +60,9 @@ function Dashboard() {
         type: 'pie',
         radius: '50%',
         data: [
-          { value: 580, name: 'Android' },
-          { value: 420, name: 'iOS' },
-          { value: 128, name: 'Web' },
+          { value: 0, name: 'Android' },
+          { value: 0, name: 'iOS' },
+          { value: 0, name: 'Web' },
         ],
         emphasis: {
           itemStyle: {
@@ -157,7 +157,7 @@ function Dashboard() {
             <h3>系统信息</h3>
             <div style={{ marginTop: '1rem' }}>
               <p><strong>服务器状态：</strong> <Tag color="success">运行中</Tag></p>
-              <p><strong>在线用户：</strong> 1,128 人</p>
+              <p><strong>在线用户：</strong> 0 人</p>
               <p><strong>服务器域名：</strong> lanxin168.com</p>
               <p><strong>数据库：</strong> MySQL 8.0 (主从架构)</p>
               <p><strong>缓存：</strong> Redis 7.0</p>
