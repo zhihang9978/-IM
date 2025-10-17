@@ -13,12 +13,14 @@ import (
 type ReportHandler struct {
 	reportDAO  *dao.ReportDAO
 	messageDAO *dao.MessageDAO
+	logDAO     *dao.OperationLogDAO
 }
 
 func NewReportHandler() *ReportHandler {
 	return &ReportHandler{
 		reportDAO:  dao.NewReportDAO(),
 		messageDAO: dao.NewMessageDAO(),
+		logDAO:     dao.NewOperationLogDAO(),
 	}
 }
 
@@ -97,6 +99,19 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
+	
+	// ✅ 记录操作日志
+	h.logDAO.CreateLog(dao.LogRequest{
+		Action: "message_report",
+		UserID: &userID,
+		IP:     c.ClientIP(),
+		UserAgent: c.GetHeader("User-Agent"),
+		Details: map[string]interface{}{
+			"message_id": req.MessageID,
+			"reason":     req.Reason,
+		},
+		Result: model.ResultSuccess,
+	})
 	
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,

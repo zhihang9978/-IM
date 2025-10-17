@@ -1,10 +1,13 @@
 package api
 
 import (
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/config"
+	"github.com/lanxin/im-backend/internal/pkg/redis"
 	"github.com/lanxin/im-backend/internal/service"
 )
 
@@ -127,11 +130,24 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 // Logout 用户登出
 func (h *AuthHandler) Logout(c *gin.Context) {
-	// TODO: 将token加入黑名单（Redis）
+	// ✅ 将token加入黑名单（Redis）
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) == 2 {
+			token := parts[1]
+			// Token有效期（从配置读取，默认24小时）
+			expireTime := h.cfg.JWT.ExpireHours * 3600
+			if err := redis.AddTokenToBlacklist(token, expireTime); err != nil {
+				log.Printf("Failed to add token to blacklist: %v", err)
+				// 不返回错误，继续登出流程
+			}
+		}
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
-		"message": "success",
+		"message": "Logged out successfully",
 		"data":    nil,
 	})
 }

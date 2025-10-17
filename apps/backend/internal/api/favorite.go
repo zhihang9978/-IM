@@ -13,12 +13,14 @@ import (
 type FavoriteHandler struct {
 	favoriteDAO *dao.FavoriteDAO
 	messageDAO  *dao.MessageDAO
+	logDAO      *dao.OperationLogDAO
 }
 
 func NewFavoriteHandler() *FavoriteHandler {
 	return &FavoriteHandler{
 		favoriteDAO: dao.NewFavoriteDAO(),
 		messageDAO:  dao.NewMessageDAO(),
+		logDAO:      dao.NewOperationLogDAO(),
 	}
 }
 
@@ -78,6 +80,19 @@ func (h *FavoriteHandler) CollectMessage(c *gin.Context) {
 		})
 		return
 	}
+	
+	// ✅ 记录操作日志
+	h.logDAO.CreateLog(dao.LogRequest{
+		Action: "message_collect",
+		UserID: &userID,
+		IP:     c.ClientIP(),
+		UserAgent: c.GetHeader("User-Agent"),
+		Details: map[string]interface{}{
+			"message_id": req.MessageID,
+			"type":       message.Type,
+		},
+		Result: model.ResultSuccess,
+	})
 	
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,

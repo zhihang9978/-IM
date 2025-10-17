@@ -50,6 +50,16 @@ func (h *FileHandler) GetUploadToken(c *gin.Context) {
 		})
 		return
 	}
+	
+	// ✅ 验证文件类型
+	if fileType != "" && !middleware.ValidateFileType(fileType) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "File type not allowed: " + fileType,
+			"data":    nil,
+		})
+		return
+	}
 
 	token, err := h.cosClient.GenerateUploadToken(fileName, fileType)
 	if err != nil {
@@ -99,6 +109,20 @@ func (h *FileHandler) UploadCallback(c *gin.Context) {
 			"code":    400,
 			"message": "Invalid request",
 			"data":    nil,
+		})
+		return
+	}
+	
+	// ✅ 验证文件大小
+	maxSize := middleware.GetMaxFileSize(req.ContentType)
+	if req.Size > maxSize {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "File size exceeds maximum allowed",
+			"data": gin.H{
+				"max_size":     maxSize,
+				"current_size": req.Size,
+			},
 		})
 		return
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/model"
+	"github.com/lanxin/im-backend/internal/pkg/redis"
 )
 
 type UserService struct {
@@ -19,9 +20,28 @@ func NewUserService() *UserService {
 	}
 }
 
-// GetUserByID 根据ID获取用户
+// GetUserByID 根据ID获取用户（带Redis缓存）
 func (s *UserService) GetUserByID(id uint) (*model.User, error) {
-	return s.userDAO.GetByID(id)
+	// ✅ 先尝试从Redis缓存获取
+	var cachedUser model.User
+	if found, err := redis.GetCachedUser(id, &cachedUser); err == nil && found {
+		return &cachedUser, nil
+	}
+	
+	// 缓存未命中，从数据库查询
+	user, err := s.userDAO.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	
+	// ✅ 将用户信息存入Redis缓存（1小时）
+	go func() {
+		if err := redis.CacheUser(id, user, 3600); err != nil {
+			// 缓存失败不影响主流程
+		}
+	}()
+	
+	return user, nil
 }
 
 // UpdateUser 更新用户信息
@@ -51,6 +71,11 @@ func (s *UserService) UpdateUser(userID uint, updates map[string]interface{}, ip
 	}
 
 	err = s.userDAO.Update(user)
+	
+	// ✅ 更新后使缓存失效
+	if err == nil {
+		go redis.InvalidateUserCache(userID)
+	}
 
 	// 记录操作日志
 	details := map[string]interface{}{
@@ -141,5 +166,12 @@ func (s *UserService) BanUser(adminID, targetUserID uint, reason, ip, userAgent 
 //
 // 返回：error
 func (s *UserService) UpdatePassword(userID uint, hashedPassword string) error {
-	return s.userDAO.UpdatePassword(userID, hashedPassword)
+	err := s.userDAO.UpdatePassword(userID, hashedPassword)
+	
+	// ✅ 更新密码后使缓存失效
+	if err == nil {
+		go redis.InvalidateUserCache(userID)
+	}
+	
+	return err
 }

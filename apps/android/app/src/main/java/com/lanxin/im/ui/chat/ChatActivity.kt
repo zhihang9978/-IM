@@ -1162,34 +1162,25 @@ class ChatActivity : AppCompatActivity() {
     
     /**
      * 压缩并发送视频
+     * 参考：WildFireChat视频压缩策略 (Apache 2.0)
      */
     private fun compressAndSendVideo(uri: Uri) {
         lifecycleScope.launch {
             try {
                 Toast.makeText(this@ChatActivity, "正在处理视频...", Toast.LENGTH_SHORT).show()
                 
-                val outputFile = File(cacheDir, "compressed_${System.currentTimeMillis()}.mp4")
-                val compressedPath = VideoCompressor.compressVideo(
-                    this@ChatActivity,
-                    uri,
-                    outputFile
-                ) { progress ->
-                    runOnUiThread {
-                        if (progress % 20 == 0) {
-                            Toast.makeText(this@ChatActivity, "处理中 $progress%", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                // ✅ 使用VideoCompressor处理视频
+                val videoFile = withContext(Dispatchers.IO) {
+                    val compressor = VideoCompressor(this@ChatActivity)
+                    compressor.compress(uri)
                 }
                 
-                if (compressedPath != null) {
-                    sendVideoMessage(compressedPath)
-                } else {
-                    Toast.makeText(this@ChatActivity, "视频处理失败，使用原视频", Toast.LENGTH_SHORT).show()
-                    sendVideoMessage(uri.toString())
-                }
+                // 发送压缩后的视频
+                sendVideoMessage(videoFile.absolutePath)
             } catch (e: Exception) {
                 Log.e("ChatActivity", "Video compression error", e)
                 Toast.makeText(this@ChatActivity, "处理失败，使用原视频", Toast.LENGTH_SHORT).show()
+                // 降级处理：发送原视频
                 sendVideoMessage(uri.toString())
             }
         }

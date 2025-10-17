@@ -1,157 +1,122 @@
 package com.lanxin.im.utils
 
 import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
-import android.media.MediaMuxer
 import android.net.Uri
-import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
-import java.nio.ByteBuffer
 
 /**
- * 视频压缩工具类
- * 使用Android原生MediaCodec进行视频压缩
+ * 视频压缩工具
+ * 参考：WildFireChat视频压缩策略 (Apache 2.0)
+ * 
+ * 压缩策略：
+ * - 最大分辨率：1280x720（720p）
+ * - 码率：2Mbps
+ * - 使用MediaCodec硬件编码
+ * 
+ * 注意：完整的视频压缩需要使用第三方库（如ffmpeg、MediaCodec）
+ * 当前实现为简化版本，仅提供接口和基本验证
  */
-object VideoCompressor {
+class VideoCompressor(private val context: Context) {
     
-    private const val TAG = "VideoCompressor"
-    private const val TARGET_BITRATE = 1000 * 1000 // 1Mbps
-    private const val MAX_WIDTH = 1280
-    private const val MAX_HEIGHT = 720
+    companion object {
+        private const val TAG = "VideoCompressor"
+        private const val MAX_WIDTH = 1280
+        private const val MAX_HEIGHT = 720
+        private const val MAX_BITRATE = 2000000 // 2Mbps
+        private const val MAX_DURATION = 300 // 5分钟
+    }
     
     /**
-     * 压缩视频文件
-     * @param context Context
-     * @param inputUri 输入视频URI
-     * @param outputFile 输出文件
-     * @param onProgress 进度回调 (0-100)
-     * @return 压缩后的文件路径，失败返回null
+     * 压缩视频
+     * 
+     * 简化实现：检查视频元数据，如果已经符合要求则跳过压缩
+     * 完整实现需要集成ffmpeg或MediaCodec进行实际压缩
+     * 
+     * @param uri 视频URI
+     * @return 压缩后的文件（或原文件如果不需要压缩）
      */
-    suspend fun compressVideo(
-        context: Context,
-        inputUri: Uri,
-        outputFile: File,
-        onProgress: ((Int) -> Unit)? = null
-    ): String? = withContext(Dispatchers.IO) {
+    fun compress(uri: Uri): File {
+        val retriever = MediaMetadataRetriever()
         try {
-            val inputPath = getPathFromUri(context, inputUri) ?: return@withContext null
+            retriever.setDataSource(context, uri)
             
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(inputPath)
-            
+            // 获取视频元数据
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
-            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0
+            val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull() ?: 0
             
+            // 检查是否需要压缩
+            val needsCompression = width > MAX_WIDTH || 
+                                   height > MAX_HEIGHT || 
+                                   bitrate > MAX_BITRATE ||
+                                   duration > MAX_DURATION * 1000
+            
+            if (!needsCompression) {
+                // 不需要压缩，返回原文件
+                return File(getRealPathFromURI(uri))
+            }
+            
+            // TODO: 完整实现需要使用MediaCodec或FFmpeg进行实际压缩
+            // 当前简化版本：直接返回原文件
+            // 建议集成库：https://github.com/natario1/Transcoder
+            
+            return File(getRealPathFromURI(uri))
+            
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Video compression failed", e)
+            // 压缩失败，返回原文件
+            return File(getRealPathFromURI(uri))
+        } finally {
             retriever.release()
-            
-            // 如果视频已经很小，不需要压缩
-            val inputSize = File(inputPath).length()
-            if (inputSize < 5 * 1024 * 1024 && width <= MAX_WIDTH && height <= MAX_HEIGHT) {
-                Log.d(TAG, "Video is small enough, skip compression")
-                return@withContext inputPath
-            }
-            
-            // 计算压缩后的尺寸
-            val (targetWidth, targetHeight) = calculateTargetSize(width, height)
-            
-            Log.d(TAG, "Compressing video: ${width}x${height} -> ${targetWidth}x${targetHeight}")
-            
-            // 简化实现：复制原文件（避免复杂的MediaCodec实现）
-            // 在生产环境中，应使用专业的压缩库如 FFmpeg 或 android-transcoder
-            File(inputPath).copyTo(outputFile, overwrite = true)
-            
-            onProgress?.invoke(100)
-            
-            Log.d(TAG, "Compression completed: ${outputFile.absolutePath}")
-            outputFile.absolutePath
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Video compression failed", e)
-            null
         }
     }
     
     /**
-     * 从URI获取文件路径
+     * 获取URI的真实文件路径
      */
-    private fun getPathFromUri(context: Context, uri: Uri): String? {
-        return try {
-            if (uri.scheme == "file") {
-                uri.path
+    private fun getRealPathFromURI(uri: Uri): String {
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        return cursor?.use {
+            val columnIndex = it.getColumnIndex(android.provider.MediaStore.Video.Media.DATA)
+            if (it.moveToFirst() && columnIndex >= 0) {
+                it.getString(columnIndex)
             } else {
-                // 如果是content://，复制到临时文件
-                val inputStream = context.contentResolver.openInputStream(uri)
-                val tempFile = File(context.cacheDir, "temp_video_${System.currentTimeMillis()}.mp4")
-                inputStream?.use { input ->
-                    tempFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                tempFile.absolutePath
+                uri.path ?: ""
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get path from URI", e)
-            null
-        }
-    }
-    
-    /**
-     * 计算目标尺寸（保持宽高比）
-     */
-    private fun calculateTargetSize(width: Int, height: Int): Pair<Int, Int> {
-        if (width <= MAX_WIDTH && height <= MAX_HEIGHT) {
-            return Pair(width, height)
-        }
-        
-        val ratio = width.toFloat() / height.toFloat()
-        
-        return if (width > height) {
-            // 横向视频
-            val targetWidth = MAX_WIDTH
-            val targetHeight = (targetWidth / ratio).toInt()
-            Pair(targetWidth, targetHeight)
-        } else {
-            // 纵向视频
-            val targetHeight = MAX_HEIGHT
-            val targetWidth = (targetHeight * ratio).toInt()
-            Pair(targetWidth, targetHeight)
-        }
+        } ?: uri.path ?: ""
     }
     
     /**
      * 获取视频信息
      */
-    fun getVideoInfo(context: Context, uri: Uri): VideoInfo? {
-        return try {
-            val path = getPathFromUri(context, uri) ?: return null
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(path)
+    fun getVideoInfo(uri: Uri): VideoInfo? {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(context, uri)
             
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
-            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-            val size = File(path).length()
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0
+            val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull() ?: 0
             
-            retriever.release()
-            
-            VideoInfo(width, height, duration, size)
+            return VideoInfo(width, height, duration, bitrate)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get video info", e)
-            null
+            android.util.Log.e(TAG, "Failed to get video info", e)
+            return null
+        } finally {
+            retriever.release()
         }
     }
-    
-    data class VideoInfo(
-        val width: Int,
-        val height: Int,
-        val duration: Long,
-        val size: Long
-    )
 }
 
+/**
+ * 视频信息数据类
+ */
+data class VideoInfo(
+    val width: Int,
+    val height: Int,
+    val duration: Long, // 毫秒
+    val bitrate: Int    // 比特率
+)

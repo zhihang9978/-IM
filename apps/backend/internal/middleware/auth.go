@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/pkg/jwt"
+	"github.com/lanxin/im-backend/internal/pkg/redis"
 )
 
 // JWTAuth JWT认证中间件
@@ -32,23 +33,34 @@ func JWTAuth(secret string) gin.HandlerFunc {
 			return
 		}
 
-		token := parts[1]
-		claims, err := jwt.ParseToken(token, secret)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": err.Error(),
-			})
-			c.Abort()
-			return
-		}
+	token := parts[1]
+	
+	// ✅ 检查Token是否在黑名单中（已登出）
+	if redis.IsTokenBlacklisted(token) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    401,
+			"message": "Token has been revoked (logged out)",
+		})
+		c.Abort()
+		return
+	}
+	
+	claims, err := jwt.ParseToken(token, secret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    401,
+			"message": err.Error(),
+		})
+		c.Abort()
+		return
+	}
 
-		// 将用户信息存储到context中
-		c.Set("user_id", claims.UserID)
-		c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
+	// 将用户信息存储到context中
+	c.Set("user_id", claims.UserID)
+	c.Set("username", claims.Username)
+	c.Set("role", claims.Role)
 
-		c.Next()
+	c.Next()
 	}
 }
 

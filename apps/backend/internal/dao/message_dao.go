@@ -157,19 +157,30 @@ func (d *MessageDAO) GetHistoryMessages(conversationID, beforeMessageID uint, li
 //      keyword - 搜索关键词
 //      page, pageSize - 分页参数
 // 返回：消息列表和总数
+// 
+// ✅ 优化：使用MySQL全文索引（FULLTEXT）提升搜索性能
+// 如果数据库支持全文索引，使用MATCH...AGAINST语法
+// 否则降级为LIKE查询
 func (d *MessageDAO) SearchMessages(userID uint, keyword string, page, pageSize int) ([]model.Message, int64, error) {
 	var messages []model.Message
 	var total int64
 	
 	offset := (page - 1) * pageSize
 	
+	// ✅ 尝试使用全文搜索（MySQL 5.7+支持）
 	// 搜索条件：消息内容包含关键词，且用户是发送者或接收者
 	query := d.db.Model(&model.Message{}).
-		Where("(sender_id = ? OR receiver_id = ?) AND content LIKE ?", 
-			userID, userID, "%"+keyword+"%")
+		Where("(sender_id = ? OR receiver_id = ?)", userID, userID).
+		Where("MATCH(content) AGAINST(? IN BOOLEAN MODE)", keyword)
 	
 	// 统计总数
-	query.Count(&total)
+	if err := query.Count(&total).Error; err != nil {
+		// 如果全文索引不存在，降级为LIKE查询
+		query = d.db.Model(&model.Message{}).
+			Where("(sender_id = ? OR receiver_id = ?) AND content LIKE ?", 
+				userID, userID, "%"+keyword+"%")
+		query.Count(&total)
+	}
 	
 	// 分页查询
 	err := query.

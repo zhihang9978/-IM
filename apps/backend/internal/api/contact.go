@@ -12,11 +12,13 @@ import (
 
 type ContactHandler struct {
 	contactDAO *dao.ContactDAO
+	logDAO     *dao.OperationLogDAO
 }
 
 func NewContactHandler() *ContactHandler {
 	return &ContactHandler{
 		contactDAO: dao.NewContactDAO(),
+		logDAO:     dao.NewOperationLogDAO(),
 	}
 }
 
@@ -120,7 +122,21 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 
 	// 重新加载以获取关联数据
 	contact, _ = h.contactDAO.GetByID(contact.ID, userID)
-
+	
+	// ✅ 记录操作日志
+	h.logDAO.CreateLog(dao.LogRequest{
+		Action: "contact_add",
+		UserID: &userID,
+		IP:     c.ClientIP(),
+		UserAgent: c.GetHeader("User-Agent"),
+		Details: map[string]interface{}{
+			"contact_id": req.ContactID,
+			"remark":     req.Remark,
+			"tags":       req.Tags,
+		},
+		Result: model.ResultSuccess,
+	})
+	
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Contact added successfully",
@@ -164,7 +180,19 @@ func (h *ContactHandler) DeleteContact(c *gin.Context) {
 		})
 		return
 	}
-
+	
+	// ✅ 记录操作日志
+	h.logDAO.CreateLog(dao.LogRequest{
+		Action: "contact_delete",
+		UserID: &userID,
+		IP:     c.ClientIP(),
+		UserAgent: c.GetHeader("User-Agent"),
+		Details: map[string]interface{}{
+			"contact_id": contactID,
+		},
+		Result: model.ResultSuccess,
+	})
+	
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Contact deleted successfully",

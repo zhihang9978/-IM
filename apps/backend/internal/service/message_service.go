@@ -84,8 +84,33 @@ func (s *MessageService) SendMessage(senderID, receiverID uint, content, msgType
 			FileURL:        message.FileURL,
 			CreatedAt:      message.CreatedAt.Unix(),
 		}
-		if err := s.producer.SendJSON(ctx, string(message.ID), messageData); err != nil {
-			// TODO: 处理Kafka发送失败
+		
+		// ✅ Kafka发送失败处理（最多重试3次）
+		maxRetries := 3
+		for i := 0; i < maxRetries; i++ {
+			if err := s.producer.SendJSON(ctx, string(message.ID), messageData); err != nil {
+				if i == maxRetries-1 {
+					// 最后一次失败，记录错误日志
+					s.logDAO.CreateLog(dao.LogRequest{
+						Action:       "kafka_send_failed",
+						UserID:       &senderID,
+						Details: map[string]interface{}{
+							"message_id": message.ID,
+							"retry_count": maxRetries,
+							"error": err.Error(),
+						},
+						Result:       model.ResultFailure,
+						ErrorMessage: err.Error(),
+					})
+				} else {
+					// 等待后重试
+					time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+					continue
+				}
+			} else {
+				// 发送成功
+				break
+			}
 		}
 	}()
 

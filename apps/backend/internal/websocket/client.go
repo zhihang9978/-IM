@@ -25,12 +25,41 @@ const (
 	maxMessageSize = 10240 // 10KB
 )
 
+// 允许的WebSocket Origin列表（生产环境配置）
+var allowedOrigins = []string{
+	"https://app.lanxin168.com",
+	"https://admin.lanxin168.com",
+	"http://localhost:3000",  // 开发环境
+	"http://localhost:8080",  // 开发环境
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// TODO: 生产环境需要检查origin
-		return true
+		// ✅ 生产环境origin检查
+		origin := r.Header.Get("Origin")
+		
+		// 如果没有Origin头（移动端APP通常没有），允许通过
+		if origin == "" {
+			return true
+		}
+		
+		// 检查origin是否在白名单中
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				return true
+			}
+		}
+		
+		// 开发模式：允许localhost
+		if origin == "http://localhost:3000" || origin == "http://localhost:8080" {
+			return true
+		}
+		
+		// 其他origin拒绝
+		log.Printf("Rejected WebSocket connection from origin: %s", origin)
+		return false
 	},
 }
 
