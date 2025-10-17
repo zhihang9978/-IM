@@ -12,7 +12,21 @@
 - ✅ `img_bubble_send.9.png` - 发送消息气泡（9-patch）
 - ✅ `img_bubble_receive.9.png` - 接收消息气泡（9-patch）
 - ✅ `audio_animation_right_wf.xml` - 语音播放动画（适配）
+- ✅ `audio_animation_send_wf.xml` - 发送方语音动画（阶段2）
+- ✅ `audio_animation_receive_wf.xml` - 接收方语音动画（阶段2）
 - ✅ `shape_message_ref_bg.xml` - 引用消息背景
+
+### 语音动画图标（阶段2）
+- ✅ `audio_animation_list_right_1.png` - 发送方动画第1帧
+- ✅ `audio_animation_list_right_2.png` - 发送方动画第2帧
+- ✅ `audio_animation_list_right_3.png` - 发送方动画第3帧
+- ✅ `audio_animation_list_left_1.png` - 接收方动画第1帧
+- ✅ `audio_animation_list_left_2.png` - 接收方动画第2帧
+- ✅ `audio_animation_list_left_3.png` - 接收方动画第3帧
+
+### 布局文件（阶段2）
+- ✅ `item_message_voice_sent_wildfire.xml` - 发送方语音消息布局
+- ✅ `item_message_voice_received_wildfire.xml` - 接收方语音消息布局
 
 ### 核心发现
 
@@ -96,4 +110,25 @@
 ✅ 保留蓝信命名规范
 ✅ 保留蓝信业务逻辑
 ✅ 渐进式替换（先创建新文件）
+
+## 阶段完成记录
+
+### ✅ 阶段1: 文本消息气泡（已完成）
+- 完成时间: 2025-10-17
+- Git提交: 93c1eed
+- 内容: 9-patch气泡、颜色系统、文本消息布局
+
+### ✅ 阶段2: 语音消息UI（已完成）
+- 完成时间: 2025-10-17
+- Git提交: 4f092a5
+- 内容:
+  - ✅ 复制6个语音动画图标（3帧×2方向）
+  - ✅ 创建动画drawable（发送/接收）
+  - ✅ 创建语音消息布局（发送/接收）
+  - ✅ 更新ChatAdapter使用新布局
+  - ✅ 支持语音转文字UI（预留）
+  - ✅ 发送方100dp×50dp固定尺寸
+  - ✅ 接收方65dp×50dp固定尺寸
+  - ✅ 时长显示在气泡外侧
+  - ✅ 红点播放状态指示器
 
