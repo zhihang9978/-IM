@@ -23,6 +23,11 @@ class ProfileFragment : Fragment() {
     private lateinit var tvUsername: TextView
     private lateinit var tvLanxinId: TextView
     
+    private var cachedUsername: String? = null
+    private var cachedLanxinId: String? = null
+    private var cachedAvatar: String? = null
+    private var isDataLoaded = false
+    
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,26 +51,41 @@ class ProfileFragment : Fragment() {
     }
     
     private fun loadUserInfo() {
+        if (isDataLoaded && cachedUsername != null) {
+            tvUsername.text = cachedUsername
+            tvLanxinId.text = "蓝信号: ${cachedLanxinId ?: "未设置"}"
+            Glide.with(this@ProfileFragment)
+                .load(cachedAvatar ?: R.drawable.ic_profile)
+                .circleCrop()
+                .placeholder(R.drawable.ic_profile)
+                .into(ivAvatar)
+            return
+        }
+        
         lifecycleScope.launch {
             try {
-                // 调用API获取当前用户信息
                 val response = RetrofitClient.apiService.getCurrentUser()
                 response.data?.let { user ->
-                    tvUsername.text = user.username ?: "用户"
-                    tvLanxinId.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
+                    cachedUsername = user.username ?: "用户"
+                    cachedLanxinId = user.lanxinId ?: "未设置"
+                    cachedAvatar = user.avatar
+                    isDataLoaded = true
                     
-                    // 使用Glide加载头像（完整实现）
+                    tvUsername.text = cachedUsername
+                    tvLanxinId.text = "蓝信号: $cachedLanxinId"
+                    
                     Glide.with(this@ProfileFragment)
-                        .load(user.avatar ?: R.drawable.ic_profile)
+                        .load(cachedAvatar ?: R.drawable.ic_profile)
                         .circleCrop()
                         .placeholder(R.drawable.ic_profile)
                         .into(ivAvatar)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // 加载失败，显示默认信息
-                tvUsername.text = "用户"
-                tvLanxinId.text = "蓝信号: 未登录"
+                if (!isDataLoaded) {
+                    tvUsername.text = "用户"
+                    tvLanxinId.text = "蓝信号: 未登录"
+                }
             }
         }
     }

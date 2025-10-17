@@ -55,28 +55,38 @@ class ChatListFragment : Fragment() {
     private fun loadConversations() {
         lifecycleScope.launch {
             try {
-                // 调用API获取会话列表
                 val response = RetrofitClient.apiService.getConversations()
+                android.util.Log.d("ChatListFragment", "API Response: code=${response.code}, data=${response.data}")
+                
                 if (response.code == 0 && response.data != null) {
-                    // 显示会话列表
-                    adapter.submitList(response.data.conversations.map { item ->
-                        Conversation(
-                            id = item.id,
-                            type = item.type,
-                            user1Id = null,
-                            user2Id = null,
-                            groupId = null,
-                            lastMessageId = null,
-                            lastMessageAt = item.updated_at,
-                            unreadCount = item.unread_count,
-                            createdAt = System.currentTimeMillis(),
-                            updatedAt = System.currentTimeMillis()
-                        )
-                    })
+                    val conversations = response.data.conversations
+                    android.util.Log.d("ChatListFragment", "Conversations count: ${conversations.size}")
+                    
+                    if (conversations.isEmpty()) {
+                        android.widget.Toast.makeText(requireContext(), "暂无聊天记录", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        adapter.submitList(conversations.map { item ->
+                            Conversation(
+                                id = item.id,
+                                type = item.type,
+                                user1Id = null,
+                                user2Id = null,
+                                groupId = null,
+                                lastMessageId = null,
+                                lastMessageAt = item.updated_at,
+                                unreadCount = item.unread_count,
+                                createdAt = System.currentTimeMillis(),
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        })
+                    }
+                } else {
+                    android.util.Log.e("ChatListFragment", "API Error: ${response.message}")
+                    android.widget.Toast.makeText(requireContext(), "获取聊天列表失败: ${response.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                // 加载失败，显示空列表
-                e.printStackTrace()
+                android.util.Log.e("ChatListFragment", "Exception loading conversations", e)
+                android.widget.Toast.makeText(requireContext(), "网络错误: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }

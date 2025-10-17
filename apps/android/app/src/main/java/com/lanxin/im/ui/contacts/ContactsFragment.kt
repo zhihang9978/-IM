@@ -54,26 +54,36 @@ class ContactsFragment : Fragment() {
     private fun loadContacts() {
         lifecycleScope.launch {
             try {
-                // 调用API获取联系人列表
                 val response = RetrofitClient.apiService.getContacts()
+                android.util.Log.d("ContactsFragment", "API Response: code=${response.code}, data=${response.data}")
+                
                 if (response.code == 0 && response.data != null) {
-                    // 显示联系人列表
-                    adapter.submitList(response.data.contacts.map { item ->
-                        Contact(
-                            id = item.id,
-                            userId = item.user.id,
-                            contactId = item.contact_id,
-                            remark = item.remark,
-                            tags = item.tags,
-                            status = item.status,
-                            createdAt = item.created_at,
-                            updatedAt = System.currentTimeMillis()
-                        )
-                    })
+                    val contacts = response.data.contacts
+                    android.util.Log.d("ContactsFragment", "Contacts count: ${contacts.size}")
+                    
+                    if (contacts.isEmpty()) {
+                        android.widget.Toast.makeText(requireContext(), "暂无联系人", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        adapter.submitList(contacts.map { item ->
+                            Contact(
+                                id = item.id,
+                                userId = item.user.id,
+                                contactId = item.contact_id,
+                                remark = item.remark,
+                                tags = item.tags,
+                                status = item.status,
+                                createdAt = item.created_at,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        })
+                    }
+                } else {
+                    android.util.Log.e("ContactsFragment", "API Error: ${response.message}")
+                    android.widget.Toast.makeText(requireContext(), "获取联系人列表失败: ${response.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                // 加载失败，显示空列表
-                e.printStackTrace()
+                android.util.Log.e("ContactsFragment", "Exception loading contacts", e)
+                android.widget.Toast.makeText(requireContext(), "网络错误: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }

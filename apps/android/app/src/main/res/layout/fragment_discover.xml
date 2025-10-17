@@ -1,50 +1,250 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout 
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background_light">
 
-    <!-- 朋友圈入口（按设计文档） -->
     <LinearLayout
-        android:id="@+id/btn_moments"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/white"
-        android:gravity="center_vertical">
-        
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/discover_moments"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary" />
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-    <!-- 扫一扫入口（按设计文档） -->
-    <LinearLayout
-        android:id="@+id/btn_scan"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/white"
-        android:gravity="center_vertical">
-        
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/discover_scan"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary" />
-    </LinearLayout>
+        <!-- 朋友圈入口 -->
+        <LinearLayout
+            android:id="@+id/btn_moments"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/discover_moments"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
 
-</LinearLayout>
+        <!-- 分隔线 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#E0E0E0"
+            android:layout_marginStart="16dp" />
+
+        <!-- 扫一扫入口 -->
+        <LinearLayout
+            android:id="@+id/btn_scan"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/discover_scan"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 摇一摇 -->
+        <LinearLayout
+            android:id="@+id/btn_shake"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="摇一摇"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 看一看 -->
+        <LinearLayout
+            android:id="@+id/btn_top_stories"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="看一看"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 分隔线 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#E0E0E0"
+            android:layout_marginStart="16dp" />
+
+        <!-- 搜一搜 -->
+        <LinearLayout
+            android:id="@+id/btn_search"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="搜一搜"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 直播和附近 -->
+        <LinearLayout
+            android:id="@+id/btn_live"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="直播和附近"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 购物 -->
+        <LinearLayout
+            android:id="@+id/btn_shopping"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="购物"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 分隔线 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#E0E0E0"
+            android:layout_marginStart="16dp" />
+
+        <!-- 游戏 -->
+        <LinearLayout
+            android:id="@+id/btn_games"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="游戏"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 小程序 -->
+        <LinearLayout
+            android:id="@+id/btn_mini_program"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="小程序"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
 
