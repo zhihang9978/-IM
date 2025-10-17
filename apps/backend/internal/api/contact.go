@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/middleware"
+	"github.com/lanxin/im-backend/internal/model"
 )
 
 type ContactHandler struct {
@@ -63,13 +64,13 @@ func (h *ContactHandler) GetContacts(c *gin.Context) {
 // Body: {"contact_id": 123, "remark": "张三", "tags": "朋友,同事"}
 func (h *ContactHandler) AddContact(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	
+
 	var req struct {
 		ContactID uint   `json:"contact_id" binding:"required"`
 		Remark    string `json:"remark"`
 		Tags      string `json:"tags"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -78,7 +79,7 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证：不能添加自己为联系人
 	if req.ContactID == userID {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -88,7 +89,7 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 检查是否已存在
 	if h.contactDAO.CheckExists(userID, req.ContactID) {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -98,7 +99,7 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 创建联系人
 	contact := &model.Contact{
 		UserID:    userID,
@@ -107,7 +108,7 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 		Tags:      req.Tags,
 		Status:    model.ContactStatusNormal,
 	}
-	
+
 	if err := h.contactDAO.Create(contact); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
@@ -116,10 +117,10 @@ func (h *ContactHandler) AddContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 重新加载以获取关联数据
 	contact, _ = h.contactDAO.GetByID(contact.ID, userID)
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Contact added successfully",
@@ -142,7 +143,7 @@ func (h *ContactHandler) DeleteContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证联系人是否存在且属于当前用户
 	_, err = h.contactDAO.GetByID(uint(contactID), userID)
 	if err != nil {
@@ -153,7 +154,7 @@ func (h *ContactHandler) DeleteContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 删除
 	if err := h.contactDAO.Delete(uint(contactID), userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -163,7 +164,7 @@ func (h *ContactHandler) DeleteContact(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Contact deleted successfully",
@@ -185,12 +186,12 @@ func (h *ContactHandler) UpdateRemark(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	var req struct {
 		Remark string `json:"remark"`
 		Tags   string `json:"tags"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -199,7 +200,7 @@ func (h *ContactHandler) UpdateRemark(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证联系人是否存在
 	_, err = h.contactDAO.GetByID(uint(contactID), userID)
 	if err != nil {
@@ -210,7 +211,7 @@ func (h *ContactHandler) UpdateRemark(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 更新
 	if err := h.contactDAO.UpdateRemark(uint(contactID), userID, req.Remark, req.Tags); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -220,11 +221,10 @@ func (h *ContactHandler) UpdateRemark(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Remark updated successfully",
 		"data":    nil,
 	})
 }
-

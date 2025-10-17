@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/model"
 )
@@ -107,10 +108,10 @@ func (s *UserService) BanUser(adminID, targetUserID uint, reason, ip, userAgent 
 
 	// 记录管理员操作日志
 	details := map[string]interface{}{
-		"target_user_id":   targetUserID,
-		"target_username":  user.Username,
-		"reason":           reason,
-		"status_change":    map[string]string{"from": oldStatus, "to": "banned"},
+		"target_user_id":  targetUserID,
+		"target_username": user.Username,
+		"reason":          reason,
+		"status_change":   map[string]string{"from": oldStatus, "to": "banned"},
 	}
 
 	result := model.ResultSuccess
@@ -135,9 +136,10 @@ func (s *UserService) BanUser(adminID, targetUserID uint, reason, ip, userAgent 
 
 // UpdatePassword 更新用户密码
 // 参数：userID - 用户ID
-//      hashedPassword - 已哈希的新密码
+//
+//	hashedPassword - 已哈希的新密码
+//
 // 返回：error
 func (s *UserService) UpdatePassword(userID uint, hashedPassword string) error {
 	return s.userDAO.UpdatePassword(userID, hashedPassword)
 }
-

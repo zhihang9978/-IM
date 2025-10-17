@@ -48,7 +48,7 @@ func main() {
 	log.Printf("Server mode: %s", cfg.Server.Mode)
 	log.Printf("Domain: %s", cfg.Server.Domain)
 	log.Printf("WebSocket Hub started")
-	
+
 	if err := router.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
@@ -61,7 +61,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS(cfg.Security.CORS))
-	
+
 	if cfg.Security.RateLimit.Enabled {
 		r.Use(middleware.RateLimit(cfg.Security.RateLimit.RequestsPerMinute))
 	}
@@ -78,8 +78,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
-			"message": "LanXin IM Server is running",
+			"status":       "ok",
+			"message":      "LanXin IM Server is running",
 			"online_users": hub.GetOnlineUserCount(),
 		})
 	})
@@ -98,7 +98,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			public.GET("/ping", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "pong"})
 			})
-			
+
 			// 认证相关
 			public.POST("/auth/register", authHandler.Register)
 			public.POST("/auth/login", authHandler.Login)
@@ -111,33 +111,33 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 认证相关
 			authorized.POST("/auth/refresh", authHandler.RefreshToken)
 			authorized.POST("/auth/logout", authHandler.Logout)
-			
+
 			// 用户相关
 			authorized.GET("/users/me", userHandler.GetCurrentUser)
 			authorized.PUT("/users/me", userHandler.UpdateProfile)
 			authorized.PUT("/users/me/password", userHandler.ChangePassword)
 			authorized.GET("/users/search", userHandler.SearchUsers)
-			
+
 			// 会话相关（Android客户端需要）
 			authorized.GET("/conversations", conversationHandler.GetConversations)
-			
+
 			// 联系人相关（Android客户端需要）
 			authorized.GET("/contacts", contactHandler.GetContacts)
 			authorized.POST("/contacts", contactHandler.AddContact)
 			authorized.DELETE("/contacts/:id", contactHandler.DeleteContact)
 			authorized.PUT("/contacts/:id/remark", contactHandler.UpdateRemark)
-			
+
 			// 消息相关
 			authorized.POST("/messages", messageHandler.SendMessage)
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
 			authorized.GET("/conversations/:id/messages/history", messageHandler.GetHistoryMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
-			
+
 			// 文件相关
 			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)
 			authorized.POST("/files/upload-callback", fileHandler.UploadCallback)
-			
+
 			// TRTC相关（纯数据流接口）
 			authorized.POST("/trtc/user-sig", trtcHandler.GetUserSig)
 			authorized.POST("/trtc/call", trtcHandler.InitiateCall)
@@ -153,7 +153,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		{
 			// 用户管理
 			admin.GET("/users", userHandler.SearchUsers)
-			
+
 			// TODO: 添加更多管理员API
 			// admin.GET("/logs", adminHandler.GetOperationLogs)
 			// admin.GET("/stats", adminHandler.GetStatistics)
@@ -162,4 +162,3 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 
 	return r
 }
-

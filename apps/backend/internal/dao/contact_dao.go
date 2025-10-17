@@ -32,7 +32,9 @@ func (d *ContactDAO) Create(contact *model.Contact) error {
 
 // Delete 删除联系人（物理删除）
 // 参数：contactID - 联系人记录ID
-//      userID - 当前用户ID（权限验证）
+//
+//	userID - 当前用户ID（权限验证）
+//
 // 返回：error
 func (d *ContactDAO) Delete(contactID, userID uint) error {
 	// 验证权限：只能删除自己的联系人
@@ -42,9 +44,11 @@ func (d *ContactDAO) Delete(contactID, userID uint) error {
 
 // UpdateRemark 更新联系人备注和标签
 // 参数：contactID - 联系人记录ID
-//      userID - 当前用户ID（权限验证）
-//      remark - 新备注
-//      tags - 新标签（逗号分隔）
+//
+//	userID - 当前用户ID（权限验证）
+//	remark - 新备注
+//	tags - 新标签（逗号分隔）
+//
 // 返回：error
 func (d *ContactDAO) UpdateRemark(contactID, userID uint, remark, tags string) error {
 	// 验证权限：只能修改自己的联系人
@@ -58,7 +62,9 @@ func (d *ContactDAO) UpdateRemark(contactID, userID uint, remark, tags string) e
 
 // GetByID 根据ID获取联系人（含权限验证）
 // 参数：contactID - 联系人记录ID
-//      userID - 当前用户ID（权限验证）
+//
+//	userID - 当前用户ID（权限验证）
+//
 // 返回：联系人对象（含ContactUser关联）
 func (d *ContactDAO) GetByID(contactID, userID uint) (*model.Contact, error) {
 	var contact model.Contact
@@ -70,7 +76,9 @@ func (d *ContactDAO) GetByID(contactID, userID uint) (*model.Contact, error) {
 
 // CheckExists 检查联系人是否已存在
 // 参数：userID - 当前用户ID
-//      contactID - 要添加的联系人用户ID
+//
+//	contactID - 要添加的联系人用户ID
+//
 // 返回：bool - true表示已存在
 func (d *ContactDAO) CheckExists(userID, contactID uint) bool {
 	var count int64
@@ -79,4 +87,3 @@ func (d *ContactDAO) CheckExists(userID, contactID uint) bool {
 		Count(&count)
 	return count > 0
 }
-

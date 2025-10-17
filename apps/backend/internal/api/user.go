@@ -162,12 +162,12 @@ func checkPasswordHash(password, hash string) bool {
 // Body: {"old_password": "old123", "new_password": "new123"}
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	
+
 	var req struct {
 		OldPassword string `json:"old_password" binding:"required,min=6"`
 		NewPassword string `json:"new_password" binding:"required,min=6"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -176,7 +176,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 获取当前用户
 	user, err := h.userService.GetUserByID(userID)
 	if err != nil {
@@ -187,7 +187,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证旧密码
 	if !checkPasswordHash(req.OldPassword, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -197,7 +197,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证新旧密码不同
 	if req.OldPassword == req.NewPassword {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -207,7 +207,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 生成新密码哈希
 	hashedPassword, err := hashPassword(req.NewPassword)
 	if err != nil {
@@ -218,7 +218,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 更新密码
 	if err := h.userService.UpdatePassword(userID, hashedPassword); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -228,11 +228,10 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Password changed successfully",
 		"data":    nil,
 	})
 }
-
