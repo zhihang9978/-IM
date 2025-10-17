@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  User Info Fragment Layout (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+  Adapted for LanXin IM
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 大头像区域 (WildFire IM: 80dp) -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:padding="24dp">
+
+            <ImageView
+                android:id="@+id/avatarImageView"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_centerVertical="true"
+                android:contentDescription="头像"
+                tools:src="@drawable/ic_profile" />
+
+            <!-- 用户信息 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="16dp"
+                android:layout_toEndOf="@id/avatarImageView"
+                android:layout_toStartOf="@id/qrcodeImageView"
+                android:orientation="vertical">
+
+                <!-- 用户名 -->
+                <TextView
+                    android:id="@+id/nameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="张三" />
+
+                <!-- 用户ID -->
+                <TextView
+                    android:id="@+id/userIdTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="14sp"
+                    tools:text="蓝信号：12345678" />
+
+                <!-- 电话（可选） -->
+                <TextView
+                    android:id="@+id/phoneTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    tools:text="电话：138****1234"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- 二维码按钮 -->
+            <ImageView
+                android:id="@+id/qrcodeImageView"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="二维码"
+                android:padding="4dp"
+                android:src="@drawable/ic_qr_code" />
+        </RelativeLayout>
+
+        <!-- 分组间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- OptionItem 列表 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <!-- 设置备注和标签 -->
+            <include
+                android:id="@+id/option_remark"
+                layout="@layout/option_item_wildfire" />
+
+            <!-- 查看消息 -->
+            <include
+                android:id="@+id/option_view_messages"
+                layout="@layout/option_item_wildfire" />
+        </LinearLayout>
+
+        <!-- 分组间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 开关选项 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <!-- 星标好友 -->
+            <include
+                android:id="@+id/option_star_friend"
+                layout="@layout/option_item_wildfire" />
+
+            <!-- 消息免打扰 -->
+            <include
+                android:id="@+id/option_mute"
+                layout="@layout/option_item_wildfire" />
+
+            <!-- 置顶聊天 -->
+            <include
+                android:id="@+id/option_top_chat"
+                layout="@layout/option_item_wildfire" />
+        </LinearLayout>
+
+        <!-- 分组间隔 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:background="@color/background_light" />
+
+        <!-- 危险操作 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
+
+            <!-- 加入黑名单 -->
+            <include
+                android:id="@+id/option_blacklist"
+                layout="@layout/option_item_wildfire" />
+        </LinearLayout>
+
+        <!-- 底部间距 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="16dp" />
+
+        <!-- 底部操作按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <!-- 发送消息按钮 -->
+            <Button
+                android:id="@+id/btnSendMessage"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@color/primary"
+                android:text="发送消息"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <!-- 视频通话按钮 -->
+            <Button
+                android:id="@+id/btnVideoCall"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@color/primary"
+                android:text="视频通话"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
+
