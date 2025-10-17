@@ -24,6 +24,8 @@
     <string name="message_recalled_other">对方撤回了一条消息</string>
     <string name="voice_message">语音消息</string>
     <string name="image_message">图片消息</string>
+    <string name="video_message">视频消息</string>
+    <string name="play_video">播放视频</string>
     
     <!-- 通讯录相关 -->
     <string name="contacts_new_friends">新的朋友</string>

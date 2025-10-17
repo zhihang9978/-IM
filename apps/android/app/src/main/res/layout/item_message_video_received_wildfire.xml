@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Received video message item layout (WildFire IM style)
+  Source: WildFireChat android-chat-master/uikit/res/layout/conversation_item_video_send.xml (Apache 2.0)
+  Adapted for LanXin IM - using CardView instead of custom BubbleImageView
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="start"
+    android:padding="8dp">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/videoCardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/white">
+
+        <RelativeLayout
+            android:id="@+id/videoContentLayout"
+            android:layout_width="150dp"
+            android:layout_height="150dp">
+
+            <!-- 视频封面 -->
+            <ImageView
+                android:id="@+id/videoImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/video_message" />
+
+            <!-- 播放按钮 -->
+            <ImageView
+                android:id="@+id/playImageView"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerInParent="true"
+                android:src="@mipmap/img_video_play_session"
+                android:contentDescription="@string/play_video" />
+
+            <!-- 视频时长 -->
+            <TextView
+                android:id="@+id/durationTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="#80000000"
+                android:padding="4dp"
+                android:text="00:00"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <!-- 加载进度条（可选） -->
+            <ProgressBar
+                android:id="@+id/loadingProgressBar"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>
+

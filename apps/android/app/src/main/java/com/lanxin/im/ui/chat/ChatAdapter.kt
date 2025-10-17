@@ -93,12 +93,12 @@ class ChatAdapter(
             }
             VIEW_TYPE_VIDEO_SENT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_video_sent, parent, false)
+                    .inflate(R.layout.item_message_video_sent_wildfire, parent, false)
                 VideoSentViewHolder(view)
             }
             VIEW_TYPE_VIDEO_RECEIVED -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_video_sent, parent, false)
+                    .inflate(R.layout.item_message_video_received_wildfire, parent, false)
                 VideoReceivedViewHolder(view)
             }
             VIEW_TYPE_FILE_SENT -> {
@@ -430,67 +430,105 @@ class ChatAdapter(
         }
     }
     
-    // 发送视频消息ViewHolder
+    // 发送视频消息ViewHolder (WildFire IM style)
     class VideoSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivThumbnail: ImageView = itemView.findViewById(R.id.iv_thumbnail)
-        private val videoCard: View = itemView.findViewById(R.id.video_card)
+        private val videoImageView: ImageView = itemView.findViewById(R.id.videoImageView)
+        private val playImageView: ImageView = itemView.findViewById(R.id.playImageView)
+        private val durationTextView: TextView = itemView.findViewById(R.id.durationTextView)
+        private val videoCardView: View = itemView.findViewById(R.id.videoCardView)
+        private val loadingProgressBar: View = itemView.findViewById(R.id.loadingProgressBar)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onVideoClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
+            // 解析视频消息内容：格式为 "videoUrl|duration"
+            val parts = message.content.split("|")
+            val videoUrl = if (parts.isNotEmpty()) parts[0] else message.content
+            val duration = if (parts.size >= 2) parts[1].toIntOrNull() ?: 0 else 0
             
+            // 加载视频封面（使用Glide从视频URL获取第一帧）
             Glide.with(itemView.context)
-                .load(message.content)
+                .load(videoUrl)
                 .centerCrop()
-                .into(ivThumbnail)
+                .placeholder(R.mipmap.img_video_default)
+                .error(R.mipmap.img_video_default)
+                .into(videoImageView)
             
-            videoCard.setOnClickListener {
+            // 显示视频时长
+            durationTextView.text = formatDuration(duration)
+            
+            // 点击播放视频
+            videoCardView.setOnClickListener {
                 onVideoClick?.invoke(message)
             }
             
-            videoCard.setOnLongClickListener {
+            // 长按菜单
+            videoCardView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
+            
+            // 隐藏加载进度条
+            loadingProgressBar.visibility = View.GONE
+        }
+        
+        private fun formatDuration(seconds: Int): String {
+            val minutes = seconds / 60
+            val secs = seconds % 60
+            return String.format("%02d:%02d", minutes, secs)
         }
     }
     
-    // 接收视频消息ViewHolder
+    // 接收视频消息ViewHolder (WildFire IM style)
     class VideoReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivThumbnail: ImageView = itemView.findViewById(R.id.iv_thumbnail)
-        private val videoCard: View = itemView.findViewById(R.id.video_card)
+        private val videoImageView: ImageView = itemView.findViewById(R.id.videoImageView)
+        private val playImageView: ImageView = itemView.findViewById(R.id.playImageView)
+        private val durationTextView: TextView = itemView.findViewById(R.id.durationTextView)
+        private val videoCardView: View = itemView.findViewById(R.id.videoCardView)
+        private val loadingProgressBar: View = itemView.findViewById(R.id.loadingProgressBar)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onVideoClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
+            // 解析视频消息内容：格式为 "videoUrl|duration"
+            val parts = message.content.split("|")
+            val videoUrl = if (parts.isNotEmpty()) parts[0] else message.content
+            val duration = if (parts.size >= 2) parts[1].toIntOrNull() ?: 0 else 0
             
+            // 加载视频封面（使用Glide从视频URL获取第一帧）
             Glide.with(itemView.context)
-                .load(message.content)
+                .load(videoUrl)
                 .centerCrop()
-                .into(ivThumbnail)
+                .placeholder(R.mipmap.img_video_default)
+                .error(R.mipmap.img_video_default)
+                .into(videoImageView)
             
-            videoCard.setOnClickListener {
+            // 显示视频时长
+            durationTextView.text = formatDuration(duration)
+            
+            // 点击播放视频
+            videoCardView.setOnClickListener {
                 onVideoClick?.invoke(message)
             }
             
-            videoCard.setOnLongClickListener {
+            // 长按菜单
+            videoCardView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
+            
+            // 隐藏加载进度条
+            loadingProgressBar.visibility = View.GONE
+        }
+        
+        private fun formatDuration(seconds: Int): String {
+            val minutes = seconds / 60
+            val secs = seconds % 60
+            return String.format("%02d:%02d", minutes, secs)
         }
     }
     
