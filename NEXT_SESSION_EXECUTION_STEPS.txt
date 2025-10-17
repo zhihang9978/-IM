@@ -1,0 +1,640 @@
+═══════════════════════════════════════════════════════════════
+  下次对话详细执行步骤 - 阶段6-14逻辑实现
+═══════════════════════════════════════════════════════════════
+
+创建时间: 2025-10-17
+执行模式: EXECUTE MODE（严格执行）
+预计耗时: 18-20小时（分2-3次对话）
+
+═══════════════════════════════════════════════════════════════
+🚀 启动指令（复制粘贴给下次对话）
+═══════════════════════════════════════════════════════════════
+
+任务：野火IM UI逻辑完整实现 - 继续阶段6-14
+
+必读：
+1. read_file: NEXT_SESSION_EXECUTION_STEPS.txt
+2. read_file: WILDFIRE_UI_LOGIC_IMPLEMENTATION_PLAN.txt
+3. read_file: WILDFIRE_UI_RESOURCES_INVENTORY.txt
+4. read_file: UI_EXTRACTION_PROGRESS.md
+
+确认：
+- 当前进度：UI资源100%，逻辑36%
+- Git状态：32 commits ahead
+- 野火IM路径：android-chat-master/
+- 蓝信路径：apps/android/
+
+执行方式：ENTER EXECUTE MODE
+严格按照下方步骤执行，不简化任何逻辑！
+
+═══════════════════════════════════════════════════════════════
+📋 阶段6：聊天主界面逻辑完善（1小时）
+═══════════════════════════════════════════════════════════════
+
+【步骤6.1】完善loadHistoryMessages()
+```kotlin
+read_file: android-chat-master/uikit/src/main/java/cn/wildfire/chat/kit/conversation/ConversationFragment.java
+找到：loadMessage()方法
+
+在ChatActivity中实现:
+private var oldestMessageId: Long = 0L
+private var isLoadingHistory = false
+
+private fun loadHistoryMessages() {
+    if (isLoadingHistory) return
+    isLoadingHistory = true
+    
+    lifecycleScope.launch {
+        try {
+            // 获取当前最早的消息ID
+            val currentMessages = adapter.currentList
+            oldestMessageId = currentMessages.firstOrNull()?.id ?: 0L
+            
+            // 调用API获取更早的消息
+            val response = RetrofitClient.apiService.getHistoryMessages(
+                conversationId = conversationId,
+                beforeMessageId = oldestMessageId,
+                limit = 20
+            )
+            
+            if (response.code == 0 && response.data != null) {
+                val historyMessages = response.data.messages
+                if (historyMessages.isNotEmpty()) {
+                    // 插入到列表顶部
+                    val newList = historyMessages + currentMessages
+                    adapter.submitList(newList)
+                    
+                    // 保持滚动位置
+                    recyclerView.scrollToPosition(historyMessages.size)
+                } else {
+                    Toast.makeText(this@ChatActivity, "没有更多历史消息", Toast.LENGTH_SHORT).show()
+                }
+            }
+            
+            swipeRefreshLayout.isRefreshing = false
+            isLoadingHistory = false
+        } catch (e: Exception) {
+            swipeRefreshLayout.isRefreshing = false
+            isLoadingHistory = false
+            Toast.makeText(this@ChatActivity, "加载失败", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+```
+
+【步骤6.2】实现未读消息提示
+```kotlin
+参考: ConversationFragment.java的scrollToBottom()
+
+在ChatActivity添加:
+private var firstUnreadPosition = -1
+
+// RecyclerView滚动监听
+recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+        updateUnreadIndicator()
+    }
+})
+
+private fun updateUnreadIndicator() {
+    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+    val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+    val totalCount = adapter.itemCount
+    
+    // 计算未读数量
+    val unreadCount = totalCount - lastVisiblePosition - 1
+    
+    if (unreadCount > 0) {
+        unreadCountLinearLayout.visibility = View.VISIBLE
+        unreadCountTextView.visibility = View.VISIBLE
+        unreadCountTextView.text = "${unreadCount}条消息"
+        
+        // 点击跳转到底部
+        unreadCountLinearLayout.setOnClickListener {
+            recyclerView.smoothScrollToPosition(totalCount - 1)
+            unreadCountLinearLayout.visibility = View.GONE
+        }
+    } else {
+        unreadCountLinearLayout.visibility = View.GONE
+    }
+}
+```
+
+【步骤6.3】测试和提交
+```bash
+read_lints: ChatActivity.kt
+git add apps/android/app/src/main/java/com/lanxin/im/ui/chat/ChatActivity.kt
+git commit -m "Stage 6 Logic: History loading, unread indicator - COMPLETE"
+```
+
+═══════════════════════════════════════════════════════════════
+📋 阶段7：输入面板完整逻辑（3-4小时）⚠️ 最复杂
+═══════════════════════════════════════════════════════════════
+
+【步骤7.1】创建InputPanelState枚举
+```kotlin
+创建文件: apps/android/app/src/main/java/com/lanxin/im/ui/chat/InputPanelState.kt
+
+enum class InputPanelState {
+    TEXT,      // 文本输入模式
+    VOICE,     // 语音输入模式
+    EMOTION,   // 表情面板显示
+    EXTENSION  // 扩展面板显示
+}
+```
+
+【步骤7.2】创建完整输入面板布局
+```xml
+创建文件: apps/android/app/src/main/res/layout/chat_input_panel_wildfire.xml
+
+参考: android-chat-master/uikit/src/main/res/layout/conversation_input_panel.xml
+
+包含组件:
+1. 顶部输入栏（LinearLayout）
+   - menuImageView（菜单按钮）
+   - audioImageView（语音/键盘切换按钮）
+   - 输入框容器（FrameLayout）
+     * EditText（文本输入）
+     * Button（按住说话）
+   - emotionImageView（表情按钮）
+   - extImageView（扩展按钮）
+   - sendButton（发送按钮）
+
+2. 引用消息区域（可折叠）
+   - refRelativeLayout
+   - refEditText（显示引用内容）
+   - clearRefImageButton（清除引用）
+
+3. 表情面板容器（可折叠）
+   - emotionContainerFrameLayout
+   - 使用第三方EmotionLayout或系统emoji
+
+4. 扩展面板容器（可折叠）
+   - extContainerContainerLayout
+   - include: dialog_more_options_wildfire.xml
+```
+
+【步骤7.3】更新ChatActivity添加输入面板状态管理
+```kotlin
+在ChatActivity中添加:
+
+// 输入面板状态
+private var inputPanelState = InputPanelState.TEXT
+private lateinit var menuImageView: ImageView
+private lateinit var audioImageView: ImageView
+private lateinit var emotionImageView: ImageView
+private lateinit var extImageView: ImageView
+private lateinit var sendButton: Button
+private lateinit var audioButton: Button
+private lateinit var emotionContainerFrameLayout: FrameLayout
+private lateinit var extContainerContainerLayout: FrameLayout
+
+// 在setupUI()中初始化
+menuImageView = findViewById(R.id.menuImageView)
+audioImageView = findViewById(R.id.audioImageView)
+emotionImageView = findViewById(R.id.emotionImageView)
+extImageView = findViewById(R.id.extImageView)
+sendButton = findViewById(R.id.sendButton)
+audioButton = findViewById(R.id.audioButton)
+emotionContainerFrameLayout = findViewById(R.id.emotionContainerFrameLayout)
+extContainerContainerLayout = findViewById(R.id.extContainerContainerLayout)
+
+// 在setupListeners()中添加
+audioImageView.setOnClickListener { toggleVoiceTextMode() }
+emotionImageView.setOnClickListener { toggleEmotionPanel() }
+extImageView.setOnClickListener { toggleExtensionPanel() }
+```
+
+【步骤7.4】实现状态切换方法
+```kotlin
+/**
+ * 切换语音/文本模式
+ */
+private fun toggleVoiceTextMode() {
+    when (inputPanelState) {
+        InputPanelState.TEXT -> {
+            // 切换到语音模式
+            inputPanelState = InputPanelState.VOICE
+            etInput.visibility = View.GONE
+            audioButton.visibility = View.VISIBLE
+            audioImageView.setImageResource(R.mipmap.ic_chat_keyboard)
+            hideKeyboard()
+            emotionContainerFrameLayout.visibility = View.GONE
+            extContainerContainerLayout.visibility = View.GONE
+        }
+        InputPanelState.VOICE -> {
+            // 切换到文本模式
+            inputPanelState = InputPanelState.TEXT
+            etInput.visibility = View.VISIBLE
+            audioButton.visibility = View.GONE
+            audioImageView.setImageResource(R.mipmap.ic_chat_voice)
+            etInput.requestFocus()
+            showKeyboard()
+        }
+        else -> {
+            // 从表情/扩展模式切换到文本
+            inputPanelState = InputPanelState.TEXT
+            etInput.visibility = View.VISIBLE
+            audioButton.visibility = View.GONE
+            audioImageView.setImageResource(R.mipmap.ic_chat_voice)
+        }
+    }
+}
+
+/**
+ * 切换表情面板
+ */
+private fun toggleEmotionPanel() {
+    when (inputPanelState) {
+        InputPanelState.EMOTION -> {
+            // 隐藏表情面板
+            inputPanelState = InputPanelState.TEXT
+            emotionContainerFrameLayout.visibility = View.GONE
+            emotionImageView.setImageResource(R.mipmap.ic_chat_emo)
+            showKeyboard()
+        }
+        else -> {
+            // 显示表情面板
+            inputPanelState = InputPanelState.EMOTION
+            hideKeyboard()
+            emotionContainerFrameLayout.visibility = View.VISIBLE
+            extContainerContainerLayout.visibility = View.GONE
+            emotionImageView.setImageResource(R.mipmap.ic_chat_keyboard)
+        }
+    }
+}
+
+/**
+ * 切换扩展面板
+ */
+private fun toggleExtensionPanel() {
+    when (inputPanelState) {
+        InputPanelState.EXTENSION -> {
+            // 隐藏扩展面板
+            inputPanelState = InputPanelState.TEXT
+            extContainerContainerLayout.visibility = View.GONE
+            showKeyboard()
+        }
+        else -> {
+            // 显示扩展面板
+            inputPanelState = InputPanelState.EXTENSION
+            hideKeyboard()
+            extContainerContainerLayout.visibility = View.VISIBLE
+            emotionContainerFrameLayout.visibility = View.GONE
+        }
+    }
+}
+
+/**
+ * 隐藏键盘
+ */
+private fun hideKeyboard() {
+    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    imm.hideSoftInputFromWindow(etInput.windowToken, 0)
+}
+
+/**
+ * 显示键盘
+ */
+private fun showKeyboard() {
+    etInput.requestFocus()
+    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    imm.showSoftInput(etInput, 0)
+}
+```
+
+【步骤7.5】测试和提交
+```bash
+read_lints: ChatActivity.kt
+git add .
+git commit -m "Stage 7 Logic: Input panel state management - COMPLETE"
+```
+
+═══════════════════════════════════════════════════════════════
+📋 阶段9：会话列表逻辑（2小时）
+═══════════════════════════════════════════════════════════════
+
+【步骤9.1】读取参考代码
+```
+read_file: android-chat-master/uikit/src/main/java/cn/wildfire/chat/kit/conversationlist/ConversationListAdapter.java
+分析：
+  - onBindViewHolder()方法
+  - 时间格式化
+  - 消息预览格式化
+  - 未读徽章显示逻辑
+```
+
+【步骤9.2】更新MessagesFragment（即ChatListFragment）
+```kotlin
+read_file: apps/android/app/src/main/java/com/lanxin/im/ui/chat/ChatListFragment.kt
+
+找到Adapter初始化部分，更新为:
+adapter = ConversationAdapter(
+    onConversationClick = { conversation ->
+        // 打开聊天页面
+        val intent = Intent(requireContext(), ChatActivity::class.java)
+        intent.putExtra("conversation_id", conversation.id)
+        intent.putExtra("peer_id", conversation.peerId)
+        startActivity(intent)
+    }
+)
+```
+
+【步骤9.3】创建ConversationAdapter
+```kotlin
+创建文件: apps/android/app/src/main/java/com/lanxin/im/ui/chat/ConversationAdapter.kt
+
+class ConversationAdapter(
+    private val onConversationClick: (Conversation) -> Unit
+) : ListAdapter<Conversation, ConversationAdapter.ViewHolder>(ConversationDiffCallback()) {
+    
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_conversation_wildfire, parent, false)
+        return ViewHolder(view)
+    }
+    
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(getItem(position), onConversationClick)
+    }
+    
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val portraitImageView: ImageView = itemView.findViewById(R.id.portraitImageView)
+        private val conversationTitleTextView: TextView = itemView.findViewById(R.id.conversationTitleTextView)
+        private val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
+        private val contentTextView: TextView = itemView.findViewById(R.id.contentTextView)
+        private val unreadCountTextView: TextView = itemView.findViewById(R.id.unreadCountTextView)
+        private val redDotView: View = itemView.findViewById(R.id.redDotView)
+        private val muteImageView: ImageView = itemView.findViewById(R.id.muteImageView)
+        
+        fun bind(conversation: Conversation, onClick: (Conversation) -> Unit) {
+            // 加载头像
+            Glide.with(itemView.context)
+                .load(conversation.avatar)
+                .circleCrop()
+                .placeholder(R.drawable.ic_profile)
+                .into(portraitImageView)
+            
+            // 设置名称
+            conversationTitleTextView.text = conversation.name
+            
+            // 格式化时间
+            timeTextView.text = formatTime(conversation.lastMessageTime)
+            
+            // 格式化消息预览
+            contentTextView.text = formatMessagePreview(conversation)
+            
+            // 未读徽章
+            if (conversation.unreadCount > 0) {
+                if (conversation.isMuted) {
+                    // 免打扰：只显示红点
+                    redDotView.visibility = View.VISIBLE
+                    unreadCountTextView.visibility = View.GONE
+                } else {
+                    // 显示未读数字
+                    redDotView.visibility = View.GONE
+                    unreadCountTextView.visibility = View.VISIBLE
+                    unreadCountTextView.text = when {
+                        conversation.unreadCount > 99 -> "99+"
+                        else -> conversation.unreadCount.toString()
+                    }
+                }
+            } else {
+                redDotView.visibility = View.GONE
+                unreadCountTextView.visibility = View.GONE
+            }
+            
+            // 免打扰图标
+            muteImageView.visibility = if (conversation.isMuted) View.VISIBLE else View.GONE
+            
+            // 置顶背景（如果需要）
+            // itemView.setBackgroundColor(if (conversation.isTop) topColor else normalColor)
+            
+            // 点击事件
+            itemView.setOnClickListener { onClick(conversation) }
+        }
+        
+        private fun formatTime(timestamp: Long): String {
+            val now = System.currentTimeMillis()
+            val diff = now - timestamp
+            val cal = Calendar.getInstance()
+            cal.timeInMillis = timestamp
+            
+            return when {
+                diff < 60000 -> "刚刚"
+                diff < 3600000 -> "${diff / 60000}分钟前"
+                diff < 86400000 -> SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
+                diff < 172800000 -> "昨天"
+                diff < 604800000 -> {
+                    val days = arrayOf("日", "一", "二", "三", "四", "五", "六")
+                    "星期${days[cal.get(Calendar.DAY_OF_WEEK) - 1]}"
+                }
+                else -> SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date(timestamp))
+            }
+        }
+        
+        private fun formatMessagePreview(conversation: Conversation): CharSequence {
+            // 草稿优先
+            if (!conversation.draft.isNullOrEmpty()) {
+                val draftText = "[草稿] ${conversation.draft}"
+                val spannable = SpannableString(draftText)
+                spannable.setSpan(
+                    ForegroundColorSpan(Color.RED),
+                    0, 4,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                return spannable
+            }
+            
+            // 根据消息类型格式化
+            return when (conversation.lastMessageType) {
+                "text" -> conversation.lastMessageContent
+                "voice" -> "[语音]"
+                "image" -> "[图片]"
+                "video" -> "[视频]"
+                "file" -> "[文件] ${conversation.lastMessageContent.split("|").firstOrNull() ?: ""}"
+                else -> ""
+            }
+        }
+    }
+}
+
+class ConversationDiffCallback : DiffUtil.ItemCallback<Conversation>() {
+    override fun areItemsTheSame(oldItem: Conversation, newItem: Conversation) = 
+        oldItem.id == newItem.id
+    override fun areContentsTheSame(oldItem: Conversation, newItem: Conversation) = 
+        oldItem == newItem
+}
+```
+
+【步骤9.4】测试和提交
+```bash
+read_lints: ConversationAdapter.kt
+git add .
+git commit -m "Stage 9 Logic: Conversation list adapter - COMPLETE"
+```
+
+═══════════════════════════════════════════════════════════════
+📋 阶段12：长按菜单完整功能（2小时）
+═══════════════════════════════════════════════════════════════
+
+【步骤12.1】创建消息菜单布局
+```xml
+创建文件: apps/android/app/src/main/res/menu/menu_message_context_wildfire.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_copy"
+        android:icon="@mipmap/ic_msg_copy"
+        android:title="复制" />
+    <item
+        android:id="@+id/menu_forward"
+        android:icon="@mipmap/ic_msg_forward"
+        android:title="转发" />
+    <item
+        android:id="@+id/menu_collect"
+        android:icon="@mipmap/ic_msg_collect"
+        android:title="收藏" />
+    <item
+        android:id="@+id/menu_recall"
+        android:icon="@mipmap/ic_msg_rollback"
+        android:title="撤回" />
+    <item
+        android:id="@+id/menu_delete"
+        android:icon="@mipmap/ic_msg_delete"
+        android:title="删除" />
+    <item
+        android:id="@+id/menu_quote"
+        android:icon="@mipmap/ic_msg_quote"
+        android:title="引用" />
+    <item
+        android:id="@+id/menu_select"
+        android:icon="@mipmap/ic_msg_select"
+        android:title="多选" />
+</menu>
+```
+
+【步骤12.2】更新showMessageMenu()方法
+```kotlin
+在ChatActivity中更新:
+
+private fun showMessageMenu(message: Message) {
+    val popup = PopupMenu(this, recyclerView)
+    popup.menuInflater.inflate(R.menu.menu_message_context_wildfire, popup.menu)
+    
+    // 根据消息类型和状态显示不同菜单项
+    val isSent = message.senderId == currentUserId
+    val canRecall = isSent && (System.currentTimeMillis() - message.createdAt < 120000) // 2分钟内
+    val isTextMessage = message.type == "text"
+    
+    popup.menu.findItem(R.id.menu_copy).isVisible = isTextMessage
+    popup.menu.findItem(R.id.menu_recall).isVisible = canRecall
+    
+    popup.setOnMenuItemClickListener { menuItem ->
+        when (menuItem.itemId) {
+            R.id.menu_copy -> {
+                copyMessage(message)
+                true
+            }
+            R.id.menu_forward -> {
+                forwardMessage(message)
+                true
+            }
+            R.id.menu_collect -> {
+                collectMessage(message)
+                true
+            }
+            R.id.menu_recall -> {
+                recallMessage(message)
+                true
+            }
+            R.id.menu_delete -> {
+                deleteMessage(message)
+                true
+            }
+            R.id.menu_quote -> {
+                quoteMessage(message)
+                true
+            }
+            R.id.menu_select -> {
+                enterMultiSelectMode(message)
+                true
+            }
+            else -> false
+        }
+    }
+    popup.show()
+}
+
+// 实现各个菜单功能
+private fun copyMessage(message: Message) {
+    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("message", message.content)
+    clipboard.setPrimaryClip(clip)
+    Toast.makeText(this, "已复制", Toast.LENGTH_SHORT).show()
+}
+
+private fun quoteMessage(message: Message) {
+    // TODO: 在输入框显示引用消息预览
+    Toast.makeText(this, "引用功能：待实现", Toast.LENGTH_SHORT).show()
+}
+
+// ... 其他菜单功能实现
+```
+
+【步骤12.3】测试和提交
+```bash
+git add .
+git commit -m "Stage 12 Logic: Long press menu complete - 8 functions"
+```
+
+═══════════════════════════════════════════════════════════════
+📋 执行顺序建议（下次对话）
+═══════════════════════════════════════════════════════════════
+
+建议按此顺序执行（按难度和重要性排序）:
+
+第一优先级（核心功能）:
+  1. ✅ 阶段6：聊天主界面逻辑（1h）
+  2. ⚠️ 阶段7：输入面板逻辑（3-4h）- 最复杂
+  3. ✅ 阶段9：会话列表逻辑（2h）
+  4. ✅ 阶段12：长按菜单逻辑（2h）
+
+第二优先级（重要功能）:
+  5. 阶段8：扩展面板点击事件（1h）
+  6. 阶段10：联系人字母分组（2h）
+  7. 阶段11：用户信息页布局（2h）
+
+第三优先级（优化功能）:
+  8. 阶段13：动画效果（2h）
+  9. 阶段14：优化和测试（2-3h）
+
+总计: 18-20小时（分2-3次对话）
+
+═══════════════════════════════════════════════════════════════
+🎯 成功标准
+═══════════════════════════════════════════════════════════════
+
+下次对话完成后应达到:
+  ✅ 所有消息类型正常发送/接收
+  ✅ 输入面板状态切换流畅
+  ✅ 会话列表显示完整信息
+  ✅ 联系人列表字母分组正确
+  ✅ 长按菜单8项功能全部可用
+  ✅ 无编译错误
+  ✅ 无运行时错误
+  ✅ UI质量达到90分+
+
+═══════════════════════════════════════════════════════════════
+📌 重要提醒
+═══════════════════════════════════════════════════════════════
+
+1. ⚠️ 不要简化任何逻辑
+2. ⚠️ 严格参考野火IM实现
+3. ⚠️ 保留蓝信的业务逻辑和API调用
+4. ⚠️ 每个阶段必须测试
+5. ⚠️ 每个阶段独立Git提交
+
+═══════════════════════════════════════════════════════════════
+
