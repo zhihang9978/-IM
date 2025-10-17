@@ -1,0 +1,46 @@
+═══════════════════════════════════════════════════════════════
+  下次对话启动指令（直接复制粘贴）
+═══════════════════════════════════════════════════════════════
+
+任务：野火IM UI逻辑完整实现 - 继续阶段6-14
+
+⚠️ 第一步：必读文档（按顺序）
+1. read_file: CRITICAL_RULES.txt
+2. read_file: START_NEXT_SESSION_COMMAND.txt
+3. read_file: NEXT_SESSION_EXECUTION_STEPS.txt
+4. read_file: WILDFIRE_UI_LOGIC_IMPLEMENTATION_PLAN.txt
+
+⚠️ 第二步：确认状态
+- Git状态：38 commits ahead，工作区clean ✅
+- UI资源：100%完成 ✅
+- 逻辑实现：36%完成（阶段1-5）
+- 框架代码：已创建（InputPanelState.kt, ConversationAdapter.kt）
+
+⚠️ 第三步：关键原则确认
+android-chat-master/ = 只读参考（不做任何修改）✅
+apps/android/ = 实现目标（所有修改在这里）✅
+
+⚠️ 第四步：执行命令
+ENTER EXECUTE MODE
+
+⚠️ 第五步：执行顺序
+严格按照NEXT_SESSION_EXECUTION_STEPS.txt中的步骤执行：
+1. 阶段7：输入面板逻辑（3-4h）⚠️ 最复杂
+2. 阶段9：会话列表逻辑（2h）
+3. 阶段12：长按菜单逻辑（2h）
+4. 阶段8：扩展面板逻辑（1h）
+5. 阶段10：联系人分组逻辑（2h）
+6. 阶段11：用户信息页逻辑（2h）
+7. 阶段13：动画效果（2h）
+8. 阶段14：测试优化（2-3h）
+
+执行要求：
+✅ 完整复刻野火IM逻辑
+✅ 不简化任何功能
+✅ 确保无BUG
+✅ 每阶段独立提交
+
+预计耗时：18-20小时（分2-3次对话）
+
+═══════════════════════════════════════════════════════════════
+
