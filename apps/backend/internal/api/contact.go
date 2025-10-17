@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/dao"
 	"github.com/lanxin/im-backend/internal/middleware"
+	"github.com/lanxin/im-backend/internal/model"
 )
 
 type ContactHandler struct {
