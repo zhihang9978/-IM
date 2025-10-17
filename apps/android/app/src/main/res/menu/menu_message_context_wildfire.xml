@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Message Context Menu (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+  Adapted for LanXin IM
+  
+  8 menu items:
+  - 复制 (Copy)
+  - 引用 (Quote) - WildFire IM feature
+  - 转发 (Forward) - WildFire IM feature
+  - 收藏 (Collect) - WildFire IM feature
+  - 撤回 (Recall)
+  - 删除 (Delete)
+  - 多选 (Multi-select) - WildFire IM feature
+  - 举报 (Report) - WildFire IM feature
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item
+        android:id="@+id/menu_copy"
+        android:title="复制"
+        android:icon="@mipmap/ic_msg_copy" />
+    
+    <item
+        android:id="@+id/menu_quote"
+        android:title="引用"
+        android:icon="@mipmap/ic_msg_quote" />
+    
+    <item
+        android:id="@+id/menu_forward"
+        android:title="转发"
+        android:icon="@mipmap/ic_msg_forward" />
+    
+    <item
+        android:id="@+id/menu_collect"
+        android:title="收藏"
+        android:icon="@mipmap/ic_msg_collect" />
+    
+    <item
+        android:id="@+id/menu_recall"
+        android:title="撤回"
+        android:icon="@mipmap/ic_msg_rollback" />
+    
+    <item
+        android:id="@+id/menu_delete"
+        android:title="删除"
+        android:icon="@mipmap/ic_msg_delete" />
+    
+    <item
+        android:id="@+id/menu_select"
+        android:title="多选"
+        android:icon="@mipmap/ic_msg_select" />
+    
+    <item
+        android:id="@+id/menu_report"
+        android:title="举报"
+        android:icon="@drawable/ic_flag" />
+    
+</menu>
+

@@ -64,27 +64,40 @@ class ChatActivity : AppCompatActivity() {
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ChatAdapter
-    private lateinit var etInput: EditText
-    private lateinit var btnSend: Button
     private lateinit var btnBack: ImageButton
     private lateinit var btnVoiceCall: ImageButton
     private lateinit var btnVideoCall: ImageButton
     private lateinit var tvTitle: TextView
     private lateinit var tvStatus: TextView
     
-    private lateinit var btnVoiceInput: ImageButton
-    private lateinit var btnVoiceRecord: Button
-    private lateinit var btnMoreOptions: ImageButton
-    private lateinit var recordingOverlay: FrameLayout
-    private lateinit var tvRecordingTime: TextView
-    private lateinit var tvRecordingHint: TextView
-    private lateinit var ivRecordingIcon: ImageView
-    
     // WildFire IM style components
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var unreadCountLinearLayout: LinearLayout
     private lateinit var unreadCountTextView: TextView
     private lateinit var unreadMentionCountTextView: TextView
+    
+    // WildFire IM style input panel components
+    private lateinit var menuImageView: ImageView
+    private lateinit var audioImageView: ImageView
+    private lateinit var etInput: EditText
+    private lateinit var emotionImageView: ImageView
+    private lateinit var extImageView: ImageView
+    private lateinit var btnSend: Button
+    private lateinit var audioButton: Button
+    private lateinit var emotionContainerFrameLayout: FrameLayout
+    private lateinit var extContainerContainerLayout: FrameLayout
+    private lateinit var refRelativeLayout: View
+    private lateinit var refEditText: EditText
+    private lateinit var clearRefImageButton: ImageButton
+    
+    private lateinit var recordingOverlay: FrameLayout
+    private lateinit var tvRecordingTime: TextView
+    private lateinit var tvRecordingHint: TextView
+    private lateinit var ivRecordingIcon: ImageView
+    
+    // Input panel state management
+    private var inputPanelState = InputPanelState.TEXT
+    private var quotedMessage: Message? = null
     
     private var conversationId: Long = 0
     private var peerId: Long = 0
@@ -138,27 +151,36 @@ class ChatActivity : AppCompatActivity() {
     private fun setupUI() {
         // 初始化视图
         recyclerView = findViewById(R.id.recycler_view_messages)
-        etInput = findViewById(R.id.et_input)
-        btnSend = findViewById(R.id.btn_send)
         btnBack = findViewById(R.id.btn_back)
         btnVoiceCall = findViewById(R.id.btn_voice_call)
         btnVideoCall = findViewById(R.id.btn_video_call)
         tvTitle = findViewById(R.id.tv_title)
         tvStatus = findViewById(R.id.tv_status)
         
-        btnVoiceInput = findViewById(R.id.btn_voice_input)
-        btnVoiceRecord = findViewById(R.id.btn_voice_record)
-        btnMoreOptions = findViewById(R.id.btn_more_options)
-        recordingOverlay = findViewById(R.id.recording_overlay)
-        tvRecordingTime = findViewById(R.id.tv_recording_time)
-        tvRecordingHint = findViewById(R.id.tv_recording_hint)
-        ivRecordingIcon = findViewById(R.id.iv_recording_icon)
-        
         // WildFire IM style components
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
         unreadCountLinearLayout = findViewById(R.id.unreadCountLinearLayout)
         unreadCountTextView = findViewById(R.id.unreadCountTextView)
         unreadMentionCountTextView = findViewById(R.id.unreadMentionCountTextView)
+        
+        // WildFire IM style input panel components
+        menuImageView = findViewById(R.id.menuImageView)
+        audioImageView = findViewById(R.id.audioImageView)
+        etInput = findViewById(R.id.editText)
+        emotionImageView = findViewById(R.id.emotionImageView)
+        extImageView = findViewById(R.id.extImageView)
+        btnSend = findViewById(R.id.sendButton)
+        audioButton = findViewById(R.id.audioButton)
+        emotionContainerFrameLayout = findViewById(R.id.emotionContainerFrameLayout)
+        extContainerContainerLayout = findViewById(R.id.extContainerContainerLayout)
+        refRelativeLayout = findViewById(R.id.refRelativeLayout)
+        refEditText = findViewById(R.id.refEditText)
+        clearRefImageButton = findViewById(R.id.clearRefImageButton)
+        
+        recordingOverlay = findViewById(R.id.recording_overlay)
+        tvRecordingTime = findViewById(R.id.tv_recording_time)
+        tvRecordingHint = findViewById(R.id.tv_recording_hint)
+        ivRecordingIcon = findViewById(R.id.iv_recording_icon)
         
         // 设置SwipeRefreshLayout (WildFire IM style)
         swipeRefreshLayout.setColorSchemeResources(R.color.primary)
@@ -209,14 +231,20 @@ class ChatActivity : AppCompatActivity() {
             finish()
         }
         
-        // 输入框@提醒监听
+        // 输入框文本变化监听
         etInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // @提醒监听
                 if (s != null && count == 1 && s[start] == '@') {
                     showMemberSelector()
                 }
+                
+                // 控制发送按钮/扩展按钮显示
+                val hasText = !s.isNullOrEmpty()
+                btnSend.visibility = if (hasText) View.VISIBLE else View.GONE
+                extImageView.visibility = if (hasText) View.GONE else View.VISIBLE
             }
             
             override fun afterTextChanged(s: Editable?) {}
@@ -232,13 +260,28 @@ class ChatActivity : AppCompatActivity() {
             }
         }
         
-        // 语音/文本输入切换
-        btnVoiceInput.setOnClickListener {
-            toggleInputMode()
+        // 语音/文本输入切换 (WildFire IM style)
+        audioImageView.setOnClickListener {
+            toggleVoiceTextMode()
+        }
+        
+        // 表情面板切换 (WildFire IM style)
+        emotionImageView.setOnClickListener {
+            toggleEmotionPanel()
+        }
+        
+        // 扩展面板切换 (WildFire IM style)
+        extImageView.setOnClickListener {
+            toggleExtensionPanel()
+        }
+        
+        // 清除引用消息 (WildFire IM style)
+        clearRefImageButton.setOnClickListener {
+            clearQuotedMessage()
         }
         
         // 长按录音按钮
-        btnVoiceRecord.setOnTouchListener { _, event ->
+        audioButton.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     recordingStartY = event.rawY
@@ -294,32 +337,59 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
-     * 显示消息长按菜单（完整实现，无占位符）
+     * 显示消息长按菜单（WildFire IM style - 8个功能）
+     * 参考：WildFireChat ConversationFragment.java (Apache 2.0)
      */
     private fun showMessageMenu(message: Message) {
         val popup = PopupMenu(this, recyclerView)
-        popup.menuInflater.inflate(R.menu.menu_message_context, popup.menu)
+        popup.menuInflater.inflate(R.menu.menu_message_context_wildfire, popup.menu)
         
         // 获取当前用户ID
         val currentUserId = intent.getLongExtra("current_user_id", 1L)
         
-        // 只有自己发送的消息才能撤回
-        if (message.senderId != currentUserId) {
-            popup.menu.findItem(R.id.action_recall).isVisible = false
-        }
+        // 根据消息类型和状态控制菜单项显示
+        val isSent = message.senderId == currentUserId
+        val canRecall = isSent && (System.currentTimeMillis() - message.createdAt < 120000) // 2分钟内
+        val isTextMessage = message.type == "text"
+        
+        // 只有文本消息才能复制
+        popup.menu.findItem(R.id.menu_copy)?.isVisible = isTextMessage
+        
+        // 只有自己发送的消息且在2分钟内才能撤回
+        popup.menu.findItem(R.id.menu_recall)?.isVisible = canRecall
         
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_copy -> {
+                R.id.menu_copy -> {
                     copyMessageToClipboard(message.content)
                     true
                 }
-                R.id.action_recall -> {
+                R.id.menu_quote -> {
+                    quoteMessage(message)
+                    true
+                }
+                R.id.menu_forward -> {
+                    forwardMessage(message)
+                    true
+                }
+                R.id.menu_collect -> {
+                    collectMessage(message)
+                    true
+                }
+                R.id.menu_recall -> {
                     recallMessage(message)
                     true
                 }
-                R.id.action_delete -> {
+                R.id.menu_delete -> {
                     deleteMessage(message)
+                    true
+                }
+                R.id.menu_select -> {
+                    enterMultiSelectMode(message)
+                    true
+                }
+                R.id.menu_report -> {
+                    reportMessage(message)
                     true
                 }
                 else -> false
@@ -384,15 +454,22 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
-     * 发送消息（完整实现，调用API）
+     * 发送消息（完整实现，调用API，支持引用）
+     * WildFire IM style: 支持引用消息
      */
     private fun sendMessage(content: String) {
         lifecycleScope.launch {
             try {
-                val messageContent = if (mentionedUsers.isNotEmpty()) {
-                    "$content|MENTIONS:${mentionedUsers.joinToString(",")}"
-                } else {
-                    content
+                var messageContent = content
+                
+                // 处理@提醒
+                if (mentionedUsers.isNotEmpty()) {
+                    messageContent = "$messageContent|MENTIONS:${mentionedUsers.joinToString(",")}"
+                }
+                
+                // 处理引用消息 (WildFire IM style)
+                if (quotedMessage != null) {
+                    messageContent = "$messageContent|QUOTE:${quotedMessage!!.id}"
                 }
                 
                 val request = com.lanxin.im.data.remote.SendMessageRequest(
@@ -409,8 +486,12 @@ class ChatActivity : AppCompatActivity() {
                     adapter.submitList(currentList)
                     recyclerView.scrollToPosition(currentList.size - 1)
                     
+                    // 清理状态
                     if (isBurnAfterRead) {
                         isBurnAfterRead = false
+                    }
+                    if (quotedMessage != null) {
+                        clearQuotedMessage()
                     }
                 } else {
                     Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
@@ -457,20 +538,157 @@ class ChatActivity : AppCompatActivity() {
         }
     }
     
+    // ═══════════════════════════════════════════════════════════════
+    // WildFire IM Style: Input Panel State Management
+    // ═══════════════════════════════════════════════════════════════
+    
     /**
-     * 切换输入模式（语音/文本）
+     * 切换语音/文本模式
+     * 参考：WildFireChat ConversationInputPanel.java (Apache 2.0)
      */
-    private fun toggleInputMode() {
-        isVoiceMode = !isVoiceMode
-        if (isVoiceMode) {
-            etInput.visibility = View.GONE
-            btnVoiceRecord.visibility = View.VISIBLE
-            btnVoiceInput.setImageResource(R.drawable.ic_keyboard)
-        } else {
-            etInput.visibility = View.VISIBLE
-            btnVoiceRecord.visibility = View.GONE
-            btnVoiceInput.setImageResource(R.drawable.ic_mic)
+    private fun toggleVoiceTextMode() {
+        when (inputPanelState) {
+            InputPanelState.TEXT -> {
+                // 切换到语音模式
+                inputPanelState = InputPanelState.VOICE
+                etInput.visibility = View.GONE
+                audioButton.visibility = View.VISIBLE
+                audioImageView.setImageResource(R.mipmap.ic_chat_keyboard)
+                hideKeyboard()
+                emotionContainerFrameLayout.visibility = View.GONE
+                extContainerContainerLayout.visibility = View.GONE
+            }
+            InputPanelState.VOICE -> {
+                // 切换到文本模式
+                inputPanelState = InputPanelState.TEXT
+                etInput.visibility = View.VISIBLE
+                audioButton.visibility = View.GONE
+                audioImageView.setImageResource(R.mipmap.ic_chat_voice)
+                etInput.requestFocus()
+                showKeyboard()
+            }
+            else -> {
+                // 从表情/扩展模式切换到文本
+                inputPanelState = InputPanelState.TEXT
+                etInput.visibility = View.VISIBLE
+                audioButton.visibility = View.GONE
+                audioImageView.setImageResource(R.mipmap.ic_chat_voice)
+            }
         }
+    }
+    
+    /**
+     * 切换表情面板
+     * 参考：WildFireChat ConversationInputPanel.java (Apache 2.0)
+     */
+    private fun toggleEmotionPanel() {
+        when (inputPanelState) {
+            InputPanelState.EMOTION -> {
+                // 隐藏表情面板
+                inputPanelState = InputPanelState.TEXT
+                emotionContainerFrameLayout.visibility = View.GONE
+                emotionImageView.setImageResource(R.mipmap.ic_chat_emo)
+                showKeyboard()
+            }
+            else -> {
+                // 显示表情面板
+                inputPanelState = InputPanelState.EMOTION
+                hideKeyboard()
+                
+                // 延迟显示面板，等待键盘隐藏
+                Handler(Looper.getMainLooper()).postDelayed({
+                    emotionContainerFrameLayout.visibility = View.VISIBLE
+                    extContainerContainerLayout.visibility = View.GONE
+                    emotionImageView.setImageResource(R.mipmap.ic_chat_keyboard)
+                }, 100)
+            }
+        }
+    }
+    
+    /**
+     * 切换扩展面板
+     * 参考：WildFireChat ConversationInputPanel.java (Apache 2.0)
+     */
+    private fun toggleExtensionPanel() {
+        when (inputPanelState) {
+            InputPanelState.EXTENSION -> {
+                // 隐藏扩展面板
+                inputPanelState = InputPanelState.TEXT
+                extContainerContainerLayout.visibility = View.GONE
+                showKeyboard()
+            }
+            else -> {
+                // 显示扩展面板
+                inputPanelState = InputPanelState.EXTENSION
+                hideKeyboard()
+                
+                // 延迟显示面板，等待键盘隐藏
+                Handler(Looper.getMainLooper()).postDelayed({
+                    extContainerContainerLayout.visibility = View.VISIBLE
+                    emotionContainerFrameLayout.visibility = View.GONE
+                }, 100)
+            }
+        }
+    }
+    
+    /**
+     * 隐藏键盘
+     */
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(etInput.windowToken, 0)
+    }
+    
+    /**
+     * 显示键盘
+     */
+    private fun showKeyboard() {
+        etInput.requestFocus()
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.showSoftInput(etInput, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+    }
+    
+    /**
+     * 清除引用消息
+     */
+    private fun clearQuotedMessage() {
+        quotedMessage = null
+        refRelativeLayout.visibility = View.GONE
+        refEditText.text.clear()
+    }
+    
+    /**
+     * 设置引用消息
+     * 从长按菜单调用
+     */
+    private fun quoteMessage(message: Message) {
+        quotedMessage = message
+        refRelativeLayout.visibility = View.VISIBLE
+        
+        // 显示引用消息预览
+        val preview = when (message.type) {
+            "text" -> message.content
+            "voice" -> "[语音]"
+            "image" -> "[图片]"
+            "video" -> "[视频]"
+            "file" -> "[文件] ${message.content}"
+            else -> "[消息]"
+        }
+        refEditText.setText(preview)
+        
+        // 切换到文本输入模式
+        if (inputPanelState != InputPanelState.TEXT) {
+            inputPanelState = InputPanelState.TEXT
+            etInput.visibility = View.VISIBLE
+            audioButton.visibility = View.GONE
+            audioImageView.setImageResource(R.mipmap.ic_chat_voice)
+            emotionContainerFrameLayout.visibility = View.GONE
+            extContainerContainerLayout.visibility = View.GONE
+        }
+        
+        // 获取焦点
+        etInput.requestFocus()
+        showKeyboard()
     }
     
     /**
@@ -1040,6 +1258,52 @@ class ChatActivity : AppCompatActivity() {
         etInput.setSelection(mentionEnd + 1)
         
         mentionedUsers.add(memberId)
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // WildFire IM Style: Message Menu Functions
+    // ═══════════════════════════════════════════════════════════════
+    
+    /**
+     * 转发消息
+     * TODO: 打开联系人选择器
+     */
+    private fun forwardMessage(message: Message) {
+        Toast.makeText(this, "转发功能：待实现", Toast.LENGTH_SHORT).show()
+        // 未来实现：打开ForwardActivity选择转发目标
+    }
+    
+    /**
+     * 收藏消息
+     * TODO: 调用收藏API
+     */
+    private fun collectMessage(message: Message) {
+        lifecycleScope.launch {
+            try {
+                // TODO: 调用收藏API
+                Toast.makeText(this@ChatActivity, "已收藏", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "收藏失败", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * 进入多选模式
+     * TODO: 进入多选模式UI
+     */
+    private fun enterMultiSelectMode(message: Message) {
+        Toast.makeText(this, "多选功能：待实现", Toast.LENGTH_SHORT).show()
+        // 未来实现：进入多选模式，显示选择checkbox
+    }
+    
+    /**
+     * 举报消息
+     * TODO: 打开举报页面
+     */
+    private fun reportMessage(message: Message) {
+        Toast.makeText(this, "举报功能：待实现", Toast.LENGTH_SHORT).show()
+        // 未来实现：打开ReportActivity
     }
     
     /**

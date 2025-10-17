@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Chat Input Panel Layout (WildFire IM style)
+  Source: WildFireChat android-chat-master/uikit/res/layout/conversation_input_panel.xml (Apache 2.0)
+  Adapted for LanXin IM
+  
+  Features:
+  - Voice/Text mode toggle
+  - Emotion panel
+  - Extension panel
+  - Quote/Reference message
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/inputPanelContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/background_light">
+
+    <!-- 顶部输入栏 -->
+    <LinearLayout
+        android:id="@+id/inputContainerLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:animateLayoutChanges="true"
+        android:focusableInTouchMode="true">
+
+        <!-- 菜单按钮 -->
+        <ImageView
+            android:id="@+id/menuImageView"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="bottom"
+            android:layout_margin="5dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/ic_chat_menu"
+            android:contentDescription="菜单" />
+
+        <!-- 分割线 -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/divider" />
+
+        <!-- 语音/键盘切换按钮 -->
+        <ImageView
+            android:id="@+id/audioImageView"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="bottom"
+            android:layout_margin="5dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/ic_chat_voice"
+            android:contentDescription="语音输入" />
+
+        <!-- 输入框容器 (FrameLayout用于切换显示) -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
+
+            <!-- 输入框和引用消息的垂直布局 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 文本输入框 -->
+                <EditText
+                    android:id="@+id/editText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="42dp"
+                    android:maxLines="5"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:textSize="16sp"
+                    android:hint="@string/chat_input_hint"
+                    android:background="@drawable/shape_session_text_input_wf"
+                    android:visibility="visible"
+                    tools:ignore="Autofill,TextFields" />
+
+                <!-- 引用消息区域 (可折叠) -->
+                <RelativeLayout
+                    android:id="@+id/refRelativeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone">
+
+                    <!-- 引用消息预览 -->
+                    <EditText
+                        android:id="@+id/refEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="30dp"
+                        android:maxLines="2"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="40dp"
+                        android:textSize="12sp"
+                        android:enabled="false"
+                        android:background="@drawable/shape_message_ref_bg"
+                        android:hint="引用消息"
+                        tools:ignore="Autofill,TextFields" />
+
+                    <!-- 清除引用按钮 -->
+                    <ImageButton
+                        android:id="@+id/clearRefImageButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_close"
+                        android:contentDescription="清除引用"
+                        android:padding="6dp" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <!-- 语音录制按钮 (与输入框互斥显示) -->
+            <Button
+                android:id="@+id/audioButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="按住 说话"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:background="@drawable/shape_session_btn_voice_normal_wf"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- 表情按钮 -->
+        <ImageView
+            android:id="@+id/emotionImageView"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="bottom"
+            android:layout_margin="5dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/ic_chat_emo"
+            android:contentDescription="表情" />
+
+        <!-- 扩展功能按钮 -->
+        <ImageView
+            android:id="@+id/extImageView"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="bottom"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/ic_chat_add"
+            android:contentDescription="更多功能" />
+
+        <!-- 发送按钮 (有内容时显示) -->
+        <Button
+            android:id="@+id/sendButton"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="50dp"
+            android:layout_height="35dp"
+            android:layout_gravity="bottom"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="2.5dp"
+            android:gravity="center"
+            android:text="发送"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:background="@drawable/shape_session_btn_send_wf"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- 分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+
+    <!-- 表情面板容器 (可折叠) -->
+    <FrameLayout
+        android:id="@+id/emotionContainerFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@color/background_light"
+        android:visibility="gone">
+
+        <!-- 简化版表情面板 - 使用系统emoji或第三方库 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="表情面板（待集成）"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary" />
+        
+        <!-- 未来可替换为:
+        <com.lqr.emoji.EmotionLayout
+            android:id="@+id/emotionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        -->
+    </FrameLayout>
+
+    <!-- 扩展功能面板容器 (可折叠) -->
+    <FrameLayout
+        android:id="@+id/extContainerContainerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@color/background_light"
+        android:visibility="gone">
+
+        <!-- 引用扩展功能面板 -->
+        <include layout="@layout/dialog_more_options_wildfire" />
+    </FrameLayout>
+
+</LinearLayout>
+
