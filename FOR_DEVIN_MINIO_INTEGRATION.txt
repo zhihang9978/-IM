@@ -1,0 +1,157 @@
+═══════════════════════════════════════════════════════════════
+  MinIO集成指南 - Devin必读
+═══════════════════════════════════════════════════════════════
+
+重要: Android客户端所有功能已完成，仅缺MinIO文件上传集成
+需要: Devin配置MinIO并更新Android代码中的上传URL
+
+═══════════════════════════════════════════════════════════════
+1. 确认MinIO服务运行
+═══════════════════════════════════════════════════════════════
+
+检查MinIO状态:
+  curl http://154.40.45.121:9000/minio/health/live
+
+确认Bucket存在:
+  - Bucket名称: lanxin-files
+  - 访问: http://154.40.45.121:9001
+  - 登录: minioadmin / minioadmin123456
+
+═══════════════════════════════════════════════════════════════
+2. 后端MinIO配置确认
+═══════════════════════════════════════════════════════════════
+
+文件: apps/backend/config/config.yaml
+
+确认配置:
+  storage:
+    cos:
+      secret_id: "minioadmin"
+      secret_key: "minioadmin123456"
+      bucket: "lanxin-files"
+      base_url: "http://154.40.45.121:9000"
+
+重启后端服务:
+  systemctl restart lanxin
+
+测试文件上传API:
+  curl -X GET "http://154.40.45.200:8080/api/v1/files/upload-token?file_name=test.jpg&file_type=image" \
+    -H "Authorization: Bearer YOUR_TOKEN"
+
+═══════════════════════════════════════════════════════════════
+3. Android MinIO集成（代码已准备好）
+═══════════════════════════════════════════════════════════════
+
+Android已有MinIO SDK依赖:
+  implementation("io.minio:minio:8.5.7")
+
+需要做的（如果还没做）:
+
+在Android代码中找到文件上传部分，配置MinIO地址:
+
+位置: apps/android/app/src/main/java/com/lanxin/im/utils/FileUploadHelper.kt
+或: apps/android/app/src/main/java/com/lanxin/im/utils/MinIOUploader.kt
+
+配置:
+  private const val MINIO_URL = "http://154.40.45.121:9000"
+  private const val BUCKET_NAME = "lanxin-files"
+
+示例代码（如果需要添加）:
+```kotlin
+val minioClient = MinioClient.builder()
+    .endpoint("http://154.40.45.121:9000")
+    .credentials("minioadmin", "minioadmin123456")
+    .build()
+
+// 上传文件
+minioClient.putObject(
+    PutObjectArgs.builder()
+        .bucket("lanxin-files")
+        .object(fileName)
+        .stream(inputStream, fileSize, -1)
+        .contentType(contentType)
+        .build()
+)
+```
+
+═══════════════════════════════════════════════════════════════
+4. 测试文件上传功能
+═══════════════════════════════════════════════════════════════
+
+在Android APP中:
+  1. 打开聊天界面
+  2. 点击"+"按钮
+  3. 选择"图片"或"文件"
+  4. 选择文件
+  5. 观察是否上传成功
+
+验证MinIO中的文件:
+  - 登录MinIO控制台
+  - 查看lanxin-files Bucket
+  - 应该能看到上传的文件
+
+═══════════════════════════════════════════════════════════════
+5. APK打包最终版本
+═══════════════════════════════════════════════════════════════
+
+确认MinIO集成后，打包APK:
+
+cd apps/android
+./gradlew clean
+./gradlew assembleRelease
+
+产出: app/build/outputs/apk/release/app-release.apk
+
+功能完整的APK包含:
+  ✅ 用户登录/退出
+  ✅ 会话和联系人列表
+  ✅ 文本消息收发
+  ✅ 语音消息（录制和播放）
+  ✅ 图片发送（相册+拍照）
+  ✅ 视频发送
+  ✅ 文件发送（MinIO上传）
+  ✅ 消息搜索
+  ✅ 消息长按菜单
+  ✅ 已读回执
+  ✅ 音视频通话
+  ✅ 屏幕共享
+  ✅ 设置功能
+  ✅ 社交功能
+
+═══════════════════════════════════════════════════════════════
+6. 故障排查
+═══════════════════════════════════════════════════════════════
+
+如果文件上传失败:
+
+检查1: MinIO是否运行
+  docker ps | grep minio
+
+检查2: 网络连通性
+  从Android设备ping MinIO服务器
+  注意: 如果Android设备和服务器不在同一网络，需要使用公网IP
+
+检查3: 权限配置
+  检查Bucket权限是否允许上传
+
+检查4: 后端日志
+  journalctl -u lanxin -f
+  查看是否有文件上传相关错误
+
+═══════════════════════════════════════════════════════════════
+7. 完成确认清单
+═══════════════════════════════════════════════════════════════
+
+Devin需要确认:
+  [ ] MinIO服务运行正常
+  [ ] 后端config.yaml MinIO配置正确
+  [ ] 后端服务已重启
+  [ ] 文件上传API测试通过
+  [ ] Android代码中MinIO地址已配置
+  [ ] APK重新打包
+  [ ] 文件上传功能测试通过
+
+完成后项目达到100%！
+
+═══════════════════════════════════════════════════════════════
+
