@@ -1,0 +1,102 @@
+apply plugin: 'com.android.library'
+
+android {
+    signingConfigs {
+        wfc {
+            keyAlias 'wfc'
+            keyPassword 'wildfirechat'
+            storeFile file('../wfc.keystore')
+            storePassword 'wildfirechat'
+        }
+    }
+    compileSdkVersion 34
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 34
+        multiDexEnabled true
+        javaCompileOptions {
+            annotationProcessorOptions {
+//                includeCompileClasspath true
+            }
+        }
+
+        ndk {
+            abiFilters "armeabi-v7a", 'x86', 'x86_64' // ，'armeabi', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    sourceSets {
+        main {
+            res.srcDirs += ['src/main/res-av']
+
+            // moment start
+//            java.srcDirs += ['../../android-momentkit/src/main/java']
+//            res.srcDirs += ['../../android-momentkit/src/main/res-moment']
+            // moment end
+        }
+    }
+    productFlavors {
+    }
+    namespace 'cn.wildfire.chat.kit'
+    lint {
+        abortOnError false
+    }
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
+    // wfc kit start
+    implementation project(':webrtc')
+    implementation project(':uikit-aar-dep')
+
+    api project(':client')
+    api project(':avenginekit')
+    api project(':pttclient')
+    api project(':badgeview')
+    api project(':menu')
+    api project(':permission')
+
+
+    implementation project(':emojilibrary')
+    implementation project(':imagepicker')
+    implementation project(':cameraview')
+
+    api 'com.google.android.material:material:1.12.0'
+//    implementation 'cjt.library.wheel:camera:1.1.9'
+    api 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    annotationProcessor 'androidx.annotation:annotation:1.9.1'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    api 'com.afollestad.material-dialogs:core:0.9.6.0'
+    implementation 'com.google.code.gson:gson:2.13.1'
+    api 'io.github.everythingme:overscroll-decor-android:1.1.1'
+
+    api 'com.squareup.okhttp3:okhttp-sse:5.1.0'
+
+//    api 'com.king.zxing:zxing-lite:1.1.1'
+//    api 'cn.aigestudio.wheelpicker:WheelPicker:1.1.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.gridlayout:gridlayout:1.1.0'
+//    implementation 'com.google.android:flexbox:2.0.1'
+
+    implementation 'com.tencent.map.geolocation:TencentLocationSdk-openplatform:8.7.5.1'
+    compileOnly 'io.kvh:amr:1.1.1'
+
+    // moment start
+    // implementation project(':momentclient')
+    // moment end
+
+    // kit wfc end
+}
+

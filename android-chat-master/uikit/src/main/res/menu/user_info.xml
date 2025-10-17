@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/delete"
+        android:orderInCategory="100"
+        android:title="@string/delete_friend"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/addFriend"
+        android:orderInCategory="100"
+        android:title="@string/add_friend"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/addBlacklist"
+        android:orderInCategory="100"
+        android:title="@string/add_to_blacklist"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/removeBlacklist"
+        android:orderInCategory="100"
+        android:title="@string/remove_from_blacklist"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/setAlias"
+        android:orderInCategory="100"
+        android:title="@string/set_alias"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/setName"
+        android:visible="false"
+        android:orderInCategory="100"
+        android:title="@string/modify_wildfire_id"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/setFav"
+        android:orderInCategory="100"
+        android:title="@string/set_star_friend"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/removeFav"
+        android:orderInCategory="100"
+        android:title="@string/remove_star_friend"
+        app:showAsAction="never" />
+</menu>

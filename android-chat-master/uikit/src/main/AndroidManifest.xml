@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- 通过GPS得到精确位置 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 通过网络得到粗略位置 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- 访问网络. 某些位置信息需要从网络服务器获取 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 访问网络状态, 检测网络的可用性. 需要网络运营商相关信息用于网络定位 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 访问网络的变化, 需要某些信息用于网络定位 -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!-- 访问手机当前状态, 需要某些信息用于网络定位 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- 蓝牙分享所需的权限 -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="true" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.ConversationActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="cn.wildfire.chat.kit.user.SetAliasActivity"
+            android:label="@string/set_user_alias"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="cn.wildfire.chat.kit.user.ChangeMyNameActivity"
+            android:label="@string/modify_nickname"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.mm.TakePhotoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.FullScreen" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.SetGroupNameActivity"
+            android:label="@string/modify_group_name"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.SetGroupRemarkActivity"
+            android:label="@string/modify_group_remark"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".group.SetGroupAnnouncementActivity"
+            android:label="@string/modify_group_announcement"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="cn.wildfire.chat.kit.third.location.ui.activity.ShowLocationActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.mm.MMPreviewActivity"
+            android:theme="@style/AppTheme.TransparentFullScreen" />
+        <activity
+            android:name="cn.wildfire.chat.kit.voip.SingleCallActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="${packageName}.kit.voip.single" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.CreateConversationActivity"
+            android:label="@string/create_conversation" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.AddGroupMemberActivity"
+            android:label="@string/add_new_member" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.RemoveGroupMemberActivity"
+            android:label="@string/remove_group_member" />
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.mention.MentionGroupMemberActivity"
+            android:label="@string/select_group_member" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.GroupListActivity"
+            android:label="@string/group_list" />
+        <activity
+            android:name="cn.wildfire.chat.kit.contact.newfriend.FriendRequestListActivity"
+            android:label="@string/friend_request" />
+        <activity
+            android:name="cn.wildfire.chat.kit.contact.newfriend.SearchUserActivity"
+            android:label="@string/search_user" />
+        <activity
+            android:name="cn.wildfire.chat.kit.contact.newfriend.InviteFriendActivity"
+            android:label="@string/invite_friend" />
+        <activity
+            android:name="cn.wildfire.chat.kit.user.UserInfoActivity"
+            android:label="@string/user_info" />
+        <activity
+            android:name="cn.wildfire.chat.kit.settings.PrivacySettingActivity"
+            android:label="@string/privacy_setting" />
+        <activity
+            android:name="cn.wildfire.chat.kit.settings.PrivacyFindMeSettingActivity"
+            android:label="@string/privacy_setting" />
+        <activity
+            android:name="cn.wildfire.chat.kit.settings.blacklist.BlacklistListActivity"
+            android:label="@string/blacklist" />
+        <activity
+            android:name="cn.wildfire.chat.kit.settings.MessageNotifySettingActivity"
+            android:label="@string/message_notification" />
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.ConversationInfoActivity"
+            android:label="@string/conversation_info" />
+        <activity
+            android:name="cn.wildfire.chat.kit.chatroom.ChatRoomListActivity"
+            android:label="@string/chatroom_list" />
+        <activity
+            android:name="cn.wildfire.chat.kit.search.SearchPortalActivity"
+            android:label="@string/search_portal" />
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.forward.ForwardActivity"
+            android:label="@string/select_a_chat" />
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.pick.PickOrCreateConversationTargetActivity"
+            android:label="@string/select_contact" />
+        <activity
+            android:name="cn.wildfire.chat.kit.conversation.pick.PickConversationActivity"
+            android:label="@string/select_conversation" />
+        <activity
+            android:name=".conversation.receipt.GroupMessageReceiptActivity"
+            android:label="@string/message_read_status" />
+        <activity
+            android:name="cn.wildfire.chat.kit.channel.ChannelListActivity"
+            android:label="@string/channel_list" />
+        <activity
+            android:name="cn.wildfire.chat.kit.channel.CreateChannelActivity"
+            android:label="@string/create_channel"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan|stateHidden|adjustResize" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.channel.ChannelInfoActivity"
+            android:label="@string/channel_info" />
+        <activity
+            android:name="cn.wildfire.chat.kit.WfcWebViewActivity"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${packageName}.webview" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="cn.wildfire.chat.kit.search.SearchMessageActivity" />
+        <activity android:name="cn.wildfire.chat.kit.channel.SearchChannelActivity" />
+        <activity android:name="cn.wildfire.chat.kit.group.PickGroupMemberActivity" />
+        <activity android:name="cn.wildfire.chat.kit.qrcode.QRCodeActivity" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.GroupInfoActivity"
+            android:label="@string/group_info" />
+        <activity
+            android:name="cn.wildfire.chat.kit.qrcode.ScanQRCodeActivity"
+            android:label="@string/scan_qrcode" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.manage.GroupManageActivity"
+            android:label="@string/group_manage" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.manage.GroupManagerListActivity"
+            android:label="@string/manager_list" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.manage.AddGroupManagerActivity"
+            android:label="@string/add_manager" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.manage.GroupMuteOrAllowActivity"
+            android:label="@string/group_mute" />
+        <activity
+            android:name="cn.wildfire.chat.kit.group.manage.GroupMemberPermissionActivity"
+            android:label="@string/group_member_permission" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.group.GroupMemberListActivity"
+            android:label="@string/group_member_list"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="cn.wildfire.chat.kit.contact.pick.PickContactActivity"
+            android:label="@string/contact_selection" />
+
+        <activity
+            android:name="cn.wildfire.chat.kit.voip.conference.CreateConferenceActivity"
+            android:label="@string/start_conference" />
+        <activity
+            android:name="cn.wildfire.chat.kit.voip.conference.ConferenceActivity"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:label="@string/conference"
+            android:taskAffinity=".conference"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".voip.conference.ConferencePortalActivity"
+            android:label="@string/conference" />
+        <activity
+            android:name=".voip.conference.OrderConferenceActivity"
+            android:label="@string/schedule_conference" />
+        <activity
+            android:name=".voip.conference.ConferenceInfoActivity"
+            android:label="@string/conference_details" />
+        <activity
+            android:name=".voip.conference.ConferenceInviteActivity"
+            android:label="@string/conference_invitation" />
+        <activity
+            android:name=".voip.conference.ConferenceParticipantListActivity"
+            android:label="@string/conference_participants" />
+        <activity
+            android:name=".voip.conference.ConferenceHistoryListActivity"
+            android:label="@string/conference_records" />
+        <activity
+            android:name="cn.wildfire.chat.kit.voip.MultiCallActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="${packageName}.kit.voip.multi" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="cn.wildfire.chat.kit.voip.VoipDummyActivity" />
+        <activity android:name="cn.wildfire.chat.kit.pc.PCSessionActivity" />
+        <activity android:name=".third.location.ui.activity.MyLocationActivity" />
+        <activity
+            android:name=".conversation.file.FileRecordActivity"
+            android:label="@string/file_record" />
+        <activity
+            android:name=".conversation.file.FileRecordListActivity"
+            android:label="@string/file_record" />
+
+
+        <!--moment start-->
+        <!--        <activity android:name="cn.wildfire.chat.moment.PublishFeedActivity" />-->
+        <!--        <activity android:name="cn.wildfire.chat.moment.FeedMessageActivity" />-->
+        <!--        <activity android:name="cn.wildfire.chat.moment.FeedDetailActivity" />-->
+        <!--        <activity-->
+        <!--            android:name="cn.wildfire.chat.moment.FeedListActivity"-->
+        <!--            android:exported="true">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="${packageName}.moment" />-->
+        <!--                <category android:name="android.intent.category.DEFAULT" />-->
+        <!--            </intent-filter>-->
+        <!--        </activity>-->
+        <!--        <activity android:name="cn.wildfire.chat.moment.FeedVisibleScopeActivity" />-->
+        <!--moment end-->
+
+        <activity android:name=".group.manage.MuteGroupMemberActivity"
+            android:label="@string/mute_group_member"
+            />
+        <activity
+            android:name=".contact.ContactListActivity"
+            android:label="@string/contacts" />
+        <activity
+            android:name=".user.SetNameActivity"
+            android:label="@string/modify_wildfire_id" />
+        <activity
+            android:name=".conversation.message.CompositeMessageContentActivity"
+            android:label="@string/composite_message" />
+        <activity
+            android:name=".favorite.FavoriteListActivity"
+            android:label="@string/my_favorites" />
+        <activity
+            android:name=".group.GroupMemberMessageHistoryActivity"
+            android:label="@string/user_messages" />
+        <activity
+            android:name=".widget.AlertDialogActivity"
+            android:theme="@style/AppThemeDialog" />
+        <activity
+            android:name=".organization.OrganizationMemberListActivity"
+            android:label="@string/organization_directory" />
+        <activity
+            android:name=".organization.EmployeeInfoActivity"
+            android:label="@string/employee_info" />
+        <activity
+            android:name=".organization.pick.PickOrganizationMemberActivity"
+            android:label="@string/select_organization_member" />
+
+        <activity
+            android:name=".mesh.DomainListActivity"
+            android:label="@string/external_domain_list" />
+        <activity
+            android:name=".mesh.DomainInfoActivity"
+            android:label="@string/external_domain_details" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <service
+            android:name="cn.wildfire.chat.kit.voip.VoipCallService"
+            android:foregroundServiceType="mediaPlayback|mediaProjection|microphone" />
+    </application>
+</manifest>

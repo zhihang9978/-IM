@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2020 WildFireChat. All rights reserved.
+ */
+
+package cn.wildfire.chat.kit.voip;
+
+import static cn.wildfire.chat.kit.voip.MultiCallParticipantAdapter.ParticipantViewHolder;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+
+import java.util.List;
+
+import cn.wildfire.chat.kit.R;
+import cn.wildfirechat.model.UserInfo;
+
+public class MultiCallParticipantAdapter extends RecyclerView.Adapter<ParticipantViewHolder> {
+    private List<UserInfo> participants;
+
+    public List<UserInfo> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<UserInfo> participants) {
+        this.participants = participants;
+    }
+
+    @NonNull
+    @Override
+    public ParticipantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View view = inflater.inflate(R.layout.av_multi_incoming_item, parent, false);
+        return new ParticipantViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ParticipantViewHolder holder, int position) {
+        UserInfo userInfo = participants.get(position);
+        ImageView imageView = holder.portraitImageView;
+        Glide.with(imageView).load(userInfo.portrait).into(imageView);
+        TextView textView = holder.nameTextView;
+        textView.setText(userInfo.displayName);
+    }
+
+    @Override
+    public int getItemCount() {
+        return participants == null ? 0 : participants.size();
+    }
+
+
+    static class ParticipantViewHolder extends RecyclerView.ViewHolder {
+        private ImageView portraitImageView;
+        private TextView nameTextView;
+
+        ParticipantViewHolder(@NonNull View itemView) {
+            super(itemView);
+            portraitImageView = itemView.findViewById(R.id.portraitImageView);
+            nameTextView = itemView.findViewById(R.id.nameTextView);
+        }
+    }
+}

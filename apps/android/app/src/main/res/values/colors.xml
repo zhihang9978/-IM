@@ -38,6 +38,18 @@
     <color name="status_busy">#f59e0b</color>
     <color name="status_offline">#9ca3af</color>
     
+    <!-- WildFire IM color system (Apache 2.0) -->
+    <color name="colorPrimary">#3B62E0</color>
+    <color name="lightColorPrimary">#A8BDFF</color>
+    <color name="primary_background">#EDEDED</color>
+    <color name="line">#E5E5E5</color>
+    <color name="gray11">#B3B3B3</color>
+    <color name="black1">#1D1D1D</color>
+    <color name="red0">#F95569</color>
+    <color name="green1">#45C01A</color>
+    <color name="link_blue">#3655bf</color>
+    <color name="input_panel_bg">#F8F8F8</color>
+    
     <!-- Material Design Colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>

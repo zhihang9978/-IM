@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/gray5"
+            android:paddingLeft="@dimen/option_item_margin_left"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="@string/group_member_management" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/managerOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:divider_align_to_title="true"
+            app:title="@string/group_managers" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/muteOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:divider_align_to_title="true"
+            app:title="@string/set_group_mute" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/permissionOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:title="@string/group_member_permission" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/option_item_margin_top"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/gray5"
+            android:paddingLeft="@dimen/option_item_margin_left"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="@string/group_basic_settings" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/joinOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:desc="@string/group_join_type_no_limit"
+            app:divider_align_to_title="true"
+            app:title="@string/group_join_type" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/searchOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:desc="@string/group_search_type_not_allowed"
+            app:title="@string/group_search_type" />
+
+        <cn.wildfire.chat.kit.widget.OptionItemView
+            android:id="@+id/historyMessageOptionItemView"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_common_item"
+            app:desc="@string/group_history_message_not_allowed"
+            app:title="@string/group_history_message" />
+    </LinearLayout>
+</LinearLayout>

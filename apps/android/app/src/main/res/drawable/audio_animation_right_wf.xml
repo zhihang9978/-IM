@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Source: WildFireChat (野火IM)
+  GitHub: https://github.com/wildfirechat/android-chat
+  License: Apache 2.0
+  Adapted for LanXin IM
+-->
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+    <item
+        android:drawable="@drawable/ic_mic_off"
+        android:duration="300" />
+    <item
+        android:drawable="@drawable/ic_mic"
+        android:duration="300" />
+    <item
+        android:drawable="@drawable/ic_mic_off"
+        android:duration="300" />
+</animation-list>
+

@@ -63,12 +63,12 @@ class ChatAdapter(
         return when (viewType) {
             VIEW_TYPE_SENT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_sent, parent, false)
+                    .inflate(R.layout.item_message_sent_wildfire, parent, false)
                 SentMessageViewHolder(view)
             }
             VIEW_TYPE_RECEIVED -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_received, parent, false)
+                    .inflate(R.layout.item_message_received_wildfire, parent, false)
                 ReceivedMessageViewHolder(view)
             }
             VIEW_TYPE_VOICE_SENT -> {
