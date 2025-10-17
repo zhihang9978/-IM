@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Conversation list item (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:background="@drawable/selector_common_item_wf"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <!-- 头像容器 -->
+    <RelativeLayout
+        android:id="@+id/portraitRelativeLayout"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_centerVertical="true">
+
+        <!-- 头像48dp (WildFire IM style) -->
+        <ImageView
+            android:id="@+id/portraitImageView"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:contentDescription="头像" />
+
+        <!-- 未读消息数 -->
+        <TextView
+            android:id="@+id/unreadCountTextView"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/shape_red_dot_wf"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="99"
+            tools:visibility="visible" />
+
+        <!-- 未读红点 -->
+        <View
+            android:id="@+id/redDotView"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/shape_red_dot_wf"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <!-- 内容区域 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="2dp"
+        android:layout_toEndOf="@id/portraitRelativeLayout"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <!-- 标题行：名称 + 时间 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 会话名称 -->
+            <TextView
+                android:id="@+id/conversationTitleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/timeTextView"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="张三" />
+
+            <!-- 时间 -->
+            <TextView
+                android:id="@+id/timeTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:textColor="@color/textSecondary"
+                android:textSize="12sp"
+                tools:text="昨天" />
+        </RelativeLayout>
+
+        <!-- 消息预览行：草稿/内容 + 免打扰图标 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp">
+
+            <!-- 消息预览 -->
+            <TextView
+                android:id="@+id/contentTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/muteImageView"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp"
+                tools:text="[草稿] 你好" />
+
+            <!-- 免打扰图标 -->
+            <ImageView
+                android:id="@+id/muteImageView"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>
+
