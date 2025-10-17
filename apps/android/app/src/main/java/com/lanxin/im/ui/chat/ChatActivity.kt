@@ -230,6 +230,68 @@ class ChatActivity : AppCompatActivity() {
         // 初始化语音录制器和播放器
         voiceRecorder = VoiceRecorder(this)
         voicePlayer = VoicePlayer(this)
+        
+        // 绑定扩展面板按钮 (WildFire IM style)
+        setupExtensionPanelButtons()
+    }
+    
+    /**
+     * 绑定扩展面板按钮点击事件
+     * 参考：WildFireChat ConversationExtension (Apache 2.0)
+     */
+    private fun setupExtensionPanelButtons() {
+        // 相册
+        extContainerContainerLayout.findViewById<View>(R.id.btn_album)?.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+            toggleExtensionPanel() // 关闭扩展面板
+        }
+        
+        // 拍摄
+        extContainerContainerLayout.findViewById<View>(R.id.btn_camera)?.setOnClickListener {
+            if (PermissionHelper.hasCameraPermission(this)) {
+                // 创建临时文件
+                val photoFile = File(getExternalFilesDir(null), "photo_${System.currentTimeMillis()}.jpg")
+                currentPhotoUri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    photoFile
+                )
+                takePictureLauncher.launch(currentPhotoUri)
+                toggleExtensionPanel()
+            } else {
+                PermissionHelper.requestCameraPermission(this)
+            }
+        }
+        
+        // 位置
+        extContainerContainerLayout.findViewById<View>(R.id.btn_location)?.setOnClickListener {
+            Toast.makeText(this, "位置功能：待实现", Toast.LENGTH_SHORT).show()
+            // TODO: 打开位置选择Activity
+        }
+        
+        // 文件
+        extContainerContainerLayout.findViewById<View>(R.id.btn_file)?.setOnClickListener {
+            pickFileLauncher.launch("*/*")
+            toggleExtensionPanel()
+        }
+        
+        // 视频通话
+        extContainerContainerLayout.findViewById<View>(R.id.btn_video_call_ext)?.setOnClickListener {
+            startVideoCall()
+            toggleExtensionPanel()
+        }
+        
+        // 语音通话
+        extContainerContainerLayout.findViewById<View>(R.id.btn_voice_call_ext)?.setOnClickListener {
+            startVoiceCall()
+            toggleExtensionPanel()
+        }
+        
+        // 名片
+        extContainerContainerLayout.findViewById<View>(R.id.btn_user_card)?.setOnClickListener {
+            Toast.makeText(this, "名片功能：待实现", Toast.LENGTH_SHORT).show()
+            // TODO: 打开联系人选择Activity
+        }
     }
     
     private fun setupListeners() {
