@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Contact list item (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@drawable/selector_common_item_wf"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <!-- 分组标题（字母） -->
+    <TextView
+        android:id="@+id/sectionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="@color/background_light"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:textColor="@color/textSecondary"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:text="A"
+        tools:visibility="visible" />
+
+    <!-- 头像40dp (WildFire IM style) -->
+    <ImageView
+        android:id="@+id/portraitImageView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerVertical="true"
+        android:contentDescription="头像" />
+
+    <!-- 名称 -->
+    <TextView
+        android:id="@+id/nameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="12dp"
+        android:layout_toEndOf="@id/portraitImageView"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp"
+        tools:text="张三" />
+
+</RelativeLayout>
+
