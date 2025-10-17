@@ -2,10 +2,12 @@ package com.lanxin.im.ui.chat
 
 import android.Manifest
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -103,6 +105,9 @@ class ChatActivity : AppCompatActivity() {
     private var peerId: Long = 0
     private var isVoiceMode = false
     
+    // WebSocket broadcast receiver
+    private lateinit var messageReceiver: BroadcastReceiver
+    
     private lateinit var voiceRecorder: VoiceRecorder
     private lateinit var voicePlayer: VoicePlayer
     private val recordingHandler = Handler(Looper.getMainLooper())
@@ -146,6 +151,7 @@ class ChatActivity : AppCompatActivity() {
         setupUI()
         setupListeners()
         loadMessages()
+        registerMessageReceiver()
     }
     
     /**
@@ -1563,6 +1569,93 @@ class ChatActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(this@ChatActivity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // WebSocket实时消息处理
+    // ═══════════════════════════════════════════════════════════════
+    
+    /**
+     * 注册WebSocket消息广播接收器
+     * 用于接收实时消息、已读回执、撤回通知等
+     */
+    private fun registerMessageReceiver() {
+        messageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "com.lanxin.im.NEW_MESSAGE" -> {
+                        val message = intent.getParcelableExtra<Message>("message")
+                        val convId = intent.getLongExtra("conversation_id", 0)
+                        
+                        // 如果是当前会话的消息，添加到列表
+                        if (convId == conversationId && message != null) {
+                            val currentList = adapter.currentList.toMutableList()
+                            currentList.add(message)
+                            adapter.submitList(currentList)
+                            recyclerView.smoothScrollToPosition(currentList.size - 1)
+                        }
+                    }
+                    "com.lanxin.im.MESSAGE_READ" -> {
+                        val messageId = intent.getLongExtra("message_id", 0)
+                        val convId = intent.getLongExtra("conversation_id", 0)
+                        
+                        // 如果是当前会话，刷新消息状态
+                        if (convId == conversationId) {
+                            loadMessages()
+                        }
+                    }
+                    "com.lanxin.im.MESSAGE_RECALLED" -> {
+                        val messageId = intent.getLongExtra("message_id", 0)
+                        val convId = intent.getLongExtra("conversation_id", 0)
+                        
+                        // 如果是当前会话，刷新消息列表
+                        if (convId == conversationId) {
+                            loadMessages()
+                        }
+                    }
+                    "com.lanxin.im.USER_STATUS" -> {
+                        val userId = intent.getLongExtra("user_id", 0)
+                        val status = intent.getStringExtra("status")
+                        
+                        // 如果是当前聊天对象，更新在线状态
+                        if (userId == peerId) {
+                            updateUserStatus(status ?: "offline")
+                        }
+                    }
+                }
+            }
+        }
+        
+        val filter = IntentFilter().apply {
+            addAction("com.lanxin.im.NEW_MESSAGE")
+            addAction("com.lanxin.im.MESSAGE_READ")
+            addAction("com.lanxin.im.MESSAGE_RECALLED")
+            addAction("com.lanxin.im.USER_STATUS")
+        }
+        registerReceiver(messageReceiver, filter)
+    }
+    
+    /**
+     * 更新用户在线状态显示
+     */
+    private fun updateUserStatus(status: String) {
+        val statusText = if (status == "online") "在线" else "离线"
+        val statusColor = if (status == "online") R.color.status_online else R.color.status_offline
+        
+        runOnUiThread {
+            tvStatus.text = statusText
+            tvStatus.setTextColor(getColor(statusColor))
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // 注销广播接收器
+        try {
+            unregisterReceiver(messageReceiver)
+        } catch (e: Exception) {
+            // 忽略未注册的异常
         }
     }
     

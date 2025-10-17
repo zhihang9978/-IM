@@ -1,5 +1,9 @@
 package com.lanxin.im.data.remote
 
+import android.content.Context
+import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.gson.Gson
 import com.lanxin.im.data.model.Message
@@ -10,8 +14,16 @@ import java.util.concurrent.TimeUnit
 /**
  * WebSocket客户端
  * 用于实时消息推送、通话邀请等
+ * 
+ * 增强功能：
+ * - 支持广播Intent通知UI更新
+ * - 处理多种WebSocket消息类型
+ * - 自动重连机制
  */
-class WebSocketClient(private val token: String) {
+class WebSocketClient(
+    private val context: Context,
+    private val token: String
+) {
     
     companion object {
         private const val TAG = "WebSocketClient"
@@ -23,6 +35,7 @@ class WebSocketClient(private val token: String) {
     private val gson = Gson()
     private val listeners = mutableListOf<WebSocketListener>()
     private var isConnected = false
+    private val handler = Handler(Looper.getMainLooper())
     
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS) // 长连接
@@ -95,37 +108,42 @@ class WebSocketClient(private val token: String) {
                     // 心跳响应
                     Log.d(TAG, "Heartbeat pong received")
                 }
-                "message" -> {
-                    // 新消息
-                    val message = gson.fromJson(
-                        gson.toJson(wsMessage.data),
-                        Message::class.java
-                    )
-                    listeners.forEach { it.onNewMessage(message) }
+                "new_message", "message" -> {
+                    // 新消息通知
+                    val data = gson.fromJson(gson.toJson(wsMessage.data), WSNewMessage::class.java)
+                    handleNewMessage(data.message)
+                    listeners.forEach { it.onNewMessage(data.message) }
                 }
-                "message_status" -> {
-                    // 消息状态更新
-                    val statusUpdate = gson.fromJson(
-                        gson.toJson(wsMessage.data),
-                        MessageStatusUpdate::class.java
-                    )
-                    listeners.forEach { it.onMessageStatusUpdate(statusUpdate) }
+                "message_read" -> {
+                    // 消息已读通知
+                    val data = gson.fromJson(gson.toJson(wsMessage.data), WSMessageRead::class.java)
+                    handleMessageRead(data.messageId, data.conversationId)
                 }
-                "call_invite" -> {
-                    // 通话邀请
-                    val callInvite = gson.fromJson(
-                        gson.toJson(wsMessage.data),
-                        CallInvite::class.java
-                    )
-                    listeners.forEach { it.onCallInvite(callInvite) }
+                "message_recalled" -> {
+                    // 消息撤回通知
+                    val data = gson.fromJson(gson.toJson(wsMessage.data), WSMessageRecalled::class.java)
+                    handleMessageRecalled(data.messageId, data.conversationId)
+                }
+                "user_online", "user_offline" -> {
+                    // 用户在线状态变化
+                    val data = gson.fromJson(gson.toJson(wsMessage.data), WSUserStatus::class.java)
+                    handleUserStatus(data.userId, data.status)
                 }
                 "read_receipt" -> {
                     // 已读回执
-                    val readReceipt = gson.fromJson(
-                        gson.toJson(wsMessage.data),
-                        ReadReceipt::class.java
-                    )
-                    listeners.forEach { it.onReadReceipt(readReceipt) }
+                    val data = gson.fromJson(gson.toJson(wsMessage.data), WSReadReceipt::class.java)
+                    handleReadReceipt(data.conversationId, data.readerId, data.readAt)
+                    listeners.forEach { it.onReadReceipt(ReadReceipt(data.conversationId, data.readerId, data.readAt)) }
+                }
+                "call_invite" -> {
+                    // 通话邀请
+                    val callInvite = gson.fromJson(gson.toJson(wsMessage.data), CallInvite::class.java)
+                    listeners.forEach { it.onCallInvite(callInvite) }
+                }
+                "message_status" -> {
+                    // 消息状态更新
+                    val statusUpdate = gson.fromJson(gson.toJson(wsMessage.data), MessageStatusUpdate::class.java)
+                    listeners.forEach { it.onMessageStatusUpdate(statusUpdate) }
                 }
                 else -> {
                     Log.w(TAG, "Unknown message type: ${wsMessage.type}")
@@ -136,15 +154,67 @@ class WebSocketClient(private val token: String) {
         }
     }
     
+    /**
+     * 处理新消息通知
+     * 发送本地广播通知UI更新
+     */
+    private fun handleNewMessage(message: Message) {
+        val intent = Intent("com.lanxin.im.NEW_MESSAGE")
+        intent.putExtra("message", message)
+        intent.putExtra("conversation_id", message.conversationId)
+        context.sendBroadcast(intent)
+    }
+    
+    /**
+     * 处理消息已读通知
+     */
+    private fun handleMessageRead(messageId: Long, conversationId: Long) {
+        val intent = Intent("com.lanxin.im.MESSAGE_READ")
+        intent.putExtra("message_id", messageId)
+        intent.putExtra("conversation_id", conversationId)
+        context.sendBroadcast(intent)
+    }
+    
+    /**
+     * 处理消息撤回通知
+     */
+    private fun handleMessageRecalled(messageId: Long, conversationId: Long) {
+        val intent = Intent("com.lanxin.im.MESSAGE_RECALLED")
+        intent.putExtra("message_id", messageId)
+        intent.putExtra("conversation_id", conversationId)
+        context.sendBroadcast(intent)
+    }
+    
+    /**
+     * 处理用户在线状态变化
+     */
+    private fun handleUserStatus(userId: Long, status: String) {
+        val intent = Intent("com.lanxin.im.USER_STATUS")
+        intent.putExtra("user_id", userId)
+        intent.putExtra("status", status)
+        context.sendBroadcast(intent)
+    }
+    
+    /**
+     * 处理已读回执
+     */
+    private fun handleReadReceipt(conversationId: Long, readerId: Long, readAt: String) {
+        val intent = Intent("com.lanxin.im.READ_RECEIPT")
+        intent.putExtra("conversation_id", conversationId)
+        intent.putExtra("reader_id", readerId)
+        intent.putExtra("read_at", readAt)
+        context.sendBroadcast(intent)
+    }
+    
     private fun startHeartbeat() {
         handler.postDelayed(object : Runnable {
             override fun run() {
                 if (isConnected) {
-                    send("{\"type\":\"ping\"}")
-                    handler.postDelayed(this, 30000)
+                    webSocket?.send("{\"type\":\"ping\"}")
+                    handler.postDelayed(this, HEARTBEAT_INTERVAL)
                 }
             }
-        }, 30000)
+        }, HEARTBEAT_INTERVAL)
     }
     
     fun sendHeartbeat() {
@@ -175,12 +245,7 @@ class WebSocketClient(private val token: String) {
     }
 }
 
-// ==================== WebSocket数据类 ====================
-
-data class WebSocketMessage(
-    val type: String,
-    val data: Any?
-)
+// ==================== WebSocket辅助数据类 ====================
 
 data class MessageStatusUpdate(
     val message_id: Long,

@@ -1,6 +1,9 @@
 package com.lanxin.im.ui.chat
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +25,7 @@ class ChatListFragment : Fragment() {
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ConversationAdapter
+    private lateinit var messageReceiver: BroadcastReceiver
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,6 +40,7 @@ class ChatListFragment : Fragment() {
         
         setupRecyclerView()
         loadConversations()
+        registerMessageReceiver()
     }
     
     private fun setupRecyclerView() {
@@ -92,6 +97,48 @@ class ChatListFragment : Fragment() {
                 // 加载失败，显示空列表
                 e.printStackTrace()
             }
+        }
+    }
+    
+    /**
+     * 注册WebSocket消息广播接收器
+     * 收到新消息时自动刷新会话列表
+     */
+    private fun registerMessageReceiver() {
+        messageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "com.lanxin.im.NEW_MESSAGE" -> {
+                        // 收到新消息，刷新会话列表
+                        loadConversations()
+                    }
+                    "com.lanxin.im.MESSAGE_READ" -> {
+                        // 消息已读，刷新会话列表（更新未读数）
+                        loadConversations()
+                    }
+                    "com.lanxin.im.MESSAGE_RECALLED" -> {
+                        // 消息撤回，刷新会话列表
+                        loadConversations()
+                    }
+                }
+            }
+        }
+        
+        val filter = IntentFilter().apply {
+            addAction("com.lanxin.im.NEW_MESSAGE")
+            addAction("com.lanxin.im.MESSAGE_READ")
+            addAction("com.lanxin.im.MESSAGE_RECALLED")
+        }
+        requireContext().registerReceiver(messageReceiver, filter)
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // 注销广播接收器
+        try {
+            requireContext().unregisterReceiver(messageReceiver)
+        } catch (e: Exception) {
+            // 忽略未注册的异常
         }
     }
 }
