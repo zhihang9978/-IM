@@ -83,6 +83,13 @@ interface ApiService {
     @POST("conversations/{id}/read")
     suspend fun markAsRead(@Path("id") conversationId: Long): ApiResponse<Any?>
     
+    @GET("messages/search")
+    suspend fun searchMessages(
+        @Query("keyword") keyword: String,
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): ApiResponse<MessageListResponse>
+    
     // ==================== 文件上传模块 ====================
     
     @GET("files/upload-token")

@@ -123,21 +123,63 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         
-        <EditText
-            android:id="@+id/et_input"
+        <!-- 语音按钮 -->
+        <ImageButton
+            android:id="@+id/btn_voice_input"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_mic"
+            android:contentDescription="语音输入"
+            android:padding="8dp" />
+        
+        <!-- 输入框容器（用于切换输入方式） -->
+        <FrameLayout
+            android:id="@+id/input_wrapper"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="@dimen/input_height"
-            android:background="@drawable/bg_search_input"
-            android:hint="@string/chat_input_hint"
-            android:paddingStart="@dimen/spacing_medium"
-            android:paddingEnd="@dimen/spacing_medium"
-            android:paddingTop="@dimen/spacing_small"
-            android:paddingBottom="@dimen/spacing_small"
-            android:maxLines="4"
-            android:textSize="@dimen/text_size_normal" />
+            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_marginEnd="@dimen/spacing_small">
+            
+            <!-- 文本输入框 -->
+            <EditText
+                android:id="@+id/et_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/input_height"
+                android:background="@drawable/bg_search_input"
+                android:hint="@string/chat_input_hint"
+                android:paddingStart="@dimen/spacing_medium"
+                android:paddingEnd="@dimen/spacing_medium"
+                android:paddingTop="@dimen/spacing_small"
+                android:paddingBottom="@dimen/spacing_small"
+                android:maxLines="4"
+                android:textSize="@dimen/text_size_normal" />
+            
+            <!-- 语音录制按钮（长按录音） -->
+            <Button
+                android:id="@+id/btn_voice_record"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/input_height"
+                android:text="按住 说话"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/bg_voice_record"
+                android:visibility="gone" />
+        </FrameLayout>
         
+        <!-- 更多按钮（图片、文件等） -->
+        <ImageButton
+            android:id="@+id/btn_more_options"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_add"
+            android:contentDescription="更多选项"
+            android:padding="8dp" />
+        
+        <!-- 发送按钮 -->
         <Button
             android:id="@+id/btn_send"
             android:layout_width="wrap_content"
@@ -147,6 +189,65 @@
             android:textColor="@color/white"
             android:backgroundTint="@color/primary" />
     </LinearLayout>
+    
+    <!-- 录音状态覆盖层 -->
+    <FrameLayout
+        android:id="@+id/recording_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <!-- 录音UI卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="@dimen/spacing_large">
+                
+                <!-- 录音图标（带动画） -->
+                <ImageView
+                    android:id="@+id/iv_recording_icon"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@drawable/ic_mic"
+                    android:tint="@color/primary" />
+                
+                <!-- 录音时长 -->
+                <TextView
+                    android:id="@+id/tv_recording_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:text="00:00"
+                    android:textSize="20sp"
+                    android:textColor="@color/text_primary" />
+                
+                <!-- 提示文字 -->
+                <TextView
+                    android:id="@+id/tv_recording_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:text="松开发送 上滑取消"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_secondary"
+                    android:gravity="center" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

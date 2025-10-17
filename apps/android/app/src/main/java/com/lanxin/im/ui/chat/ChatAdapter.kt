@@ -16,24 +16,31 @@ import java.util.*
 
 /**
  * 聊天消息适配器
- * 支持发送和接收两种消息类型
+ * 支持文本和语音消息类型
  */
 class ChatAdapter(
     private val currentUserId: Long,
-    private val onMessageLongClick: (Message) -> Unit
+    private val onMessageLongClick: (Message) -> Unit,
+    private val onVoiceClick: ((Message) -> Unit)? = null
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
     
     companion object {
         private const val VIEW_TYPE_SENT = 1
         private const val VIEW_TYPE_RECEIVED = 2
+        private const val VIEW_TYPE_VOICE_SENT = 3
+        private const val VIEW_TYPE_VOICE_RECEIVED = 4
     }
     
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
-        return if (message.senderId == currentUserId) {
-            VIEW_TYPE_SENT
-        } else {
-            VIEW_TYPE_RECEIVED
+        val isSent = message.senderId == currentUserId
+        val isVoice = message.type == "voice"
+        
+        return when {
+            isSent && isVoice -> VIEW_TYPE_VOICE_SENT
+            !isSent && isVoice -> VIEW_TYPE_VOICE_RECEIVED
+            isSent -> VIEW_TYPE_SENT
+            else -> VIEW_TYPE_RECEIVED
         }
     }
     
@@ -49,6 +56,16 @@ class ChatAdapter(
                     .inflate(R.layout.item_message_received, parent, false)
                 ReceivedMessageViewHolder(view)
             }
+            VIEW_TYPE_VOICE_SENT -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_voice_sent, parent, false)
+                VoiceSentViewHolder(view)
+            }
+            VIEW_TYPE_VOICE_RECEIVED -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_voice_sent, parent, false)
+                VoiceReceivedViewHolder(view)
+            }
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -58,6 +75,8 @@ class ChatAdapter(
         when (holder) {
             is SentMessageViewHolder -> holder.bind(message, onMessageLongClick)
             is ReceivedMessageViewHolder -> holder.bind(message, onMessageLongClick)
+            is VoiceSentViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
+            is VoiceReceivedViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
         }
     }
     
@@ -128,6 +147,68 @@ class ChatAdapter(
             
             // 长按事件
             itemView.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 发送语音消息ViewHolder
+    class VoiceSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvDuration: TextView = itemView.findViewById(R.id.tv_duration)
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivVoiceIcon: ImageView = itemView.findViewById(R.id.iv_voice_icon)
+        private val voiceBubble: View = itemView.findViewById(R.id.voice_bubble)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onVoiceClick: ((Message) -> Unit)?
+        ) {
+            val duration = message.content.toIntOrNull() ?: 0
+            tvDuration.text = "${duration}''"
+            
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            voiceBubble.setOnClickListener {
+                onVoiceClick?.invoke(message)
+            }
+            
+            voiceBubble.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 接收语音消息ViewHolder
+    class VoiceReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvDuration: TextView = itemView.findViewById(R.id.tv_duration)
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivVoiceIcon: ImageView = itemView.findViewById(R.id.iv_voice_icon)
+        private val voiceBubble: View = itemView.findViewById(R.id.voice_bubble)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onVoiceClick: ((Message) -> Unit)?
+        ) {
+            val duration = message.content.toIntOrNull() ?: 0
+            tvDuration.text = "${duration}''"
+            
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            voiceBubble.setOnClickListener {
+                onVoiceClick?.invoke(message)
+            }
+            
+            voiceBubble.setOnLongClickListener {
                 onLongClick(message)
                 true
             }

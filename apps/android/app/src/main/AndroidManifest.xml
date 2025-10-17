@@ -85,6 +85,12 @@
             android:name=".ui.social.FavoritesActivity"
             android:parentActivityName=".MainActivity" />
         
+        <!-- 搜索Activity -->
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:windowSoftInputMode="stateAlwaysVisible"
+            android:parentActivityName=".MainActivity" />
+        
         <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"
