@@ -1,10 +1,14 @@
 package com.lanxin.im.ui.chat
 
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -138,7 +142,22 @@ class ChatAdapter(
                 tvContent.text = "你撤回了一条消息"
                 tvContent.alpha = 0.6f
             } else {
-                tvContent.text = message.content
+                val content = message.content.split("|MENTIONS:")[0]
+                
+                if (message.type == "burn") {
+                    val burnMessage = SpannableString("🔥 $content [阅后即焚]")
+                    burnMessage.setSpan(
+                        ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.error)),
+                        content.length + 3,
+                        burnMessage.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    tvContent.text = burnMessage
+                } else if (message.content.contains("|MENTIONS:")) {
+                    tvContent.text = highlightMentions(content)
+                } else {
+                    tvContent.text = content
+                }
                 tvContent.alpha = 1.0f
             }
             
@@ -161,6 +180,20 @@ class ChatAdapter(
                 true
             }
         }
+        
+        private fun highlightMentions(content: String): SpannableString {
+            val spannable = SpannableString(content)
+            val regex = "@\\S+".toRegex()
+            regex.findAll(content).forEach { match ->
+                spannable.setSpan(
+                    ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.primary)),
+                    match.range.first,
+                    match.range.last + 1,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            return spannable
+        }
     }
     
     // 接收消息ViewHolder
@@ -175,7 +208,22 @@ class ChatAdapter(
                 tvContent.text = "对方撤回了一条消息"
                 tvContent.alpha = 0.6f
             } else {
-                tvContent.text = message.content
+                val content = message.content.split("|MENTIONS:")[0]
+                
+                if (message.type == "burn") {
+                    val burnMessage = SpannableString("🔥 $content [阅后即焚]")
+                    burnMessage.setSpan(
+                        ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.error)),
+                        content.length + 3,
+                        burnMessage.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    tvContent.text = burnMessage
+                } else if (message.content.contains("|MENTIONS:")) {
+                    tvContent.text = highlightMentions(content)
+                } else {
+                    tvContent.text = content
+                }
                 tvContent.alpha = 1.0f
             }
             
@@ -195,6 +243,20 @@ class ChatAdapter(
                 onLongClick(message)
                 true
             }
+        }
+        
+        private fun highlightMentions(content: String): SpannableString {
+            val spannable = SpannableString(content)
+            val regex = "@\\S+".toRegex()
+            regex.findAll(content).forEach { match ->
+                spannable.setSpan(
+                    ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.primary)),
+                    match.range.first,
+                    match.range.last + 1,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            return spannable
         }
     }
     

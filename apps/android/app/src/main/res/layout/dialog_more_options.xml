@@ -258,6 +258,22 @@
         </LinearLayout>
 
     </androidx.gridlayout.widget.GridLayout>
+    
+    <!-- 阅后即焚开关 -->
+    <TextView
+        android:id="@+id/burn_after_read_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:padding="@dimen/spacing_medium"
+        android:text="开启阅后即焚"
+        android:textSize="@dimen/text_size_normal"
+        android:textColor="@color/error"
+        android:gravity="center"
+        android:background="?attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/grid_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

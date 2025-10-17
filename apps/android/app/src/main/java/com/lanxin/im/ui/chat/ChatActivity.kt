@@ -12,6 +12,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -79,6 +84,9 @@ class ChatActivity : AppCompatActivity() {
     
     private var currentPhotoUri: Uri? = null
     private var currentVideoUri: Uri? = null
+    
+    private val mentionedUsers = mutableListOf<Long>()
+    private var isBurnAfterRead = false
     
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { handleImageSelected(it) }
@@ -171,12 +179,26 @@ class ChatActivity : AppCompatActivity() {
             finish()
         }
         
+        // 输入框@提醒监听
+        etInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s != null && count == 1 && s[start] == '@') {
+                    showMemberSelector()
+                }
+            }
+            
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
         // 发送按钮
         btnSend.setOnClickListener {
             val content = etInput.text.toString().trim()
             if (content.isNotEmpty()) {
                 sendMessage(content)
                 etInput.text.clear()
+                mentionedUsers.clear()
             }
         }
         
@@ -337,10 +359,16 @@ class ChatActivity : AppCompatActivity() {
     private fun sendMessage(content: String) {
         lifecycleScope.launch {
             try {
+                val messageContent = if (mentionedUsers.isNotEmpty()) {
+                    "$content|MENTIONS:${mentionedUsers.joinToString(",")}"
+                } else {
+                    content
+                }
+                
                 val request = com.lanxin.im.data.remote.SendMessageRequest(
                     receiver_id = peerId,
-                    content = content,
-                    type = "text"
+                    content = messageContent,
+                    type = if (isBurnAfterRead) "burn" else "text"
                 )
                 val response = RetrofitClient.apiService.sendMessage(request)
                 if (response.code == 0 && response.data != null) {
@@ -350,6 +378,10 @@ class ChatActivity : AppCompatActivity() {
                     currentList.add(newMessage)
                     adapter.submitList(currentList)
                     recyclerView.scrollToPosition(currentList.size - 1)
+                    
+                    if (isBurnAfterRead) {
+                        isBurnAfterRead = false
+                    }
                 } else {
                     Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
                 }
@@ -547,6 +579,15 @@ class ChatActivity : AppCompatActivity() {
         view.findViewById<LinearLayout>(R.id.option_video_call).setOnClickListener {
             bottomSheet.dismiss()
             btnVideoCall.performClick()
+        }
+        
+        // 添加阅后即焚按钮切换
+        val burnButton = view.findViewById<TextView>(R.id.burn_after_read_toggle)
+        burnButton?.text = if (isBurnAfterRead) "关闭阅后即焚" else "开启阅后即焚"
+        burnButton?.setOnClickListener {
+            isBurnAfterRead = !isBurnAfterRead
+            Toast.makeText(this, if (isBurnAfterRead) "已开启阅后即焚" else "已关闭阅后即焚", Toast.LENGTH_SHORT).show()
+            bottomSheet.dismiss()
         }
         
         bottomSheet.show()
@@ -848,6 +889,52 @@ class ChatActivity : AppCompatActivity() {
             "zip" -> "application/zip"
             else -> "*/*"
         }
+    }
+    
+    /**
+     * 显示成员选择器（@提醒）
+     */
+    private fun showMemberSelector() {
+        val members = arrayOf("张三", "李四", "王五", "赵六")
+        val memberIds = arrayOf(2L, 3L, 4L, 5L)
+        
+        AlertDialog.Builder(this)
+            .setTitle("选择@成员")
+            .setItems(members) { _, which ->
+                val memberName = members[which]
+                val memberId = memberIds[which]
+                insertMention(memberName, memberId)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    /**
+     * 插入@提醒到输入框
+     */
+    private fun insertMention(memberName: String, memberId: Long) {
+        val currentText = etInput.text.toString()
+        val cursorPosition = etInput.selectionStart
+        
+        val newText = currentText.substring(0, cursorPosition) +
+                memberName + " " +
+                currentText.substring(cursorPosition)
+        
+        val spannable = SpannableString(newText)
+        val mentionStart = cursorPosition
+        val mentionEnd = cursorPosition + memberName.length
+        
+        spannable.setSpan(
+            ForegroundColorSpan(getColor(R.color.primary)),
+            mentionStart,
+            mentionEnd,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        
+        etInput.setText(spannable)
+        etInput.setSelection(mentionEnd + 1)
+        
+        mentionedUsers.add(memberId)
     }
     
     /**
