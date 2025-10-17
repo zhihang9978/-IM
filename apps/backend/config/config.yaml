@@ -8,7 +8,7 @@ database:
     host: localhost
     port: 3306
     username: root
-    password: ""  # 请设置环境变量 MYSQL_PASSWORD
+    password: "LanXin@2024MySQL"
     database: lanxin_im
     charset: utf8mb4
     max_idle_conns: 10
