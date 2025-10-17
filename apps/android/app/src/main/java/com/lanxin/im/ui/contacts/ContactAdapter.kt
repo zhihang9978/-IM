@@ -33,9 +33,9 @@ class ContactAdapter(
         private val tvName: TextView = itemView.findViewById(R.id.tv_name)
         
         fun bind(contact: Contact, onClick: (Contact) -> Unit) {
-            // TODO: 使用Glide加载头像
+            // 头像使用默认图标（Glide加载在后续优化）
             
-            // 显示名称（备注优先，否则显示用户名）
+            // 显示名称（备注优先，否则显示联系人ID）
             tvName.text = contact.remark ?: "联系人${contact.contactId}"
             
             // 点击事件

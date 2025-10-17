@@ -52,8 +52,7 @@ class ProfileFragment : Fragment() {
                 response.data?.let { user ->
                     tvUsername.text = user.username ?: "用户"
                     tvLanxinId.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
-                    // TODO: 使用Glide加载头像
-                    // Glide.with(this@ProfileFragment).load(user.avatar).into(ivAvatar)
+                    // 头像使用默认图标（Glide加载在后续优化版本实现）
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -65,19 +64,19 @@ class ProfileFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 收藏
+        // 收藏（暂未实现，留空不显示Toast）
         view.findViewById<View>(R.id.btn_favorites).setOnClickListener {
-            Toast.makeText(requireContext(), "收藏功能", Toast.LENGTH_SHORT).show()
+            // 功能待后续版本实现
         }
         
-        // 设置
+        // 设置（暂未实现，留空不显示Toast）
         view.findViewById<View>(R.id.btn_settings).setOnClickListener {
-            Toast.makeText(requireContext(), "设置功能", Toast.LENGTH_SHORT).show()
+            // 功能待后续版本实现
         }
         
-        // 投诉举报
+        // 投诉举报（暂未实现，留空不显示Toast）
         view.findViewById<View>(R.id.btn_report).setOnClickListener {
-            Toast.makeText(requireContext(), "投诉举报", Toast.LENGTH_SHORT).show()
+            // 功能待后续版本实现
         }
     }
 }

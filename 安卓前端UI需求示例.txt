@@ -1,0 +1,2232 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝信 - 聊天</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'PingFang SC', 'Helvetica Neue', sans-serif; }
+        body { background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .app-container {
+            width: 375px; height: 812px; border-radius: 26px; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 4px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.03); background: #f7f7f7;
+        }
+        /* 消息上下文菜单 */
+        .message-context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .menu-option {
+            padding: 10px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .menu-option:hover {
+            background-color: #f5f5f5;
+        }
+        .menu-option.danger {
+            color: #ff4d4f;
+        }
+        .fixed-section { flex-shrink: 0; }
+        .content-flex { flex: 1; overflow-y: auto; min-height: 0; }
+        
+        /* 消息气泡样式 */
+        .message-bubble-sent {
+            background-color: #2a6ae9;
+            color: white;
+            border-radius: 18px 4px 18px 18px;
+            max-width: 85%;
+            padding: 10px 14px;
+            margin-left: auto;
+            margin-bottom: 12px;
+            word-break: break-word;
+            position: relative; /* 为了右键菜单定位 */
+        }
+        
+        .message-bubble-received {
+            background-color: white;
+            color: #333333;
+            border-radius: 4px 18px 18px 18px;
+            max-width: 85%;
+            padding: 10px 14px;
+            margin-right: auto;
+            margin-bottom: 12px;
+            word-break: break-word;
+            position: relative; /* 为了右键菜单定位 */
+        }
+        
+        /* 已撤回的消息样式 */
+        .message-recalled {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 6px 0;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        
+        /* 输入框样式 */
+        .chat-input-container {
+            background-color: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+            padding: 10px 8px;
+        }
+        
+        .chat-input {
+            background: white;
+            border-radius: 20px;
+            padding: 8px 12px;
+            outline: none;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* 在线状态指示器 */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        .status-online { background-color: #10b981; }
+        .status-busy { background-color: #f59e0b; }
+        .status-offline { background-color: #9ca3af; }
+        
+        /* 上次在线时间样式 */
+        .last-seen {
+            margin-left: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 标题栏 -->
+        <header class="fixed-section bg-white border-b border-gray-100 px-4 py-3 h-[56px]">
+            <div class="flex items-center justify-between h-full">
+                <div class="flex items-center">
+                    <div class="cursor-pointer mr-2" id="back-button">
+                        <iconify-icon icon="mdi:arrow-left" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h1 class="text-lg font-semibold">张三</h1>
+                    <span class="inline-flex items-center ml-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                        <span class="text-xs text-green-500">在线</span>
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <iconify-icon icon="mdi:phone" width="22" height="22" class="cursor-pointer" id="call-button"></iconify-icon>
+                    <iconify-icon icon="mdi:video" width="22" height="22" class="cursor-pointer" id="video-call-button"></iconify-icon>
+                    <iconify-icon icon="mdi:dots-vertical" width="22" height="22" class="cursor-pointer" id="chat-menu"></iconify-icon>
+                </div>
+            </div>
+        </header>
+
+        <!-- 聊天内容区域 -->
+        <main class="content-flex hide-scrollbar p-4">
+            <!-- 时间标记 -->
+            <div class="flex justify-center mb-4">
+                <span class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">今天 10:30</span>
+            </div>
+            
+            <!-- 消息气泡 - 对方 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="message-bubble-received">
+                    你好，李明！会议材料准备得怎么样了？我们下午三点要开会。
+                </div>
+            </div>
+            
+            <!-- 消息气泡 - 自己 -->
+            <div class="flex flex-row-reverse mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%88%91%E7%9A%84%E5%A4%B4%E5%83%8F" alt="My avatar" class="w-10 h-10 rounded-full ml-2">
+                <div class="message-bubble-sent">
+                    已经准备好了，我已经发到您的邮箱了，您确认一下是否收到。
+                </div>
+            </div>
+            
+            <!-- 消息气泡 - 对方 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="message-bubble-received">
+                    好的，我现在查看一下邮件。
+                </div>
+            </div>
+            
+            <!-- 消息气泡 - 对方 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="message-bubble-received">
+                    已收到，材料很全面，非常感谢！
+                </div>
+            </div>
+            
+            <!-- 消息气泡 - 自己 -->
+            <div class="flex flex-row-reverse mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%88%91%E7%9A%84%E5%A4%B4%E5%83%8F" alt="My avatar" class="w-10 h-10 rounded-full ml-2">
+                <div class="message-bubble-sent">
+                    不客气，还有什么需要补充的吗？
+                </div>
+            </div>
+            
+            <!-- 自己撤回的消息示例 -->
+            <div class="flex justify-center mb-4">
+                <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full flex items-center">
+                    <iconify-icon icon="mdi:undo" width="14" height="14" class="mr-1"></iconify-icon>
+                    你撤回了一条消息
+                </span>
+            </div>
+            
+            <!-- 消息气泡 - 对方 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="message-bubble-received">
+                    暂时没有了，会议前我们可以再确认一下演示流程。
+                </div>
+            </div>
+            
+            <!-- 消息已撤回提示 -->
+            <div class="flex justify-center mb-4">
+                <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full flex items-center">
+                    <iconify-icon icon="mdi:undo" width="14" height="14" class="mr-1"></iconify-icon>
+                    张三 撤回了一条消息
+                </span>
+            </div>
+            
+            <!-- 时间标记 -->
+            <div class="flex justify-center mb-4">
+                <span class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full">10:45</span>
+            </div>
+            
+            <!-- 消息气泡 - 对方 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="message-bubble-received">
+                    对了，能否再提供一下上季度的销售数据？我想在会议上进行对比分析。
+                </div>
+            </div>
+            
+            <!-- 消息气泡 - 对方输入中 -->
+            <div class="flex mb-4">
+                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar" class="w-10 h-10 rounded-full mr-2">
+                <div class="bg-white text-gray-500 rounded-2xl py-2 px-4 flex items-center">
+                    <div class="typing-indicator flex space-x-1">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s;"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部输入框区域 -->
+        <footer class="fixed-section chat-input-container">
+            <div class="flex items-center">
+                <div id="voice-recorder" class="flex items-center justify-center w-10 h-10 rounded-full mx-1 cursor-pointer relative">
+                    <iconify-icon icon="mdi:microphone" width="24" height="24" class="text-gray-500"></iconify-icon>
+                    <div id="recording-wave" class="absolute inset-0 rounded-full bg-blue-500 opacity-0 scale-0 transition-all duration-300"></div>
+                    <span id="recording-tip" class="hidden absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">松开发送</span>
+                </div>
+                <input type="text" placeholder="输入消息..." class="chat-input flex-1 mx-2">
+                <div class="flex items-center mx-2 space-x-3">
+                    <iconify-icon icon="mdi:plus-circle-outline" width="24" height="24" class="text-gray-500 cursor-pointer" id="chat-more-options"></iconify-icon>
+                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm">发送</button>
+                </div>
+            </div>
+        </footer>
+        
+        <!-- 更多选项菜单 -->
+        <div id="chat-options-menu" class="hidden fixed left-0 right-0 bottom-16 bg-white rounded-t-lg shadow-xl z-50">
+            <div class="grid grid-cols-4 gap-4 p-6">
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:image" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">相册</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:camera" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">拍照</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:video" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">视频</span>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:map-marker" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">位置</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:file-outline" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">文件</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:cards" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">名片</span>
+                </div>
+                <div class="flex flex-col items-center" id="screen-share-btn">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:monitor-share" width="28" height="28" style="color: #2a6ae9;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">屏幕共享</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center mb-2">
+                        <iconify-icon icon="mdi:close" width="28" height="28" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                    <span class="text-sm text-gray-600">取消</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 聊天菜单弹出层 -->
+        <div id="chat-menu-popup" class="hidden fixed top-14 right-4 bg-white rounded-lg shadow-xl z-50 w-40">
+            <div class="py-1">
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+                    <iconify-icon icon="mdi:account" width="18" height="18" class="mr-2 text-blue-500"></iconify-icon>
+                    <span class="text-gray-800">查看资料</span>
+                </div>
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center" id="status-indicator">
+                    <span class="w-4 h-4 flex items-center justify-center mr-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    </span>
+                    <span class="text-gray-800">在线状态</span>
+                    <iconify-icon icon="mdi:chevron-right" width="16" height="16" class="ml-auto text-gray-400"></iconify-icon>
+                </div>
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+                    <iconify-icon icon="mdi:magnify" width="18" height="18" class="mr-2 text-blue-500"></iconify-icon>
+                    <span class="text-gray-800">搜索聊天记录</span>
+                </div>
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+                    <iconify-icon icon="mdi:bell-outline" width="18" height="18" class="mr-2 text-blue-500"></iconify-icon>
+                    <span class="text-gray-800">消息免打扰</span>
+                </div>
+                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+                    <iconify-icon icon="mdi:delete-outline" width="18" height="18" class="mr-2 text-red-500"></iconify-icon>
+                    <span class="text-gray-800">清空聊天记录</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 在线状态选择弹窗 -->
+        <div id="status-selector" class="hidden fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg w-72">
+                <div class="px-4 py-3 border-b border-gray-200 font-medium">设置在线状态</div>
+                <div class="py-2">
+                    <div class="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer" data-status="online">
+                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                        <span>在线</span>
+                    </div>
+                    <div class="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer" data-status="busy">
+                        <span class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                        <span>忙碌</span>
+                    </div>
+                    <div class="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer" data-status="offline">
+                        <span class="w-3 h-3 bg-gray-400 rounded-full mr-3"></span>
+                        <span>隐身</span>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-3">
+                    <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg" id="close-status-selector">取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 屏幕共享界面 -->
+        <div id="screen-share-overlay" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-start hidden">
+            <div class="w-full text-center text-white pt-12 pb-6">
+                <h2 class="text-2xl font-semibold mb-1">屏幕共享</h2>
+                <p class="text-gray-300">与 张三 共享中 · <span id="screen-share-timer">00:00</span></p>
+            </div>
+            
+            <!-- 屏幕内容显示区域 -->
+            <div class="relative w-full flex-1 max-w-2xl mx-4 mb-4 overflow-hidden rounded-lg">
+                <!-- 模拟共享的屏幕内容 -->
+                <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900 flex items-center justify-center">
+                    <div class="w-full h-full bg-gray-800 flex flex-col items-center justify-center">
+                        <iconify-icon icon="mdi:monitor-screenshot" width="64" height="64" style="color: #2a6ae9;" class="mb-4"></iconify-icon>
+                        <p class="text-gray-300 text-lg">屏幕内容共享中...</p>
+                        <p class="text-gray-400 text-sm mt-2">（实际应用中将显示您的屏幕内容）</p>
+                    </div>
+                </div>
+                
+                <!-- 参与者视频预览 -->
+                <div class="absolute bottom-4 right-4 w-28 h-40 bg-gray-600 rounded-lg overflow-hidden border-2 border-white">
+                    <div class="w-full h-full bg-gradient-to-b from-gray-700 to-gray-800 flex items-center justify-center">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="对方头像" class="w-16 h-16 rounded-full">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制区域 -->
+            <div class="w-full max-w-md mb-12 px-4">
+                <div class="grid grid-cols-4 gap-4 mb-8">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="toggle-mic">
+                            <iconify-icon icon="mdi:microphone" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <span class="text-white text-xs">麦克风</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="toggle-camera">
+                            <iconify-icon icon="mdi:video" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <span class="text-white text-xs">摄像头</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="switch-screen">
+                            <iconify-icon icon="mdi:monitor-screenshot" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <span class="text-white text-xs">切换窗口</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="chat-during-share">
+                            <iconify-icon icon="mdi:message-text" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <span class="text-white text-xs">聊天</span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center cursor-pointer" id="end-screen-share">
+                        <iconify-icon icon="mdi:phone-hangup" width="32" height="32" style="color: white;"></iconify-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建消息上下文菜单
+            const contextMenu = document.createElement('div');
+            contextMenu.className = 'message-context-menu hidden';
+            contextMenu.innerHTML = `
+                <div class="menu-option" id="copy-message">
+                    <iconify-icon icon="mdi:content-copy" width="18" height="18" class="mr-2"></iconify-icon>复制
+                </div>
+                <div class="menu-option" id="forward-message">
+                    <iconify-icon icon="mdi:share" width="18" height="18" class="mr-2"></iconify-icon>转发
+                </div>
+                <div class="menu-option" id="reply-message">
+                    <iconify-icon icon="mdi:reply" width="18" height="18" class="mr-2"></iconify-icon>回复
+                </div>
+                <div class="menu-option danger" id="recall-message">
+                    <iconify-icon icon="mdi:undo" width="18" height="18" class="mr-2"></iconify-icon>撤回
+                </div>
+            `;
+            document.body.appendChild(contextMenu);
+            
+            // 右键菜单功能
+            let currentMessageElement = null;
+            
+            // 为所有消息气泡添加右键菜单
+            function setupMessageContextMenu() {
+                const messageBubbles = document.querySelectorAll('.message-bubble-sent, .message-bubble-received');
+                
+                messageBubbles.forEach(bubble => {
+                    // 监听右键事件
+                    bubble.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        currentMessageElement = this;
+                        
+                        // 显示菜单在点击位置
+                        contextMenu.classList.remove('hidden');
+                        contextMenu.style.top = `${e.pageY}px`;
+                        contextMenu.style.left = `${e.pageX}px`;
+                        
+                        // 检查是否超出右边界
+                        const rect = contextMenu.getBoundingClientRect();
+                        if (rect.right > window.innerWidth) {
+                            contextMenu.style.left = `${e.pageX - rect.width}px`;
+                        }
+                    });
+                    
+                    // 长按事件（移动设备）
+                    let pressTimer;
+                    
+                    bubble.addEventListener('touchstart', function(e) {
+                        pressTimer = setTimeout(() => {
+                            e.preventDefault();
+                            currentMessageElement = this;
+                            
+                            // 获取触摸坐标
+                            const touch = e.touches[0];
+                            
+                            // 显示菜单在触摸位置
+                            contextMenu.classList.remove('hidden');
+                            contextMenu.style.top = `${touch.pageY}px`;
+                            contextMenu.style.left = `${touch.pageX}px`;
+                            
+                            // 检查是否超出右边界
+                            const rect = contextMenu.getBoundingClientRect();
+                            if (rect.right > window.innerWidth) {
+                                contextMenu.style.left = `${touch.pageX - rect.width}px`;
+                            }
+                        }, 500);
+                    });
+                    
+                    bubble.addEventListener('touchend', function() {
+                        clearTimeout(pressTimer);
+                    });
+                    
+                    bubble.addEventListener('touchmove', function() {
+                        clearTimeout(pressTimer);
+                    });
+                });
+            }
+            
+            // 初始化消息菜单
+            setupMessageContextMenu();
+            
+            // 点击页面其他区域关闭菜单
+            document.addEventListener('click', function(e) {
+                if (!contextMenu.contains(e.target)) {
+                    contextMenu.classList.add('hidden');
+                }
+            });
+            
+            // 撤回消息功能
+            document.getElementById('recall-message').addEventListener('click', function() {
+                if (!currentMessageElement) return;
+                
+                const messageContainer = currentMessageElement.parentElement;
+                const isSent = currentMessageElement.classList.contains('message-bubble-sent');
+                const userName = isSent ? '你' : '张三';
+                
+                // 创建撤回提示
+                const recallNotice = document.createElement('div');
+                recallNotice.className = 'flex justify-center mb-4';
+                recallNotice.innerHTML = `
+                    <span class="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full flex items-center">
+                        <iconify-icon icon="mdi:undo" width="14" height="14" class="mr-1"></iconify-icon>
+                        ${userName} 撤回了一条消息
+                    </span>
+                `;
+                
+                // 替换原消息
+                messageContainer.parentNode.insertBefore(recallNotice, messageContainer.nextSibling);
+                messageContainer.remove();
+                
+                // 关闭菜单
+                contextMenu.classList.add('hidden');
+                
+                // 显示撤回成功提示
+                if (isSent) {
+                    showToast('已撤回');
+                }
+            });
+            
+            // 复制消息
+            document.getElementById('copy-message').addEventListener('click', function() {
+                if (!currentMessageElement) return;
+                
+                const text = currentMessageElement.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('已复制');
+                });
+                
+                contextMenu.classList.add('hidden');
+            });
+            
+            // 转发消息
+            document.getElementById('forward-message').addEventListener('click', function() {
+                if (!currentMessageElement) return;
+                
+                showToast('转发功能开发中');
+                contextMenu.classList.add('hidden');
+            });
+            
+            // 回复消息
+            document.getElementById('reply-message').addEventListener('click', function() {
+                if (!currentMessageElement) return;
+                
+                showToast('回复功能开发中');
+                contextMenu.classList.add('hidden');
+            });
+            
+            // 为新发送的消息添加右键菜单功能
+            const originalSendMessage = sendMessage;
+            window.sendMessage = function() {
+                originalSendMessage();
+                setTimeout(setupMessageContextMenu, 100); // 等待DOM更新后设置右键菜单
+            };
+            
+            // 在线状态功能
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusSelector = document.getElementById('status-selector');
+            const closeStatusSelector = document.getElementById('close-status-selector');
+            const statusOptions = document.querySelectorAll('#status-selector [data-status]');
+            const headerStatusIndicator = document.querySelector('.text-xs.text-green-500').previousElementSibling;
+            const headerStatusText = document.querySelector('.text-xs.text-green-500');
+            
+            // 打开状态选择器
+            statusIndicator.addEventListener('click', () => {
+                statusSelector.classList.remove('hidden');
+                chatMenuPopup.classList.add('hidden');
+            });
+            
+            // 关闭状态选择器
+            closeStatusSelector.addEventListener('click', () => {
+                statusSelector.classList.add('hidden');
+            });
+            
+            // 点击背景关闭状态选择器
+            statusSelector.addEventListener('click', (e) => {
+                if (e.target === statusSelector) {
+                    statusSelector.classList.add('hidden');
+                }
+            });
+            
+            // 选择在线状态
+            statusOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const status = option.dataset.status;
+                    let color, text;
+                    
+                    switch (status) {
+                        case 'online':
+                            color = 'bg-green-500';
+                            text = '在线';
+                            break;
+                        case 'busy':
+                            color = 'bg-yellow-500';
+                            text = '忙碌';
+                            break;
+                        case 'offline':
+                            color = 'bg-gray-400';
+                            text = '隐身';
+                            break;
+                    }
+                    
+                    // 更新菜单中的状态指示器
+                    const menuIndicator = statusIndicator.querySelector('span > span');
+                    menuIndicator.className = `w-2 h-2 ${color} rounded-full`;
+                    
+                    // 更新顶部状态指示器
+                    headerStatusIndicator.className = `w-2 h-2 ${color} rounded-full mr-1`;
+                    headerStatusText.textContent = text;
+                    headerStatusText.className = `text-xs ${color.replace('bg-', 'text-')}`;
+                    
+                    // 关闭选择器
+                    statusSelector.classList.add('hidden');
+                });
+            });
+            // 录音按钮动画效果
+            const voiceRecorder = document.getElementById('voice-recorder');
+            const recordingWave = document.getElementById('recording-wave');
+            const recordingTip = document.getElementById('recording-tip');
+            let recordingTimeout;
+            let isRecording = false;
+            let recordingStartTime;
+            let recordingDuration = 0;
+            
+            voiceRecorder.addEventListener('mousedown', startRecording);
+            voiceRecorder.addEventListener('touchstart', startRecording);
+            
+            document.addEventListener('mouseup', stopRecording);
+            document.addEventListener('touchend', stopRecording);
+            document.addEventListener('mousemove', updateRecordingPosition);
+            document.addEventListener('touchmove', updateRecordingPosition);
+            
+            function startRecording(e) {
+                e.preventDefault();
+                isRecording = true;
+                recordingStartTime = new Date();
+                
+                voiceRecorder.classList.add('bg-gray-200');
+                recordingWave.classList.remove('opacity-0', 'scale-0');
+                recordingWave.classList.add('opacity-20', 'scale-75');
+                recordingTip.classList.remove('hidden');
+                
+                // 创建波纹动画效果
+                let scale = 0.5;
+                recordingTimeout = setInterval(() => {
+                    scale = scale === 0.5 ? 0.75 : 0.5;
+                    recordingWave.style.transform = `scale(${scale})`;
+                    recordingWave.style.opacity = scale === 0.75 ? "0.3" : "0.1";
+                    
+                    // 更新录音时间
+                    if (isRecording) {
+                        const now = new Date();
+                        recordingDuration = Math.floor((now - recordingStartTime) / 1000);
+                        if (recordingDuration >= 1) {
+                            recordingTip.textContent = `录音中 ${recordingDuration}s (松开发送)`;
+                        }
+                    }
+                }, 300);
+            }
+            
+            function updateRecordingPosition(e) {
+                if (!isRecording) return;
+                
+                const touch = e.touches ? e.touches[0] : e;
+                const recorderRect = voiceRecorder.getBoundingClientRect();
+                const recorderCenterX = recorderRect.left + recorderRect.width / 2;
+                const recorderCenterY = recorderRect.top + recorderRect.height / 2;
+                
+                // 计算触摸点与录音按钮中心的距离
+                const distance = Math.sqrt(
+                    Math.pow(touch.clientX - recorderCenterX, 2) +
+                    Math.pow(touch.clientY - recorderCenterY, 2)
+                );
+                
+                // 如果手指/鼠标滑动到离按钮中心100像素以上，显示取消提示
+                if (distance > 100) {
+                    recordingTip.textContent = '松开手指取消发送';
+                    recordingTip.classList.add('text-red-500');
+                    recordingTip.classList.remove('text-white');
+                } else {
+                    if (recordingDuration >= 1) {
+                        recordingTip.textContent = `录音中 ${recordingDuration}s (松开发送)`;
+                    } else {
+                        recordingTip.textContent = '松开发送';
+                    }
+                    recordingTip.classList.remove('text-red-500');
+                    recordingTip.classList.add('text-white');
+                }
+            }
+            
+            function stopRecording(e) {
+                if (!recordingTimeout) return;
+                
+                clearInterval(recordingTimeout);
+                recordingTimeout = null;
+                
+                voiceRecorder.classList.remove('bg-gray-200');
+                recordingWave.classList.add('opacity-0', 'scale-0');
+                recordingWave.classList.remove('opacity-20', 'scale-75');
+                recordingWave.style.transform = '';
+                recordingWave.style.opacity = '';
+                recordingTip.classList.add('hidden');
+                recordingTip.classList.remove('text-red-500');
+                recordingTip.classList.add('text-white');
+                
+                if (isRecording) {
+                    const touch = e && e.changedTouches ? e.changedTouches[0] : e;
+                    if (touch) {
+                        const recorderRect = voiceRecorder.getBoundingClientRect();
+                        const recorderCenterX = recorderRect.left + recorderRect.width / 2;
+                        const recorderCenterY = recorderRect.top + recorderRect.height / 2;
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(touch.clientX - recorderCenterX, 2) +
+                            Math.pow(touch.clientY - recorderCenterY, 2)
+                        );
+                        
+                        // 如果距离小于100像素，则发送语音消息
+                        if (distance <= 100 && recordingDuration >= 1) {
+                            sendVoiceMessage(recordingDuration);
+                        } else if (distance > 100) {
+                            // 取消发送
+                            console.log('录音取消');
+                        } else if (recordingDuration < 1) {
+                            // 录音时间太短
+                            showToast('录音时间太短');
+                        }
+                    }
+                }
+                
+                isRecording = false;
+                recordingDuration = 0;
+            }
+            
+            function sendVoiceMessage(duration) {
+                // 创建新的语音消息元素
+                const newMessage = document.createElement('div');
+                newMessage.className = 'flex flex-row-reverse mb-4';
+                newMessage.innerHTML = `
+                    <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=我的头像" alt="My avatar" class="w-10 h-10 rounded-full ml-2">
+                    <div class="message-bubble-sent flex items-center">
+                        <iconify-icon icon="mdi:waveform" width="20" height="20" class="mr-2"></iconify-icon>
+                        <span>${duration}"</span>
+                    </div>
+                `;
+                
+                // 添加到聊天区域
+                document.querySelector('.typing-indicator').parentElement.parentElement.parentElement.before(newMessage);
+                
+                // 滚动到底部
+                const chatContent = document.querySelector('main');
+                chatContent.scrollTop = chatContent.scrollHeight;
+                
+                console.log(`发送了${duration}秒的语音消息`);
+            }
+            
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'transition-opacity');
+                    setTimeout(() => document.body.removeChild(toast), 300);
+                }, 1500);
+            }
+            // 聊天更多选项功能
+            const chatMoreOptionsBtn = document.getElementById('chat-more-options');
+            const chatOptionsMenu = document.getElementById('chat-options-menu');
+            
+            chatMoreOptionsBtn.addEventListener('click', function() {
+                chatOptionsMenu.classList.toggle('hidden');
+            });
+            
+            // 点击其他区域关闭更多选项菜单
+            document.addEventListener('click', function(e) {
+                if (e.target !== chatMoreOptionsBtn && !chatOptionsMenu.contains(e.target) && !chatOptionsMenu.classList.contains('hidden')) {
+                    chatOptionsMenu.classList.add('hidden');
+                }
+            });
+            
+            // 点击取消按钮关闭菜单
+            const cancelButton = chatOptionsMenu.querySelector('.flex.flex-col.items-center:last-child');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', function() {
+                    chatOptionsMenu.classList.add('hidden');
+                });
+            }
+            
+            // 语音通话功能
+            document.getElementById('call-button').addEventListener('click', function() {
+                const callOverlay = document.createElement('div');
+                callOverlay.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center';
+                callOverlay.innerHTML = `
+                    <div class="text-center text-white">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=张三" alt="联系人头像" class="w-24 h-24 rounded-full mb-4 mx-auto">
+                        <h2 class="text-2xl font-semibold mb-1">张三</h2>
+                        <p class="text-gray-300 mb-12">语音通话中...<span id="call-timer" class="ml-2">00:00</span></p>
+                        
+                        <div class="grid grid-cols-2 gap-8 mb-12">
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2">
+                                    <iconify-icon icon="mdi:volume-high" width="28" height="28" style="color: white;"></iconify-icon>
+                                </div>
+                                <span class="text-sm">扬声器</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2">
+                                    <iconify-icon icon="mdi:microphone-off" width="28" height="28" style="color: white;"></iconify-icon>
+                                </div>
+                                <span class="text-sm">静音</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center" id="end-call-button">
+                                <iconify-icon icon="mdi:phone-hangup" width="32" height="32" style="color: white;"></iconify-icon>
+                            </div>
+                        </div>
+                        
+                        
+                    </div>
+                `;
+                document.body.appendChild(callOverlay);
+                
+                // 通话计时器
+                let seconds = 0;
+                let minutes = 0;
+                const callTimerElement = callOverlay.querySelector('#call-timer');
+                const callTimerInterval = setInterval(() => {
+                    seconds++;
+                    if (seconds >= 60) {
+                        seconds = 0;
+                        minutes++;
+                    }
+                    callTimerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }, 1000);
+                
+                // 结束通话按钮
+                document.getElementById('end-call-button').addEventListener('click', () => {
+                    clearInterval(callTimerInterval);
+                    document.body.removeChild(callOverlay);
+                });
+            });
+            
+            // 视频通话功能
+            document.getElementById('video-call-button').addEventListener('click', function() {
+                const videoCallOverlay = document.createElement('div');
+                videoCallOverlay.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center';
+                videoCallOverlay.innerHTML = `
+                    <div class="text-center text-white w-full h-full flex flex-col">
+                        <!-- 大屏幕显示区域 -->
+                        <div class="flex-1 relative w-full">
+                            <!-- 远程视频背景 -->
+                            <div class="absolute inset-0 bg-gradient-to-b from-gray-800 to-gray-900 flex items-center justify-center">
+                                <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=张三" alt="联系人头像" class="w-32 h-32 rounded-full opacity-20">
+                            </div>
+                            
+                            <!-- 远程视频占位 -->
+                            <div class="absolute top-8 w-full text-center">
+                                <h2 class="text-2xl font-semibold mb-1">张三</h2>
+                                <p class="text-gray-300">视频通话中...<span id="video-call-timer" class="ml-2">00:00</span></p>
+                            </div>
+                            
+                            <!-- 本地视频预览 -->
+                            <div class="absolute top-4 right-4 w-28 h-40 bg-gray-600 rounded-lg overflow-hidden border-2 border-white">
+                                <div class="w-full h-full bg-gradient-to-b from-gray-700 to-gray-800 flex items-center justify-center">
+                                    <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=我的头像" alt="我的头像" class="w-16 h-16 rounded-full">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 控制区域 -->
+                        <div class="h-28 w-full bg-black bg-opacity-40 flex items-center justify-center">
+                            <div class="grid grid-cols-3 gap-8">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="switch-camera">
+                                        <iconify-icon icon="mdi:camera-flip" width="28" height="28" style="color: white;"></iconify-icon>
+                                    </div>
+                                    <span class="text-sm">翻转</span>
+                                </div>
+                                
+                                <div class="flex flex-col items-center">
+                                    <div class="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="mute-video">
+                                        <iconify-icon icon="mdi:video-off" width="28" height="28" style="color: white;"></iconify-icon>
+                                    </div>
+                                    <span class="text-sm">关闭视频</span>
+                                </div>
+                                
+                                <div class="flex flex-col items-center">
+                                    <div class="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2 cursor-pointer" id="mute-audio">
+                                        <iconify-icon icon="mdi:microphone-off" width="28" height="28" style="color: white;"></iconify-icon>
+                                    </div>
+                                    <span class="text-sm">静音</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="h-24 w-full flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center cursor-pointer" id="end-video-call">
+                                <iconify-icon icon="mdi:phone-hangup" width="32" height="32" style="color: white;"></iconify-icon>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(videoCallOverlay);
+                
+                // 视频通话计时器
+                let seconds = 0;
+                let minutes = 0;
+                const videoCallTimerElement = videoCallOverlay.querySelector('#video-call-timer');
+                const videoCallTimerInterval = setInterval(() => {
+                    seconds++;
+                    if (seconds >= 60) {
+                        seconds = 0;
+                        minutes++;
+                    }
+                    videoCallTimerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }, 1000);
+                
+                // 结束视频通话按钮
+                document.getElementById('end-video-call').addEventListener('click', () => {
+                    clearInterval(videoCallTimerInterval);
+                    document.body.removeChild(videoCallOverlay);
+                });
+                
+                // 静音按钮
+                document.getElementById('mute-audio').addEventListener('click', function() {
+                    this.classList.toggle('bg-red-500');
+                    this.classList.toggle('bg-opacity-100');
+                    this.classList.toggle('bg-opacity-20');
+                });
+                
+                // 关闭视频按钮
+                document.getElementById('mute-video').addEventListener('click', function() {
+                    this.classList.toggle('bg-red-500');
+                    this.classList.toggle('bg-opacity-100');
+                    this.classList.toggle('bg-opacity-20');
+                });
+                
+                // 翻转摄像头按钮
+                document.getElementById('switch-camera').addEventListener('click', function() {
+                    const localVideo = document.querySelector('.absolute.top-4.right-4');
+                    localVideo.classList.add('scale-x-[-1]');
+                    setTimeout(() => {
+                        localVideo.classList.remove('scale-x-[-1]');
+                    }, 300);
+                });
+            });
+            
+            // 聊天菜单功能
+            const chatMenuBtn = document.getElementById('chat-menu');
+            const chatMenuPopup = document.getElementById('chat-menu-popup');
+            
+            chatMenuBtn.addEventListener('click', function() {
+                chatMenuPopup.classList.toggle('hidden');
+            });
+            
+            // 点击其他区域关闭菜单
+            document.addEventListener('click', function(e) {
+                if (e.target !== chatMenuBtn && !chatMenuPopup.contains(e.target)) {
+                    chatMenuPopup.classList.add('hidden');
+                }
+            });
+            
+            // 屏幕共享功能
+            const screenShareBtn = document.getElementById('screen-share-btn');
+            const screenShareOverlay = document.getElementById('screen-share-overlay');
+            const endScreenShareBtn = document.getElementById('end-screen-share');
+            const screenShareTimer = document.getElementById('screen-share-timer');
+            
+            screenShareBtn.addEventListener('click', function() {
+                // 关闭更多选项菜单
+                chatOptionsMenu.classList.add('hidden');
+                // 打开屏幕共享界面
+                screenShareOverlay.classList.remove('hidden');
+                // 开始计时
+                startScreenShareTimer();
+            });
+            
+            // 结束屏幕共享
+            endScreenShareBtn.addEventListener('click', function() {
+                screenShareOverlay.classList.add('hidden');
+                clearInterval(screenShareTimerInterval);
+            });
+            
+            // 屏幕共享计时器
+            let screenShareTimerInterval;
+            let screenShareSeconds = 0;
+            let screenShareMinutes = 0;
+            
+            function startScreenShareTimer() {
+                // 重置计时器
+                screenShareSeconds = 0;
+                screenShareMinutes = 0;
+                screenShareTimer.textContent = '00:00';
+                
+                // 开始计时
+                screenShareTimerInterval = setInterval(() => {
+                    screenShareSeconds++;
+                    if (screenShareSeconds >= 60) {
+                        screenShareSeconds = 0;
+                        screenShareMinutes++;
+                    }
+                    screenShareTimer.textContent = `${String(screenShareMinutes).padStart(2, '0')}:${String(screenShareSeconds).padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            // 控制按钮功能
+            const toggleMicBtn = document.getElementById('toggle-mic');
+            const toggleCameraBtn = document.getElementById('toggle-camera');
+            const switchScreenBtn = document.getElementById('switch-screen');
+            const chatDuringShareBtn = document.getElementById('chat-during-share');
+            
+            toggleMicBtn.addEventListener('click', function() {
+                this.classList.toggle('bg-red-500');
+                this.classList.toggle('bg-opacity-100');
+                this.classList.toggle('bg-opacity-20');
+                
+                const micIcon = this.querySelector('iconify-icon');
+                if (micIcon.getAttribute('icon') === 'mdi:microphone') {
+                    micIcon.setAttribute('icon', 'mdi:microphone-off');
+                } else {
+                    micIcon.setAttribute('icon', 'mdi:microphone');
+                }
+            });
+            
+            toggleCameraBtn.addEventListener('click', function() {
+                this.classList.toggle('bg-red-500');
+                this.classList.toggle('bg-opacity-100');
+                this.classList.toggle('bg-opacity-20');
+                
+                const cameraIcon = this.querySelector('iconify-icon');
+                if (cameraIcon.getAttribute('icon') === 'mdi:video') {
+                    cameraIcon.setAttribute('icon', 'mdi:video-off');
+                } else {
+                    cameraIcon.setAttribute('icon', 'mdi:video');
+                }
+            });
+            
+            switchScreenBtn.addEventListener('click', function() {
+                // 模拟切换窗口效果
+                const screenContent = document.querySelector('#screen-share-overlay .bg-gray-800');
+                screenContent.classList.add('opacity-50');
+                setTimeout(() => {
+                    screenContent.classList.remove('opacity-50');
+                }, 500);
+                
+                // 显示提示信息
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-lg';
+                toast.textContent = '请选择要共享的窗口';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'transition-opacity');
+                    setTimeout(() => document.body.removeChild(toast), 300);
+                }, 1500);
+            });
+            
+            chatDuringShareBtn.addEventListener('click', function() {
+                // 显示聊天窗口
+                const chatWindow = document.createElement('div');
+                chatWindow.className = 'fixed bottom-24 right-4 w-64 h-72 bg-white rounded-lg shadow-lg flex flex-col';
+                chatWindow.innerHTML = `
+                    <div class="p-2 border-b border-gray-200 flex justify-between items-center">
+                        <span class="font-medium">与 张三 的聊天</span>
+                        <iconify-icon icon="mdi:close" width="18" height="18" class="cursor-pointer" id="close-chat-window"></iconify-icon>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-2"></div>
+                    <div class="p-2 border-t border-gray-200 flex">
+                        <input type="text" class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm" placeholder="发送消息...">
+                        <button class="ml-1 bg-blue-500 text-white rounded px-2 text-sm">发送</button>
+                    </div>
+                `;
+                document.body.appendChild(chatWindow);
+                
+                // 关闭聊天窗口
+                document.getElementById('close-chat-window').addEventListener('click', () => {
+                    document.body.removeChild(chatWindow);
+                });
+            });
+            
+            // 返回按钮功能
+            document.getElementById('back-button').addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+            
+            // 发送消息功能
+            const sendBtn = document.querySelector('button');
+            const inputField = document.querySelector('input.chat-input');
+            const chatContent = document.querySelector('main');
+            
+            sendBtn.addEventListener('click', sendMessage);
+            inputField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const messageText = inputField.value.trim();
+                if (messageText) {
+                    // 创建新的消息元素
+                    const newMessage = document.createElement('div');
+                    newMessage.className = 'flex flex-row-reverse mb-4';
+                    newMessage.innerHTML = `
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=我的头像" alt="My avatar" class="w-10 h-10 rounded-full ml-2">
+                        <div class="message-bubble-sent">
+                            ${messageText}
+                        </div>
+                    `;
+                    
+                    // 添加到聊天区域
+                    document.querySelector('.typing-indicator').parentElement.parentElement.parentElement.before(newMessage);
+                    
+                    // 清空输入框
+                    inputField.value = '';
+                    
+                    // 滚动到底部
+                    chatContent.scrollTop = chatContent.scrollHeight;
+                    
+                    // 为新消息添加右键菜单功能
+                    setupMessageContextMenu();
+                }
+            }
+        });
+    </script>
+
+
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝信 - 主界面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'PingFang SC', 'Helvetica Neue', sans-serif; }
+        body { background: #eeeeee; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .app-container {
+            width: 375px; height: 812px; border-radius: 26px; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 4px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.03); background: #ffffff;
+        }
+        .fixed-section { flex-shrink: 0; }
+        .content-flex { flex: 1; overflow-y: auto; min-height: 0; }
+
+        /* 自定义圆点指示器 */
+        .unread-badge { 
+            background-color: #ff4d4f; color: white; 
+            border-radius: 50%; width: 18px; height: 18px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 12px; position: absolute; top: 0; right: 0;
+        }
+        
+        /* 标签页样式 */
+        .tab-active { 
+            position: relative; font-weight: 500; 
+        }
+        .tab-active::after {
+            content: ''; position: absolute; bottom: -8px;
+            left: 10%; width: 80%; height: 2px;
+            background: #2a6ae9; border-radius: 1px;
+        }
+        
+        /* 底部导航栏样式 */
+        .nav-active { color: #2a6ae9; }
+        .nav-inactive { color: #8a8a8e; }
+    </style>
+
+
+    <div class="app-container">
+        <!-- 页面控制脚本 -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // 搜索功能
+                const searchIcon = document.getElementById('search-icon');
+                const searchOverlay = document.createElement('div');
+                
+                // 创建搜索覆盖层
+                searchOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-start justify-center pt-16';
+                searchOverlay.innerHTML = `
+                    <div class="bg-white w-full rounded-lg p-3 shadow-lg mx-auto mt-12">
+                        <div class="flex items-center border-b border-gray-200 pb-3">
+                            <iconify-icon icon="mdi:magnify" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                            <input type="text" placeholder="搜索聊天记录、联系人..." autofocus
+                                class="ml-2 w-full outline-none text-gray-800">
+                            <iconify-icon icon="mdi:close" width="20" height="20" style="color: #8a8a8e;" 
+                                class="cursor-pointer" id="close-search"></iconify-icon>
+                        </div>
+                        <div class="pt-2">
+                            <p class="text-gray-500 text-sm">搜索历史</p>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <span class="bg-gray-100 text-gray-600 px-3 py-1 text-sm rounded-full">张三</span>
+                                <span class="bg-gray-100 text-gray-600 px-3 py-1 text-sm rounded-full">会议材料</span>
+                                <span class="bg-gray-100 text-gray-600 px-3 py-1 text-sm rounded-full">项目规划</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(searchOverlay);
+                
+                // 绑定搜索图标点击事件
+                searchIcon.addEventListener('click', () => {
+                    searchOverlay.classList.remove('hidden');
+                    const searchInput = searchOverlay.querySelector('input');
+                    if (searchInput) {
+                        setTimeout(() => searchInput.focus(), 100);
+                    }
+                });
+                
+                // 绑定关闭搜索按钮事件
+                document.getElementById('close-search').addEventListener('click', () => {
+                    searchOverlay.classList.add('hidden');
+                });
+                
+                // 点击搜索框外部区域关闭搜索
+                searchOverlay.addEventListener('click', (e) => {
+                    if (e.target === searchOverlay) {
+                        searchOverlay.classList.add('hidden');
+                    }
+                });
+                
+                // 添加好友和扫一扫功能
+                const addIcon = document.getElementById('add-icon');
+                const addMenu = document.createElement('div');
+                
+                // 创建添加菜单
+                addMenu.className = 'fixed z-50 hidden bg-white rounded-lg shadow-xl';
+                addMenu.style.position = 'absolute';
+                addMenu.style.top = '40px';
+                addMenu.style.right = '0';
+                addMenu.style.width = '140px';
+                addMenu.innerHTML = `
+                    <div class="py-1">
+                        <div class="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer" id="add-friend">
+                            <iconify-icon icon="mdi:account-plus-outline" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                            <span class="ml-2 text-gray-800">添加好友</span>
+                        </div>
+                        <div class="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer" id="scan-qrcode">
+                            <iconify-icon icon="mdi:qrcode-scan" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                            <span class="ml-2 text-gray-800">扫一扫</span>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(addMenu);
+                
+                // 设置添加图标容器为相对定位
+                const addIconContainer = addIcon.parentElement;
+                addIconContainer.style.position = 'relative';
+                
+                // 绑定添加图标点击事件
+                addIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addMenu.classList.toggle('hidden');
+                    // 确保菜单在图标下方正确位置
+                    document.body.appendChild(addMenu);
+                    addIconContainer.appendChild(addMenu);
+                });
+                
+                // 点击其他区域关闭菜单
+                document.addEventListener('click', (e) => {
+                    if (e.target !== addIcon && !addMenu.contains(e.target)) {
+                        addMenu.classList.add('hidden');
+                    }
+                });
+                
+                // 添加好友功能
+                document.getElementById('add-friend').addEventListener('click', () => {
+                    const addFriendOverlay = document.createElement('div');
+                    addFriendOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+                    addFriendOverlay.innerHTML = `
+                        <div class="bg-white w-4/5 rounded-lg overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="font-medium">添加好友</h3>
+                                <iconify-icon icon="mdi:close" width="20" height="20" class="cursor-pointer" id="close-add-friend"></iconify-icon>
+                            </div>
+                            <div class="p-4">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm mb-2">蓝信号/手机号/邮箱</label>
+                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请输入">
+                                </div>
+                                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg">搜索</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(addFriendOverlay);
+                    addMenu.classList.add('hidden');
+                    
+                    document.getElementById('close-add-friend').addEventListener('click', () => {
+                        document.body.removeChild(addFriendOverlay);
+                    });
+                    
+                    addFriendOverlay.addEventListener('click', (e) => {
+                        if (e.target === addFriendOverlay) {
+                            document.body.removeChild(addFriendOverlay);
+                        }
+                    });
+                });
+                
+                // 扫一扫功能
+                document.getElementById('scan-qrcode').addEventListener('click', () => {
+                    const scanOverlay = document.createElement('div');
+                    scanOverlay.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center';
+                    scanOverlay.innerHTML = `
+                        <div class="relative w-64 h-64 mb-6">
+                            <div class="absolute inset-0 border-2 border-white"></div>
+                            <div class="absolute left-0 top-0 w-10 h-2 border-l-2 border-t-2 border-blue-500"></div>
+                            <div class="absolute right-0 top-0 w-10 h-2 border-r-2 border-t-2 border-blue-500"></div>
+                            <div class="absolute left-0 bottom-0 w-10 h-2 border-l-2 border-b-2 border-blue-500"></div>
+                            <div class="absolute right-0 bottom-0 w-10 h-2 border-r-2 border-b-2 border-blue-500"></div>
+                            <div class="absolute left-0 top-0 w-2 h-10 border-l-2 border-t-2 border-blue-500"></div>
+                            <div class="absolute right-0 top-0 w-2 h-10 border-r-2 border-t-2 border-blue-500"></div>
+                            <div class="absolute left-0 bottom-0 w-2 h-10 border-l-2 border-b-2 border-blue-500"></div>
+                            <div class="absolute right-0 bottom-0 w-2 h-10 border-r-2 border-b-2 border-blue-500"></div>
+                        </div>
+                        <p class="text-white mb-4">将二维码放入框内，即可自动扫描</p>
+                        <div class="flex space-x-6">
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2">
+                                    <iconify-icon icon="mdi:image-outline" width="24" height="24" style="color: white;"></iconify-icon>
+                                </div>
+                                <span class="text-white text-xs">相册</span>
+                            </div>
+                            <div class="flex flex-col items-center" id="close-scan">
+                                <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-2">
+                                    <iconify-icon icon="mdi:close" width="24" height="24" style="color: white;"></iconify-icon>
+                                </div>
+                                <span class="text-white text-xs">关闭</span>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(scanOverlay);
+                    addMenu.classList.add('hidden');
+                    
+                    document.getElementById('close-scan').addEventListener('click', () => {
+                        document.body.removeChild(scanOverlay);
+                    });
+                });
+                
+                // 页面管理
+                const pages = {
+                    chat: document.getElementById('chat-page'),
+                    contacts: document.getElementById('contacts-page'),
+                    discover: document.getElementById('discover-page'),
+                    me: document.getElementById('me-page')
+                };
+                
+                // 导航按钮
+                const navButtons = {
+                    chat: document.getElementById('nav-chat'),
+                    contacts: document.getElementById('nav-contacts'),
+                    discover: document.getElementById('nav-discover'),
+                    me: document.getElementById('nav-me')
+                };
+                
+                // 顶部标签
+                const topTabs = {
+                    chat: document.getElementById('tab-chat'),
+                    contacts: document.getElementById('tab-contacts'),
+                    discover: document.getElementById('tab-discover'),
+                    me: document.getElementById('tab-me')
+                };
+                
+                // 显示选定页面
+                function showPage(pageId) {
+                    // 隐藏所有页面
+                    Object.values(pages).forEach(page => {
+                        page.classList.add('hidden');
+                    });
+                    
+                    // 显示选定页面
+                    pages[pageId].classList.remove('hidden');
+                    
+                    // 更新导航按钮状态
+                    Object.entries(navButtons).forEach(([id, btn]) => {
+                        const icon = btn.querySelector('iconify-icon');
+                        const text = btn.querySelector('span');
+                        
+                        if (id === pageId) {
+                            icon.classList.add('nav-active');
+                            icon.classList.remove('nav-inactive');
+                            text.classList.add('nav-active');
+                            text.classList.remove('nav-inactive');
+                        } else {
+                            icon.classList.add('nav-inactive');
+                            icon.classList.remove('nav-active');
+                            text.classList.add('nav-inactive');
+                            text.classList.remove('nav-active');
+                        }
+                    });
+                    
+                    // 更新顶部标签状态
+                    Object.entries(topTabs).forEach(([id, tab]) => {
+                        if (id === pageId) {
+                            tab.classList.add('tab-active');
+                            tab.classList.remove('text-gray-500');
+                            tab.classList.add('text-gray-900');
+                        } else {
+                            tab.classList.remove('tab-active');
+                            tab.classList.remove('text-gray-900');
+                            tab.classList.add('text-gray-500');
+                        }
+                    });
+                }
+                
+                // 绑定导航点击事件
+                Object.entries(navButtons).forEach(([id, btn]) => {
+                    btn.addEventListener('click', () => showPage(id));
+                });
+                
+                // 绑定顶部标签点击事件
+                Object.entries(topTabs).forEach(([id, tab]) => {
+                    tab.addEventListener('click', () => showPage(id));
+                });
+                
+                // 默认显示微信聊天页面
+                showPage('chat');
+                
+                // 设置按钮功能
+                document.getElementById('settings-button').addEventListener('click', () => {
+                    const settingsOverlay = document.createElement('div');
+                    settingsOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center';
+                    settingsOverlay.innerHTML = `
+                        <div class="bg-white w-full rounded-t-xl overflow-hidden mt-16 max-w-md">
+                            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="font-medium text-lg">设置</h3>
+                                <iconify-icon icon="mdi:close" width="24" height="24" class="cursor-pointer" id="close-settings"></iconify-icon>
+                            </div>
+                            <div class="overflow-y-auto" style="max-height: 70vh;">
+                                <!-- 账号与安全 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <iconify-icon icon="mdi:shield-account-outline" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                                            <span class="ml-3 text-gray-800">账号与安全</span>
+                                        </div>
+                                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                                    </div>
+                                </div>
+                                
+                                <!-- 隐私 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <iconify-icon icon="mdi:lock-outline" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                                            <span class="ml-3 text-gray-800">隐私</span>
+                                        </div>
+                                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                                    </div>
+                                </div>
+                                
+                                <!-- 通用 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <iconify-icon icon="mdi:tune" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                                            <span class="ml-3 text-gray-800">通用</span>
+                                        </div>
+                                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                                    </div>
+                                </div>
+                                
+                                <!-- 通知 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <iconify-icon icon="mdi:bell-outline" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                                            <span class="ml-3 text-gray-800">新消息通知</span>
+                                        </div>
+                                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                                    </div>
+                                </div>
+                                
+                                <!-- 关于 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <iconify-icon icon="mdi:information-outline" width="20" height="20" style="color: #2a6ae9;"></iconify-icon>
+                                            <span class="ml-3 text-gray-800">关于蓝信</span>
+                                        </div>
+                                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                                    </div>
+                                </div>
+                                
+                                <!-- 退出按钮 -->
+                                <div class="p-4">
+                                    <button class="w-full bg-red-500 text-white py-3 rounded-lg font-medium">退出登录</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(settingsOverlay);
+                    
+                    // 关闭设置界面
+                    document.getElementById('close-settings').addEventListener('click', () => {
+                        document.body.removeChild(settingsOverlay);
+                    });
+                    
+                    // 点击背景关闭设置界面
+                    settingsOverlay.addEventListener('click', (e) => {
+                        if (e.target === settingsOverlay) {
+                            document.body.removeChild(settingsOverlay);
+                        }
+                    });
+                    
+                    // 投诉举报按钮功能
+                    document.getElementById('report-button').addEventListener('click', () => {
+                        const reportOverlay = document.createElement('div');
+                        reportOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+                        reportOverlay.innerHTML = `
+                            <div class="bg-white w-5/6 rounded-lg overflow-hidden max-w-md">
+                                <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                                    <h3 class="font-medium text-lg">联系投诉举报</h3>
+                                    <iconify-icon icon="mdi:close" width="24" height="24" class="cursor-pointer" id="close-report"></iconify-icon>
+                                </div>
+                                <div class="p-4">
+                                    <!-- 步骤指示器 -->
+                                    <div class="flex items-center justify-between mb-6">
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium text-sm" id="step1-indicator">1</div>
+                                            <span class="text-xs text-blue-500 mt-1">问题类型</span>
+                                        </div>
+                                        <div class="flex-1 h-1 bg-gray-200 mx-2">
+                                            <div class="h-1 bg-blue-500 w-0" id="progress-bar"></div>
+                                        </div>
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm" id="step2-indicator">2</div>
+                                            <span class="text-xs text-gray-500 mt-1">问题描述</span>
+                                        </div>
+                                        <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-sm" id="step3-indicator">3</div>
+                                            <span class="text-xs text-gray-500 mt-1">提交</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 步骤1: 选择问题类型 -->
+                                    <div id="step1" class="mb-4">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all issue-type" data-type="account">
+                                                <iconify-icon icon="mdi:account-alert" width="24" height="24" style="color: #2a6ae9;"></iconify-icon>
+                                                <div class="mt-2 font-medium text-gray-800">账号问题</div>
+                                                <div class="text-xs text-gray-500 mt-1">登录、注册异常等</div>
+                                            </div>
+                                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all issue-type" data-type="privacy">
+                                                <iconify-icon icon="mdi:shield-alert" width="24" height="24" style="color: #2a6ae9;"></iconify-icon>
+                                                <div class="mt-2 font-medium text-gray-800">隐私侵犯</div>
+                                                <div class="text-xs text-gray-500 mt-1">信息泄露、*扰等</div>
+                                            </div>
+                                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all issue-type" data-type="fraud">
+                                                <iconify-icon icon="mdi:currency-usd-off" width="24" height="24" style="color: #2a6ae9;"></iconify-icon>
+                                                <div class="mt-2 font-medium text-gray-800">诈骗举报</div>
+                                                <div class="text-xs text-gray-500 mt-1">欺诈、虚假信息等</div>
+                                            </div>
+                                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all issue-type" data-type="content">
+                                                <iconify-icon icon="mdi:alert-circle" width="24" height="24" style="color: #2a6ae9;"></iconify-icon>
+                                                <div class="mt-2 font-medium text-gray-800">不良信息</div>
+                                                <div class="text-xs text-gray-500 mt-1">违规内容、**等</div>
+                                            </div>
+                                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all issue-type" data-type="other">
+                                                <iconify-icon icon="mdi:help-circle" width="24" height="24" style="color: #2a6ae9;"></iconify-icon>
+                                                <div class="mt-2 font-medium text-gray-800">其他问题</div>
+                                                <div class="text-xs text-gray-500 mt-1">其他未列出的问题</div>
+                                            </div>
+                                        </div>
+                                        <button id="next-to-step2" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium mt-4 opacity-50 cursor-not-allowed" disabled>下一步</button>
+                                    </div>
+                                    
+                                    <!-- 步骤2: 问题描述 -->
+                                    <div id="step2" class="mb-4 hidden">
+                                        <div class="bg-blue-50 p-3 rounded-lg mb-4 flex items-start">
+                                            <iconify-icon icon="mdi:information" width="20" height="20" style="color: #2a6ae9;" class="mr-2 mt-0.5"></iconify-icon>
+                                            <div class="text-sm text-blue-700">您正在举报的问题类型: <span id="selected-issue-type" class="font-medium">账号问题</span></div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block text-gray-700 text-sm mb-2">问题描述 <span class="text-red-500">*</span></label>
+                                            <textarea id="issue-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32" placeholder="请详细描述您遇到的问题..."></textarea>
+                                            <div class="text-xs text-gray-500 mt-1">请尽可能详细描述问题，以便我们更好地帮助您解决</div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block text-gray-700 text-sm mb-2">联系方式</label>
+                                            <input type="text" id="contact-info" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="请留下您的联系方式，以便我们回复">
+                                            <div class="text-xs text-gray-500 mt-1">选填，但填写后我们可以及时反馈处理结果</div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block text-gray-700 text-sm mb-2">添加截图证据</label>
+                                            <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50" id="upload-area">
+                                                <iconify-icon icon="mdi:cloud-upload" width="32" height="32" style="color: #8a8a8e;" class="mx-auto"></iconify-icon>
+                                                <p class="text-sm text-gray-500 mt-2">点击上传或拖拽图片至此处</p>
+                                                <p class="text-xs text-gray-400">支持 jpg, png, gif 格式，最大 5MB</p>
+                                            </div>
+                                            <div id="preview-container" class="hidden mt-2 flex flex-wrap gap-2"></div>
+                                        </div>
+                                        <div class="flex space-x-3">
+                                            <button id="back-to-step1" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg font-medium">上一步</button>
+                                            <button id="next-to-step3" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium opacity-50 cursor-not-allowed" disabled>下一步</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 步骤3: 确认提交 -->
+                                    <div id="step3" class="mb-4 hidden">
+                                        <div class="bg-green-50 p-4 rounded-lg mb-6">
+                                            <div class="flex items-center">
+                                                <iconify-icon icon="mdi:check-circle" width="24" height="24" style="color: #10b981;" class="mr-2"></iconify-icon>
+                                                <h3 class="text-green-800 font-medium">信息已确认</h3>
+                                            </div>
+                                            <p class="text-green-700 text-sm mt-2">感谢您的反馈，我们将尽快处理您的投诉举报。</p>
+                                        </div>
+                                        
+                                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                                            <h4 class="font-medium text-gray-800 mb-2">投诉举报信息摘要</h4>
+                                            <div class="mb-2">
+                                                <div class="text-sm text-gray-500">问题类型</div>
+                                                <div class="text-gray-800" id="summary-issue-type">账号问题</div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <div class="text-sm text-gray-500">问题描述</div>
+                                                <div class="text-gray-800" id="summary-description">加载中...</div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <div class="text-sm text-gray-500">联系方式</div>
+                                                <div class="text-gray-800" id="summary-contact">未填写</div>
+                                            </div>
+                                            <div id="summary-attachments">
+                                                <div class="text-sm text-gray-500">附件</div>
+                                                <div class="text-gray-800">无</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center mb-4">
+                                            <input type="checkbox" id="confirm-checkbox" class="mr-2">
+                                            <label for="confirm-checkbox" class="text-sm text-gray-700">我确认以上信息真实有效，并同意蓝信收集此信息用于处理我的投诉举报</label>
+                                        </div>
+                                        
+                                        <div class="flex space-x-3">
+                                            <button id="back-to-step2" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg font-medium">上一步</button>
+                                            <button id="submit-report" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium opacity-50 cursor-not-allowed" disabled>提交</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 提交成功界面 -->
+                                    <div id="success-message" class="hidden text-center py-4">
+                                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <iconify-icon icon="mdi:check" width="32" height="32" style="color: #10b981;"></iconify-icon>
+                                        </div>
+                                        <h3 class="text-xl font-medium text-gray-800 mb-2">提交成功</h3>
+                                        <p class="text-gray-600 mb-6">感谢您的反馈，我们已收到您的投诉举报，将尽快处理</p>
+                                        <p class="text-sm text-gray-500 mb-1">投诉举报编号</p>
+                                        <p class="font-mono text-blue-600 font-medium mb-6" id="report-number">CR202505130001</p>
+                                        <button id="close-success" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium">完成</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(reportOverlay);
+                        
+                        // 变量初始化
+                        let selectedType = '';
+                        let uploadedFiles = [];
+                        const progressBar = document.getElementById('progress-bar');
+                        
+                        // 关闭举报界面
+                        document.getElementById('close-report').addEventListener('click', () => {
+                            document.body.removeChild(reportOverlay);
+                        });
+                        
+                        // 点击背景关闭举报界面
+                        reportOverlay.addEventListener('click', (e) => {
+                            if (e.target === reportOverlay) {
+                                document.body.removeChild(reportOverlay);
+                            }
+                        });
+                        
+                        // 步骤1：选择问题类型
+                        const issueTypes = document.querySelectorAll('.issue-type');
+                        const nextToStep2Button = document.getElementById('next-to-step2');
+                        
+                        issueTypes.forEach(item => {
+                            item.addEventListener('click', () => {
+                                // 移除之前的选择
+                                issueTypes.forEach(i => i.classList.remove('border-blue-500', 'bg-blue-50'));
+                                // 添加新的选择
+                                item.classList.add('border-blue-500', 'bg-blue-50');
+                                selectedType = item.dataset.type;
+                                // 启用下一步按钮
+                                nextToStep2Button.disabled = false;
+                                nextToStep2Button.classList.remove('opacity-50', 'cursor-not-allowed');
+                            });
+                        });
+                        
+                        // 步骤1到步骤2
+                        nextToStep2Button.addEventListener('click', () => {
+                            document.getElementById('step1').classList.add('hidden');
+                            document.getElementById('step2').classList.remove('hidden');
+                            document.getElementById('step1-indicator').classList.remove('bg-blue-500', 'text-white');
+                            document.getElementById('step1-indicator').classList.add('bg-green-500', 'text-white');
+                            document.getElementById('step2-indicator').classList.remove('bg-gray-200', 'text-gray-500');
+                            document.getElementById('step2-indicator').classList.add('bg-blue-500', 'text-white');
+                            progressBar.style.width = '50%';
+                            
+                            // 设置选择的问题类型
+                            const typeText = {
+                                'account': '账号问题',
+                                'privacy': '隐私侵犯',
+                                'fraud': '诈骗举报',
+                                'content': '不良信息',
+                                'other': '其他问题'
+                            };
+                            document.getElementById('selected-issue-type').textContent = typeText[selectedType];
+                        });
+                        
+                        // 步骤2检查描述是否填写
+                        const descriptionTextarea = document.getElementById('issue-description');
+                        const nextToStep3Button = document.getElementById('next-to-step3');
+                        
+                        descriptionTextarea.addEventListener('input', () => {
+                            if (descriptionTextarea.value.trim().length > 10) {
+                                nextToStep3Button.disabled = false;
+                                nextToStep3Button.classList.remove('opacity-50', 'cursor-not-allowed');
+                            } else {
+                                nextToStep3Button.disabled = true;
+                                nextToStep3Button.classList.add('opacity-50', 'cursor-not-allowed');
+                            }
+                        });
+                        
+                        // 返回步骤1
+                        document.getElementById('back-to-step1').addEventListener('click', () => {
+                            document.getElementById('step2').classList.add('hidden');
+                            document.getElementById('step1').classList.remove('hidden');
+                            document.getElementById('step2-indicator').classList.remove('bg-blue-500', 'text-white');
+                            document.getElementById('step2-indicator').classList.add('bg-gray-200', 'text-gray-500');
+                            document.getElementById('step1-indicator').classList.remove('bg-green-500');
+                            document.getElementById('step1-indicator').classList.add('bg-blue-500');
+                            progressBar.style.width = '0%';
+                        });
+                        
+                        // 上传区域功能
+                        const uploadArea = document.getElementById('upload-area');
+                        const previewContainer = document.getElementById('preview-container');
+                        
+                        uploadArea.addEventListener('click', () => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.multiple = true;
+                            
+                            input.onchange = (e) => {
+                                const files = Array.from(e.target.files);
+                                if (files.length) {
+                                    previewContainer.classList.remove('hidden');
+                                    
+                                    files.forEach(file => {
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            alert('文件大小不能超过5MB');
+                                            return;
+                                        }
+                                        
+                                        const reader = new FileReader();
+                                        reader.onload = (e) => {
+                                            const imgContainer = document.createElement('div');
+                                            imgContainer.className = 'relative';
+                                            
+                                            const img = document.createElement('img');
+                                            img.src = e.target.result;
+                                            img.className = 'w-16 h-16 object-cover rounded border border-gray-300';
+                                            
+                                            const removeBtn = document.createElement('div');
+                                            removeBtn.className = 'absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer';
+                                            removeBtn.innerHTML = '×';
+                                            removeBtn.onclick = () => {
+                                                imgContainer.remove();
+                                                uploadedFiles = uploadedFiles.filter(f => f.name !== file.name);
+                                                if (!previewContainer.children.length) {
+                                                    previewContainer.classList.add('hidden');
+                                                }
+                                            };
+                                            
+                                            imgContainer.appendChild(img);
+                                            imgContainer.appendChild(removeBtn);
+                                            previewContainer.appendChild(imgContainer);
+                                            
+                                            uploadedFiles.push(file);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    });
+                                }
+                            };
+                            
+                            input.click();
+                        });
+                        
+                        // 步骤2到步骤3
+                        nextToStep3Button.addEventListener('click', () => {
+                            document.getElementById('step2').classList.add('hidden');
+                            document.getElementById('step3').classList.remove('hidden');
+                            document.getElementById('step2-indicator').classList.remove('bg-blue-500');
+                            document.getElementById('step2-indicator').classList.add('bg-green-500');
+                            document.getElementById('step3-indicator').classList.remove('bg-gray-200', 'text-gray-500');
+                            document.getElementById('step3-indicator').classList.add('bg-blue-500', 'text-white');
+                            progressBar.style.width = '100%';
+                            
+                            // 更新摘要信息
+                            const typeText = {
+                                'account': '账号问题',
+                                'privacy': '隐私侵犯',
+                                'fraud': '诈骗举报',
+                                'content': '不良信息',
+                                'other': '其他问题'
+                            };
+                            document.getElementById('summary-issue-type').textContent = typeText[selectedType];
+                            document.getElementById('summary-description').textContent = descriptionTextarea.value;
+                            
+                            const contactInfo = document.getElementById('contact-info').value;
+                            document.getElementById('summary-contact').textContent = contactInfo || '未填写';
+                            
+                            // 更新附件信息
+                            if (uploadedFiles.length > 0) {
+                                document.getElementById('summary-attachments').innerHTML = `
+                                    <div class="text-sm text-gray-500">附件</div>
+                                    <div class="text-gray-800">${uploadedFiles.length}张图片</div>
+                                `;
+                            }
+                        });
+                        
+                        // 返回步骤2
+                        document.getElementById('back-to-step2').addEventListener('click', () => {
+                            document.getElementById('step3').classList.add('hidden');
+                            document.getElementById('step2').classList.remove('hidden');
+                            document.getElementById('step3-indicator').classList.remove('bg-blue-500', 'text-white');
+                            document.getElementById('step3-indicator').classList.add('bg-gray-200', 'text-gray-500');
+                            document.getElementById('step2-indicator').classList.remove('bg-green-500');
+                            document.getElementById('step2-indicator').classList.add('bg-blue-500');
+                            progressBar.style.width = '50%';
+                        });
+                        
+                        // 确认复选框
+                        const confirmCheckbox = document.getElementById('confirm-checkbox');
+                        const submitButton = document.getElementById('submit-report');
+                        
+                        confirmCheckbox.addEventListener('change', () => {
+                            if (confirmCheckbox.checked) {
+                                submitButton.disabled = false;
+                                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                            } else {
+                                submitButton.disabled = true;
+                                submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                            }
+                        });
+                        
+                        // 提交报告
+                        submitButton.addEventListener('click', () => {
+                            // 生成报告编号
+                            const date = new Date();
+                            const reportNumber = `CR${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${Math.floor(1000 + Math.random() * 9000)}`;
+                            document.getElementById('report-number').textContent = reportNumber;
+                            
+                            // 显示成功消息
+                            document.getElementById('step3').classList.add('hidden');
+                            document.getElementById('success-message').classList.remove('hidden');
+                            document.getElementById('step3-indicator').classList.remove('bg-blue-500');
+                            document.getElementById('step3-indicator').classList.add('bg-green-500');
+                        });
+                        
+                        // 关闭成功消息
+                        document.getElementById('close-success').addEventListener('click', () => {
+                            document.body.removeChild(reportOverlay);
+                        });
+                    });
+                });
+            });
+        </script>
+        <!-- 标题栏 -->
+        <header class="fixed-section bg-white border-b border-gray-100 px-4 py-3 h-[56px]">
+            <div class="flex items-center justify-between h-full">
+                <div class="flex items-center">
+                    <iconify-icon icon="mdi:message-text" style="color: #2a6ae9;" width="32" height="32"></iconify-icon>
+                    <h1 class="text-lg font-semibold ml-2">蓝信</h1>
+                </div>
+                <div class="flex space-x-4">
+                    <iconify-icon id="search-icon" icon="mdi:magnify" width="24" height="24" style="color: #2f2f2f;" class="cursor-pointer"></iconify-icon>
+                    <iconify-icon id="add-icon" icon="mdi:plus-circle-outline" width="24" height="24" style="color: #2f2f2f;" class="cursor-pointer"></iconify-icon>
+                </div>
+            </div>
+        </header>
+
+        <!-- 内容区域 -->
+        <main class="content-flex bg-gray-50 hide-scrollbar">
+            
+            
+            <!-- 聊天页面 -->
+            <div id="chat-page">
+                <!-- 搜索框 -->
+            <div class="bg-white p-3">
+                <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
+                    <iconify-icon icon="ant-design:search-outlined" style="color: #8a8a8e;" width="18" height="18"></iconify-icon>
+                    <input type="text" placeholder="搜索" class="ml-2 bg-transparent w-full outline-none text-gray-600 placeholder-gray-400">
+                </div>
+            </div>
+
+            <!-- 聊天列表 -->
+            <div class="mt-1 bg-white">
+                <!-- 对话项 -->
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50" onclick="window.location.href='chat.html'">
+                    <div class="relative mr-3">
+                        <img id="1" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="Chat avatar for user Zhang San" class="w-12 h-12 rounded-full">
+                        <span class="unread-badge">3</span>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">张三</h3>
+                            <span class="text-xs text-gray-400">10:45</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">这个会议材料我已经发到您邮箱了</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50" onclick="window.location.href='chat.html'">
+                    <div class="relative mr-3">
+                        <img id="2" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%9D%8E%E5%9B%9B" alt="Chat avatar for user Li Si" class="w-12 h-12 rounded-full">
+                        <span class="unread-badge">1</span>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 border-2 border-white rounded-full"></span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">李四 工作组</h3>
+                            <span class="text-xs text-gray-400">昨天</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">好的，下午三点我们碰面讨论</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                    <div class="relative mr-3">
+                        <img id="3" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E7%8E%8B%E4%BA%94" alt="Chat avatar for user Wang Wu" class="w-12 h-12 rounded-full">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-gray-400 border-2 border-white rounded-full"></span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">王五</h3>
+                            <span class="text-xs text-gray-400">周三</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">项目建议书请你尽快审阅</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                    <div class="relative mr-3">
+                        <img id="4" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E8%B5%B5%E5%85%AD" alt="Chat avatar for user Zhao Liu" class="w-12 h-12 rounded-full">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">赵六</h3>
+                            <span class="text-xs text-gray-400">周一</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">客户反馈意见已整理完毕</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                    <div class="relative mr-3">
+                        <img id="5" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E9%92%B1%E4%B8%83" alt="Chat avatar for user Qian Qi" class="w-12 h-12 rounded-full">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">市场部公告</h3>
+                            <span class="text-xs text-gray-400">4月12日</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">关于下周技术分享会的通知公告</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                    <div class="relative mr-3">
+                        <img id="6" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%AD%99%E5%85%AB" alt="Chat avatar for user Sun Ba" class="w-12 h-12 rounded-full">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">孙八</h3>
+                            <span class="text-xs text-gray-400">4月10日</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">方案进展顺利，预计周五完成</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                    <div class="relative mr-3">
+                        <img id="7" src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%91%A8%E4%B9%9D" alt="Chat avatar for user Zhou Jiu" class="w-12 h-12 rounded-full">
+                        <span class="unread-badge">12</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-medium text-base text-gray-900">周九团队群</h3>
+                            <span class="text-xs text-gray-400">4月8日</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate mt-1">[图片] 下季度产品规划初稿</p>
+                    </div>
+                </div>
+            </div>
+            </div>
+            
+            <!-- 通讯录页面 -->
+            <div id="contacts-page" class="hidden">
+                <!-- 搜索框 -->
+                <div class="bg-white p-3">
+                    <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
+                        <iconify-icon icon="ant-design:search-outlined" style="color: #8a8a8e;" width="18" height="18"></iconify-icon>
+                        <input type="text" placeholder="搜索" class="ml-2 bg-transparent w-full outline-none text-gray-600 placeholder-gray-400">
+                    </div>
+                </div>
+                
+                <!-- 联系人索引 -->
+                <div class="bg-white">
+                    <!-- 特殊分组 -->
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%96%B0%E6%9C%8B%E5%8F%8B" alt="新朋友" class="w-10 h-10 rounded-md mr-3">
+                        <div class="text-gray-900">新的朋友</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E7%BE%A4%E8%81%8A" alt="群聊" class="w-10 h-10 rounded-md mr-3">
+                        <div class="text-gray-900">群聊</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%A0%87%E7%AD%BE" alt="标签" class="w-10 h-10 rounded-md mr-3">
+                        <div class="text-gray-900">标签</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%85%AC%E4%BC%97%E5%8F%B7" alt="公众号" class="w-10 h-10 rounded-md mr-3">
+                        <div class="text-gray-900">公众号</div>
+                    </div>
+                    
+                    <!-- 联系人列表 -->
+                    <div class="bg-gray-50 py-1 px-4 text-xs text-gray-500">A</div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E9%98%BF%E6%98%8E" alt="阿明" class="w-10 h-10 rounded-full mr-3">
+                        <div class="text-gray-900">阿明</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%AE%89%E5%A8%9C" alt="安娜" class="w-10 h-10 rounded-full mr-3">
+                        <div class="text-gray-900">安娜</div>
+                    </div>
+                    
+                    <div class="bg-gray-50 py-1 px-4 text-xs text-gray-500">B</div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E7%99%BD%E4%BA%91" alt="白云" class="w-10 h-10 rounded-full mr-3">
+                        <div class="text-gray-900">白云</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%8C%85%E5%AD%90" alt="包子" class="w-10 h-10 rounded-full mr-3">
+                        <div class="text-gray-900">包子</div>
+                    </div>
+                    
+                    <div class="bg-gray-50 py-1 px-4 text-xs text-gray-500">L</div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <div class="relative">
+                            <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%9D%8E%E5%9B%9B" alt="李四" class="w-10 h-10 rounded-full mr-3">
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-yellow-500 border-2 border-white rounded-full"></span>
+                        </div>
+                        <div class="text-gray-900">李四</div>
+                    </div>
+                    
+                    <div class="bg-gray-50 py-1 px-4 text-xs text-gray-500">Z</div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <div class="relative">
+                            <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E5%BC%A0%E4%B8%89" alt="张三" class="w-10 h-10 rounded-full mr-3">
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                        </div>
+                        <div class="text-gray-900">张三</div>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E8%B5%B5%E5%85%AD" alt="赵六" class="w-10 h-10 rounded-full mr-3">
+                        <div class="text-gray-900">赵六</div>
+                    </div>
+                </div>
+                
+                <!-- 字母索引条 -->
+                <div class="fixed right-1 top-1/4 flex flex-col text-xs text-blue-500 font-medium space-y-1">
+                    <div class="w-4 h-4 flex items-center justify-center">A</div>
+                    <div class="w-4 h-4 flex items-center justify-center">B</div>
+                    <div class="w-4 h-4 flex items-center justify-center">C</div>
+                    <div class="w-4 h-4 flex items-center justify-center">L</div>
+                    <div class="w-4 h-4 flex items-center justify-center">Z</div>
+                    <div class="w-4 h-4 flex items-center justify-center">#</div>
+                </div>
+            </div>
+            
+            <!-- 发现页面 -->
+            <div id="discover-page" class="hidden">
+                <div class="bg-white mt-2">
+                    <!-- 朋友圈 -->
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-md mr-3">
+                            <iconify-icon icon="mdi:human-greeting-variant" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-gray-900">朋友圈</div>
+                        </div>
+                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                    
+                    
+                </div>
+                
+                <div class="bg-white mt-2">
+                    <!-- 扫一扫 -->
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50">
+                        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-md mr-3">
+                            <iconify-icon icon="mdi:qrcode-scan" width="24" height="24" style="color: white;"></iconify-icon>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-gray-900">扫一扫</div>
+                        </div>
+                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                    
+                    
+                </div>
+                
+                
+            </div>
+            
+            <!-- 我的页面 -->
+            <div id="me-page" class="hidden">
+                <!-- 个人信息卡片 -->
+                <div class="bg-white p-4 mt-2 flex items-center">
+                    <img src="https://api.dicebear.com/8.x/adventurer/svg?seed=%E6%88%91%E7%9A%84%E5%A4%B4%E5%83%8F" alt="个人头像" class="w-16 h-16 rounded-lg mr-4">
+                    <div class="flex-1">
+                        <h3 class="font-medium text-xl mb-1">李明</h3>
+                        <div class="flex items-center text-gray-600">
+                            <span class="text-sm">蓝信号: liming888</span>
+                            <iconify-icon icon="mdi:qrcode" width="16" height="16" class="ml-2" style="color: #8a8a8e;"></iconify-icon>
+                            <iconify-icon icon="mdi:chevron-right" width="16" height="16" class="ml-1" style="color: #8a8a8e;"></iconify-icon>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white mt-2">
+                    <!-- 服务 -->
+                    
+                    <div class="flex items-center px-4 py-3 active:bg-gray-50">
+                        <div class="flex items-center justify-center w-8 h-8 text-blue-600 mr-3">
+                            <iconify-icon icon="mdi:archive-outline" width="24" height="24"></iconify-icon>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-gray-900">收藏</div>
+                        </div>
+                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                </div>
+                
+                <div class="bg-white mt-2">
+                    <!-- 设置 -->
+                    <div class="flex items-center px-4 py-3 active:bg-gray-50" id="settings-button">
+                        <div class="flex items-center justify-center w-8 h-8 text-blue-600 mr-3">
+                            <iconify-icon icon="mdi:cog-outline" width="24" height="24"></iconify-icon>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-gray-900">设置</div>
+                        </div>
+                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                </div>
+                
+                <div class="bg-white mt-2">
+                    <!-- 投诉举报 -->
+                    <div class="flex items-center px-4 py-3 active:bg-gray-50" id="report-button">
+                        <div class="flex items-center justify-center w-8 h-8 text-red-600 mr-3">
+                            <iconify-icon icon="mdi:flag-outline" width="24" height="24"></iconify-icon>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-gray-900">联系投诉举报</div>
+                        </div>
+                        <iconify-icon icon="mdi:chevron-right" width="20" height="20" style="color: #8a8a8e;"></iconify-icon>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部导航栏 -->
+        <footer class="fixed-section bg-white border-t border-gray-100 h-[80px]">
+            <div class="flex justify-around items-center h-full pt-1">
+                <div id="nav-chat" class="flex flex-col items-center cursor-pointer">
+                    <iconify-icon icon="mdi:chat-processing" width="24" height="24" class="nav-active"></iconify-icon>
+                    <span class="text-xs mt-1 nav-active">微信</span>
+                </div>
+                <div id="nav-contacts" class="flex flex-col items-center cursor-pointer">
+                    <iconify-icon icon="mdi:contacts-outline" width="24" height="24" class="nav-inactive"></iconify-icon>
+                    <span class="text-xs mt-1 nav-inactive">通讯录</span>
+                </div>
+                <div id="nav-discover" class="flex flex-col items-center cursor-pointer">
+                    <iconify-icon icon="mdi:compass-outline" width="24" height="24" class="nav-inactive"></iconify-icon>
+                    <span class="text-xs mt-1 nav-inactive">发现</span>
+                </div>
+                <div id="nav-me" class="flex flex-col items-center cursor-pointer">
+                    <iconify-icon icon="mdi:account-outline" width="24" height="24" class="nav-inactive"></iconify-icon>
+                    <span class="text-xs mt-1 nav-inactive">我</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+</body></html>

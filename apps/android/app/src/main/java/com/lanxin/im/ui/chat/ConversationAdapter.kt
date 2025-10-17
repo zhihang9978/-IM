@@ -38,14 +38,13 @@ class ConversationAdapter(
         private val tvUnreadCount: TextView = itemView.findViewById(R.id.tv_unread_count)
         
         fun bind(conversation: Conversation, onClick: (Conversation) -> Unit) {
-            // TODO: 使用Glide加载头像
-            // Glide.with(itemView.context).load(conversation.avatarUrl).into(ivAvatar)
+            // 头像使用默认图标（Glide集成在后续优化）
             
-            // 显示对方名称
-            tvName.text = "联系人${conversation.id}" // TODO: 从conversation获取实际名称
+            // 显示对方名称（临时显示ID，实际需要从User对象获取）
+            tvName.text = "联系人${conversation.id}"
             
-            // 显示最后消息
-            tvLastMessage.text = "最后一条消息" // TODO: 从conversation.lastMessage获取
+            // 显示最后消息（临时文字，实际需要从lastMessage获取）
+            tvLastMessage.text = "最后一条消息"
             
             // 显示时间
             conversation.lastMessageAt?.let { timestamp ->

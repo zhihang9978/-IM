@@ -28,14 +28,14 @@ class DiscoverFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 朋友圈
+        // 朋友圈（暂未实现，留空不显示Toast）
         view.findViewById<View>(R.id.btn_moments).setOnClickListener {
-            Toast.makeText(requireContext(), "朋友圈功能", Toast.LENGTH_SHORT).show()
+            // 功能待后续版本实现
         }
         
-        // 扫一扫
+        // 扫一扫（暂未实现，留空不显示Toast）
         view.findViewById<View>(R.id.btn_scan).setOnClickListener {
-            Toast.makeText(requireContext(), "扫一扫功能", Toast.LENGTH_SHORT).show()
+            // 功能待后续版本实现
         }
     }
 }
