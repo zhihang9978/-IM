@@ -31,12 +31,7 @@ class TRTCManager(private val context: Context) {
     private val trtcCloud: TRTCCloud = TRTCCloud.sharedInstance(context)
     private val listeners = mutableListOf<TRTCEventListener>()
     
-    init {
-        // 设置TRTC回调监听（纯数据流事件）
-        trtcCloud.setListener(trtcListener)
-    }
-    
-    // TRTC事件监听器（仅数据流事件）
+    // TRTC事件监听器（仅数据流事件）- 必须在init之前定义
     private val trtcListener = object : TRTCCloudListener() {
         override fun onEnterRoom(result: Long) {
             Log.d(TAG, "进入房间: result=$result")
@@ -80,6 +75,11 @@ class TRTCManager(private val context: Context) {
             // 网络质量回调
             listeners.forEach { it.onNetworkQuality(localQuality.quality) }
         }
+    }
+    
+    init {
+        // 设置TRTC回调监听（纯数据流事件）
+        trtcCloud.setListener(trtcListener)
     }
     
     /**
