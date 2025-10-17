@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/dao"
@@ -66,6 +67,114 @@ func (h *ConversationHandler) GetConversations(c *gin.Context) {
 		"message": "success",
 		"data": gin.H{
 			"conversations": items,
+		},
+	})
+}
+
+// UpdateConversationSettings 更新会话设置
+// PUT /conversations/:id/settings
+// Body: {"is_muted": true, "is_top": false, "is_starred": true, "is_blocked": false}
+func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	conversationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid conversation ID",
+			"data":    nil,
+		})
+		return
+	}
+	
+	var req struct {
+		IsMuted   *bool `json:"is_muted"`
+		IsTop     *bool `json:"is_top"`
+		IsStarred *bool `json:"is_starred"`
+		IsBlocked *bool `json:"is_blocked"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid request parameters",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 构建更新字段
+	settings := make(map[string]interface{})
+	if req.IsMuted != nil {
+		settings["is_muted"] = *req.IsMuted
+	}
+	if req.IsTop != nil {
+		settings["is_top"] = *req.IsTop
+	}
+	if req.IsStarred != nil {
+		settings["is_starred"] = *req.IsStarred
+	}
+	if req.IsBlocked != nil {
+		settings["is_blocked"] = *req.IsBlocked
+	}
+	
+	if len(settings) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "No settings to update",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 更新设置
+	if err := h.conversationDAO.UpdateSettings(uint(conversationID), userID, settings); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to update settings",
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Settings updated successfully",
+		"data":    nil,
+	})
+}
+
+// GetConversationSettings 获取会话设置
+// GET /conversations/:id/settings
+func (h *ConversationHandler) GetConversationSettings(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	conversationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid conversation ID",
+			"data":    nil,
+		})
+		return
+	}
+	
+	settings, err := h.conversationDAO.GetConversationSettings(uint(conversationID), userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    404,
+			"message": "Conversation not found",
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"is_muted":   settings.IsMuted,
+			"is_top":     settings.IsTop,
+			"is_starred": settings.IsStarred,
+			"is_blocked": settings.IsBlocked,
 		},
 	})
 }

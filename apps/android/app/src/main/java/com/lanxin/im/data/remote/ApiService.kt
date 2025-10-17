@@ -73,6 +73,15 @@ interface ApiService {
         @Query("page_size") pageSize: Int = 20
     ): ApiResponse<ConversationListResponse>
     
+    @GET("conversations/{id}/settings")
+    suspend fun getConversationSettings(@Path("id") id: Long): ApiResponse<ConversationSettings>
+    
+    @PUT("conversations/{id}/settings")
+    suspend fun updateConversationSettings(
+        @Path("id") id: Long,
+        @Body settings: Map<String, Boolean>
+    ): ApiResponse<Any?>
+    
     @GET("conversations/{id}/messages")
     suspend fun getMessages(
         @Path("id") conversationId: Long,
@@ -322,5 +331,12 @@ data class ReportItem(
     val reason: String,
     val status: String,
     val created_at: Long
+)
+
+data class ConversationSettings(
+    val is_muted: Boolean,
+    val is_top: Boolean,
+    val is_starred: Boolean,
+    val is_blocked: Boolean
 )
 

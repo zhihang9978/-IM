@@ -122,6 +122,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 
 			// 会话相关（Android客户端需要）
 			authorized.GET("/conversations", conversationHandler.GetConversations)
+			authorized.GET("/conversations/:id/settings", conversationHandler.GetConversationSettings)
+			authorized.PUT("/conversations/:id/settings", conversationHandler.UpdateConversationSettings)
 
 			// 联系人相关（Android客户端需要）
 			authorized.GET("/contacts", contactHandler.GetContacts)

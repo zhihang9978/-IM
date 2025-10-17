@@ -131,8 +131,12 @@ class ForwardActivity : AppCompatActivity() {
             .show()
     }
     
+    /**
+     * 显示批量转发确认对话框
+     * 说明：批量转发需要多选模式支持，当前版本为单条转发
+     */
     private fun showForwardConfirmDialog() {
-        Toast.makeText(this, "批量转发功能：待实现", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "当前版本仅支持单条转发，请直接选择联系人", Toast.LENGTH_SHORT).show()
     }
     
     /**

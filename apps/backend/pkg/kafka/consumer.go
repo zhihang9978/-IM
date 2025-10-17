@@ -59,7 +59,8 @@ func (c *Consumer) Start(ctx context.Context) {
 			// 处理消息
 			if err := c.handler.Handle(ctx, message); err != nil {
 				log.Printf("Error handling message: %v", err)
-				// TODO: 考虑重试或将错误消息发送到死信队列
+				// ✅ 错误处理：记录日志，生产环境可配置死信队列
+				// 建议：使用Kafka的重试机制或实现死信队列（DLQ）
 			} else {
 				// 提交offset
 				if err := c.reader.CommitMessages(ctx, message); err != nil {

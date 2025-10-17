@@ -63,3 +63,28 @@ func (d *ConversationDAO) GetUnreadCount(conversationID, userID uint) int {
 	return int(count)
 }
 
+// UpdateSettings 更新会话设置
+func (d *ConversationDAO) UpdateSettings(conversationID, userID uint, settings map[string]interface{}) error {
+	// 验证会话属于当前用户
+	var conv model.Conversation
+	err := d.db.Where("id = ? AND (user1_id = ? OR user2_id = ?)", conversationID, userID, userID).
+		First(&conv).Error
+	if err != nil {
+		return err
+	}
+	
+	// 更新设置
+	return d.db.Model(&model.Conversation{}).
+		Where("id = ?", conversationID).
+		Updates(settings).Error
+}
+
+// GetConversationSettings 获取会话设置
+func (d *ConversationDAO) GetConversationSettings(conversationID, userID uint) (*model.Conversation, error) {
+	var conv model.Conversation
+	err := d.db.Where("id = ? AND (user1_id = ? OR user2_id = ?)", conversationID, userID, userID).
+		Select("is_muted", "is_top", "is_starred", "is_blocked").
+		First(&conv).Error
+	return &conv, err
+}
+

@@ -1,62 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 主色调 - 蓝色 -->
-    <color name="primary">#2a6ae9</color>
-    <color name="primary_dark">#1e4db8</color>
-    <color name="primary_light">#5a8cff</color>
+    <!-- Primary Colors -->
+    <color name="primary">#007AFF</color>
+    <color name="primary_dark">#0056B3</color>
+    <color name="accent">#FF9500</color>
     
-    <!-- 成功 - 绿色 -->
-    <color name="success">#10b981</color>
+    <!-- Background Colors -->
+    <color name="background">#F5F5F5</color>
+    <color name="background_light">#F8F8F8</color>
+    <color name="background_top">#EBEBEB</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
     
-    <!-- 警告 - 橙色 -->
-    <color name="warning">#f59e0b</color>
-    
-    <!-- 错误 - 红色 -->
-    <color name="error">#ff4d4f</color>
-    
-    <!-- 背景色 -->
-    <color name="background_light">#f5f5f5</color>
-    <color name="background_white">#ffffff</color>
-    <color name="background_gray">#f7f7f7</color>
-    
-    <!-- 文字颜色 -->
+    <!-- Text Colors -->
+    <color name="textPrimary">#333333</color>
+    <color name="textSecondary">#999999</color>
     <color name="text_primary">#333333</color>
-    <color name="text_secondary">#8a8a8e</color>
-    <color name="text_hint">#999999</color>
-    <color name="text_white">#ffffff</color>
+    <color name="text_secondary">#999999</color>
+    <color name="text_hint">#CCCCCC</color>
     
-    <!-- 消息气泡 -->
-    <color name="message_sent">#2a6ae9</color>
-    <color name="message_received">#ffffff</color>
+    <!-- Status Colors -->
+    <color name="status_online">#00C853</color>
+    <color name="status_offline">#9E9E9E</color>
+    <color name="error">#FF3B30</color>
+    <color name="success">#34C759</color>
+    <color name="warning">#FF9500</color>
     
-    <!-- 分隔线 -->
-    <color name="divider">#e0e0e0</color>
-    <color name="divider_light">#f0f0f0</color>
+    <!-- Divider -->
+    <color name="divider">#E0E0E0</color>
     
-    <!-- 在线状态 -->
-    <color name="status_online">#10b981</color>
-    <color name="status_busy">#f59e0b</color>
-    <color name="status_offline">#9ca3af</color>
-    
-    <!-- WildFire IM color system (Apache 2.0) -->
-    <color name="colorPrimary">#3B62E0</color>
-    <color name="lightColorPrimary">#A8BDFF</color>
-    <color name="primary_background">#EDEDED</color>
-    <color name="line">#E5E5E5</color>
-    <color name="gray11">#B3B3B3</color>
-    <color name="black1">#1D1D1D</color>
-    <color name="red0">#F95569</color>
-    <color name="green1">#45C01A</color>
-    <color name="link_blue">#3655bf</color>
-    <color name="input_panel_bg">#F8F8F8</color>
-    
-    <!-- Material Design Colors -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- WildFire IM Colors -->
+    <color name="wildfire_blue">#3F72AF</color>
+    <color name="wildfire_green">#5CB85C</color>
 </resources>
-

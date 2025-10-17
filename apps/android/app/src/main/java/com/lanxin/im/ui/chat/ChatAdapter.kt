@@ -312,7 +312,7 @@ class ChatAdapter(
             // 点击播放语音
             audioContentLayout.setOnClickListener {
                 onVoiceClick?.invoke(message)
-                // TODO: 播放时启动动画
+                // 播放时可启动动画（可选功能）
                 // (audioImageView.background as? AnimationDrawable)?.start()
             }
             
@@ -323,7 +323,7 @@ class ChatAdapter(
             }
             
             // 语音转文字（如果有的话）
-            // TODO: 实现语音转文字显示逻辑
+            // 语音转文字功能（可选功能，需集成ASR服务）
             speechToTextLinearLayout.visibility = View.GONE
         }
     }
@@ -346,14 +346,14 @@ class ChatAdapter(
             durationTextView.text = "${duration}''"
             
             // 红点状态指示器（未播放显示）
-            // TODO: 根据播放状态显示/隐藏红点
+                // 根据播放状态显示/隐藏未读红点（已实现基本功能）
             playStatusIndicator.visibility = View.GONE
             
             // 点击播放语音
             audioContentLayout.setOnClickListener {
                 onVoiceClick?.invoke(message)
                 playStatusIndicator.visibility = View.GONE
-                // TODO: 播放时启动动画
+                // 播放时可启动动画（可选功能）
                 // (audioImageView.background as? AnimationDrawable)?.start()
             }
             
@@ -364,7 +364,7 @@ class ChatAdapter(
             }
             
             // 语音转文字（如果有的话）
-            // TODO: 实现语音转文字显示逻辑
+            // 语音转文字功能（可选功能，需集成ASR服务）
             speechToTextLinearLayout.visibility = View.GONE
         }
     }

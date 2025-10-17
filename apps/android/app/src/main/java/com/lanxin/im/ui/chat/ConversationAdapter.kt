@@ -98,9 +98,12 @@ class ConversationAdapter(
             // 免打扰图标 (WildFire IM style)
             muteImageView.visibility = if (item.isMuted) View.VISIBLE else View.GONE
             
-            // 置顶背景 (WildFire IM style)
-            // TODO: 置顶会话背景色区分
-            // itemView.setBackgroundColor(if (item.isTop) topColor else normalColor)
+            // ✅ 置顶背景 (WildFire IM style)
+            if (item.isTop) {
+                itemView.setBackgroundColor(itemView.context.getColor(R.color.background_top))
+            } else {
+                itemView.setBackgroundResource(R.drawable.selector_common_item_wf)
+            }
             
             // 点击事件
             itemView.setOnClickListener { onClick(item.conversation) }

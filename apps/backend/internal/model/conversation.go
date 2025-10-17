@@ -12,6 +12,10 @@ type Conversation struct {
 	GroupID       *uint      `gorm:"index" json:"group_id,omitempty"`
 	LastMessageID *uint      `json:"last_message_id,omitempty"`
 	LastMessageAt *time.Time `gorm:"index" json:"last_message_at,omitempty"`
+	IsMuted       bool       `gorm:"default:false" json:"is_muted"`
+	IsTop         bool       `gorm:"default:false;index" json:"is_top"`
+	IsStarred     bool       `gorm:"default:false" json:"is_starred"`
+	IsBlocked     bool       `gorm:"default:false" json:"is_blocked"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	
