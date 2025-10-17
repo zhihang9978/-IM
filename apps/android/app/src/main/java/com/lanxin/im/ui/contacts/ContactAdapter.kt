@@ -114,25 +114,32 @@ object ContactListHelper {
     /**
      * 将联系人列表转换为显示项列表（带分组）
      */
-    fun toDisplayItems(contacts: List<Contact>): List<ContactDisplayItem> {
+    fun toDisplayItems(contacts: List<Contact>, contactsWithUsers: List<com.lanxin.im.data.remote.ContactItem>? = null): List<ContactDisplayItem> {
         if (contacts.isEmpty()) return emptyList()
         
+        // 创建contactId到User的映射（如果有API数据）
+        val userMap = contactsWithUsers?.associate { it.contact_id to it.user } ?: emptyMap()
+        
         // 按首字母排序
-        val sorted = contacts.sortedBy { getFirstLetter(it.username) }
+        val sorted = contacts.sortedBy { getFirstLetter(it.remark ?: it.username) }
         
         // 转换为显示项，标记每个分组的第一项
         val result = mutableListOf<ContactDisplayItem>()
         var lastSection = ""
         
         for (contact in sorted) {
-            val section = getFirstLetter(contact.username)
+            val displayName = contact.remark ?: contact.username
+            val section = getFirstLetter(displayName)
             val showSection = section != lastSection
+            
+            // 从映射获取用户信息
+            val userInfo = userMap[contact.contactId]
             
             result.add(
                 ContactDisplayItem(
                     contact = contact,
-                    avatar = null, // TODO: 从API或数据库获取
-                    name = contact.username,
+                    avatar = userInfo?.avatar,
+                    name = displayName,
                     section = section,
                     showSection = showSection
                 )

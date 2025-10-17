@@ -113,7 +113,7 @@ class UserInfoActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.titleTextView).text = "设置备注和标签"
             findViewById<ImageView>(R.id.rightArrowImageView).visibility = View.VISIBLE
             setOnClickListener {
-                Toast.makeText(this@UserInfoActivity, "设置备注：待实现", Toast.LENGTH_SHORT).show()
+                openRemarkActivity()
             }
         }
         
@@ -167,6 +167,18 @@ class UserInfoActivity : AppCompatActivity() {
                 updateBlacklistStatus(isChecked)
             }
         }
+    }
+    
+    /**
+     * 打开备注设置页面
+     */
+    private fun openRemarkActivity() {
+        val intent = Intent(this, RemarkActivity::class.java)
+        intent.putExtra("contact_id", userId)
+        intent.putExtra("current_remark", "") // TODO: 从数据库获取当前备注
+        intent.putExtra("current_tags", "") // TODO: 从数据库获取当前标签
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
     
     /**

@@ -1,8 +1,11 @@
 package com.lanxin.im.data.model
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "messages")
 data class Message(
     @PrimaryKey
@@ -11,14 +14,14 @@ data class Message(
     val senderId: Long,
     val receiverId: Long,
     val content: String,
-    val type: String, // text, image, voice, video, file
+    val type: String, // text, image, voice, video, file, card
     val fileUrl: String?,
     val fileSize: Long?,
     val duration: Int?, // 语音/视频时长（秒）
     val status: String, // sent, delivered, read, recalled
     val createdAt: Long,
     val updatedAt: Long
-)
+) : Parcelable
 
 // 消息类型常量
 object MessageType {

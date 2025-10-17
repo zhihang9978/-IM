@@ -57,23 +57,24 @@ class ContactsFragment : Fragment() {
                 // 调用API获取联系人列表
                 val response = RetrofitClient.apiService.getContacts()
                 if (response.code == 0 && response.data != null) {
-                    // 转换为Contact列表
+                    // 转换为Contact列表（使用API返回的完整数据）
                     val contacts = response.data.contacts.map { item ->
                         Contact(
                             id = item.id,
                             userId = item.user_id,
                             contactId = item.contact_id,
+                            username = item.user?.username ?: "用户${item.contact_id}",
                             remark = item.remark,
                             tags = item.tags,
                             status = item.status,
                             createdAt = item.created_at,
-                            updatedAt = System.currentTimeMillis(),
-                            username = item.user?.username ?: "用户${item.contact_id}"
+                            updatedAt = System.currentTimeMillis()
                         )
                     }
                     
                     // 使用ContactListHelper转换为显示项（带字母分组）
-                    val displayItems = ContactListHelper.toDisplayItems(contacts)
+                    // 传入API数据以获取头像等信息
+                    val displayItems = ContactListHelper.toDisplayItems(contacts, response.data.contacts)
                     adapter.submitList(displayItems)
                 }
             } catch (e: Exception) {
