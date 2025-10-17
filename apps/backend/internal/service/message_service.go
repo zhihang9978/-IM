@@ -222,3 +222,18 @@ func (s *MessageService) GetMessages(conversationID uint, page, pageSize int) ([
 	return s.messageDAO.GetByConversationID(conversationID, page, pageSize)
 }
 
+// GetHistoryMessages 获取历史消息（业务层）
+// 直接调用DAO层，未来可在此添加业务逻辑（如权限验证、敏感词过滤等）
+func (s *MessageService) GetHistoryMessages(conversationID, beforeMessageID uint, limit int) ([]model.Message, error) {
+	// 限制每次最多查询100条，防止数据量过大
+	if limit > 100 {
+		limit = 100
+	}
+	
+	if limit <= 0 {
+		limit = 20 // 默认20条
+	}
+	
+	return s.messageDAO.GetHistoryMessages(conversationID, beforeMessageID, limit)
+}
+

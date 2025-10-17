@@ -151,3 +151,54 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	})
 }
 
+// GetHistoryMessages 获取历史消息（API层）
+// 路由: GET /api/v1/conversations/:id/messages/history
+// 参数: 
+//   - id (path): 会话ID
+//   - before_message_id (query): 加载此消息之前的历史
+//   - limit (query): 返回数量，默认20
+// 返回: 
+//   {code: 0, message: "success", data: {total: 20, messages: [...]}}
+func (h *MessageHandler) GetHistoryMessages(c *gin.Context) {
+	// 解析路径参数
+	conversationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid conversation ID",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 解析查询参数
+	beforeMessageID, _ := strconv.ParseUint(c.Query("before_message_id"), 10, 32)
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	
+	// 调用Service层
+	messages, err := h.messageService.GetHistoryMessages(
+		uint(conversationID),
+		uint(beforeMessageID),
+		limit,
+	)
+	
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 返回成功响应
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"total":    len(messages),
+			"messages": messages,
+		},
+	})
+}
+

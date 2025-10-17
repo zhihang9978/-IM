@@ -103,3 +103,52 @@ func (d *MessageDAO) GetLatestMessage(conversationID uint) (*model.Message, erro
 	return &message, nil
 }
 
+// GetHistoryMessages 获取历史消息（分页加载）
+// 用途：支持Android客户端下拉加载更早的聊天记录
+// 
+// 参数说明：
+//   conversationID - 会话ID
+//   beforeMessageID - 加载此消息ID之前的消息（0表示加载最新的）
+//   limit - 返回的消息数量限制（建议20条）
+// 
+// 返回说明：
+//   返回消息列表，按时间正序排列（最早的在前）
+//   包含Sender和Receiver的完整信息
+// 
+// 实现逻辑：
+//   1. 查询conversation_id匹配的消息
+//   2. 如果beforeMessageID>0，只查询id<beforeMessageID的消息
+//   3. 按id降序排列，取limit条
+//   4. Preload关联的用户信息
+//   5. 反转数组使最早的消息在前
+func (d *MessageDAO) GetHistoryMessages(conversationID, beforeMessageID uint, limit int) ([]model.Message, error) {
+	var messages []model.Message
+	
+	// 构建查询条件
+	query := d.db.Where("conversation_id = ?", conversationID)
+	
+	// 如果指定了beforeMessageID，只获取ID更小的消息（更早的消息）
+	if beforeMessageID > 0 {
+		query = query.Where("id < ?", beforeMessageID)
+	}
+	
+	// 按ID倒序查询（最新的在前），限制数量，加载关联数据
+	err := query.
+		Order("id DESC").
+		Limit(limit).
+		Preload("Sender").   // 加载发送者信息
+		Preload("Receiver"). // 加载接收者信息
+		Find(&messages).Error
+		
+	if err != nil {
+		return nil, err
+	}
+	
+	// 反转数组，使最早的消息在前面（因为前端期望正序）
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+	
+	return messages, nil
+}
+

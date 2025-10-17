@@ -32,23 +32,30 @@ func (h *ConversationHandler) GetConversations(c *gin.Context) {
 		return
 	}
 
-	// 转换为响应格式
+	// 转换为响应格式（包含完整数据）
 	items := make([]map[string]interface{}, len(conversations))
 	for i, conv := range conversations {
+		// ✅ 计算真实未读数（不再是硬编码0）
+		unreadCount := h.conversationDAO.GetUnreadCount(conv.ID, userID)
+		
 		item := map[string]interface{}{
-			"id":           conv.ID,
-			"type":         conv.Type,
-			"unread_count": 0, // TODO: 从未读消息表计算
-			"updated_at":   conv.UpdatedAt.Unix(),
+			"id":            conv.ID,
+			"type":          conv.Type,
+			"unread_count":  unreadCount,          // ✅ 真实计算的未读数
+			"updated_at":    conv.UpdatedAt.Unix(),
+			"last_message":  conv.LastMessage,     // ✅ 完整的最后一条消息
 		}
 		
-		// 添加对方用户信息
+		// ✅ 添加对方用户信息（单聊）
 		if conv.Type == "single" {
 			if conv.User1ID != nil && *conv.User1ID != userID {
 				item["user"] = conv.User1
 			} else if conv.User2ID != nil {
 				item["user"] = conv.User2
 			}
+		} else if conv.Type == "group" && conv.Group != nil {
+			// ✅ 群聊信息
+			item["group"] = conv.Group
 		}
 		
 		items[i] = item

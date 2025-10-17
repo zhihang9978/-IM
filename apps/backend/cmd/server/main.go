@@ -127,6 +127,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.POST("/messages", messageHandler.SendMessage)
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
+			authorized.GET("/conversations/:id/messages/history", messageHandler.GetHistoryMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
 			
 			// 文件相关
