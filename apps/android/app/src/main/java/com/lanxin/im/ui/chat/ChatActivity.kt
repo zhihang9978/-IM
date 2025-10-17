@@ -9,11 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import java.io.FileOutputStream
 import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableString
@@ -1078,9 +1081,75 @@ class ChatActivity : AppCompatActivity() {
     /**
      * 处理选中的图片
      */
+    /**
+     * 处理选中的图片（含压缩）
+     * 参考：WildFireChat图片压缩策略 (Apache 2.0)
+     */
     private fun handleImageSelected(uri: Uri) {
         AnalyticsHelper.trackFeatureUsage(this, "image_message")
-        sendImageMessage(uri.toString())
+        
+        lifecycleScope.launch {
+            try {
+                // ✅ 先压缩图片再发送
+                val compressedFile = withContext(Dispatchers.IO) {
+                    compressImage(uri)
+                }
+                
+                val compressedUri = Uri.fromFile(compressedFile)
+                sendImageMessage(compressedUri.toString())
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Image compression failed", e)
+                // 压缩失败，发送原图
+                sendImageMessage(uri.toString())
+            }
+        }
+    }
+    
+    /**
+     * 压缩图片
+     * 策略：最大1920x1920，JPEG质量80%
+     */
+    private fun compressImage(uri: Uri): File {
+        val inputStream = contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+        
+        // 计算压缩比例
+        val maxWidth = 1920f
+        val maxHeight = 1920f
+        val scale = minOf(
+            maxWidth / bitmap.width,
+            maxHeight / bitmap.height,
+            1f
+        )
+        
+        // 如果需要缩放
+        val scaledBitmap = if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).toInt(),
+                (bitmap.height * scale).toInt(),
+                true
+            )
+        } else {
+            bitmap
+        }
+        
+        // 压缩为JPEG（80%质量）
+        val file = File(cacheDir, "compressed_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { out ->
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+        }
+        
+        // 释放bitmap内存
+        if (scaledBitmap != bitmap) {
+            bitmap.recycle()
+            scaledBitmap.recycle()
+        } else {
+            bitmap.recycle()
+        }
+        
+        return file
     }
     
     /**
@@ -1432,20 +1501,17 @@ class ChatActivity : AppCompatActivity() {
     private fun collectMessage(message: Message) {
         lifecycleScope.launch {
             try {
-                // 调用收藏API
-                val request = mapOf(
-                    "message_id" to message.id,
-                    "content" to message.content,
-                    "type" to message.type
-                )
+                // ✅ 调用真实收藏API
+                val request = mapOf("message_id" to message.id)
+                val response = RetrofitClient.apiService.collectMessage(request)
                 
-                // 暂时使用Toast提示（后端API待实现）
-                Toast.makeText(this@ChatActivity, "已收藏", Toast.LENGTH_SHORT).show()
-                
-                // TODO: 等待后端实现收藏API
-                // val response = RetrofitClient.apiService.collectMessage(request)
+                if (response.code == 0) {
+                    Toast.makeText(this@ChatActivity, "已收藏", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
-                Toast.makeText(this@ChatActivity, "收藏失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, "收藏失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1501,13 +1567,20 @@ class ChatActivity : AppCompatActivity() {
     private fun submitReport(message: Message, reason: String) {
         lifecycleScope.launch {
             try {
-                // 调用举报API
-                Toast.makeText(this@ChatActivity, "举报已提交：$reason", Toast.LENGTH_SHORT).show()
+                // ✅ 调用真实举报API
+                val request = mapOf(
+                    "message_id" to message.id,
+                    "reason" to reason
+                )
+                val response = RetrofitClient.apiService.reportMessage(request)
                 
-                // TODO: 等待后端实现举报API
-                // val response = RetrofitClient.apiService.reportMessage(message.id, reason)
+                if (response.code == 0) {
+                    Toast.makeText(this@ChatActivity, "举报已提交：$reason", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
-                Toast.makeText(this@ChatActivity, "举报失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, "举报失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

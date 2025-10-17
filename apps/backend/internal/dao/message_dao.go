@@ -152,3 +152,34 @@ func (d *MessageDAO) GetHistoryMessages(conversationID, beforeMessageID uint, li
 	return messages, nil
 }
 
+// SearchMessages 搜索消息（全文搜索）
+// 参数：userID - 当前用户ID（搜索自己相关的消息）
+//      keyword - 搜索关键词
+//      page, pageSize - 分页参数
+// 返回：消息列表和总数
+func (d *MessageDAO) SearchMessages(userID uint, keyword string, page, pageSize int) ([]model.Message, int64, error) {
+	var messages []model.Message
+	var total int64
+	
+	offset := (page - 1) * pageSize
+	
+	// 搜索条件：消息内容包含关键词，且用户是发送者或接收者
+	query := d.db.Model(&model.Message{}).
+		Where("(sender_id = ? OR receiver_id = ?) AND content LIKE ?", 
+			userID, userID, "%"+keyword+"%")
+	
+	// 统计总数
+	query.Count(&total)
+	
+	// 分页查询
+	err := query.
+		Preload("Sender").
+		Preload("Receiver").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&messages).Error
+		
+	return messages, total, err
+}
+

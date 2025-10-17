@@ -237,3 +237,11 @@ func (s *MessageService) GetHistoryMessages(conversationID, beforeMessageID uint
 	return s.messageDAO.GetHistoryMessages(conversationID, beforeMessageID, limit)
 }
 
+// SearchMessages 搜索消息
+func (s *MessageService) SearchMessages(userID uint, keyword string, page, pageSize int) ([]model.Message, int64, error) {
+	if keyword == "" {
+		return nil, 0, nil
+	}
+	return s.messageDAO.SearchMessages(userID, keyword, page, pageSize)
+}
+

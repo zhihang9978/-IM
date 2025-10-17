@@ -74,6 +74,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	trtcHandler := api.NewTRTCHandler(cfg, hub)
 	conversationHandler := api.NewConversationHandler()
 	contactHandler := api.NewContactHandler()
+	favoriteHandler := api.NewFavoriteHandler()
+	reportHandler := api.NewReportHandler()
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -132,11 +134,21 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
 			authorized.GET("/conversations/:id/messages/history", messageHandler.GetHistoryMessages)
+			authorized.GET("/messages/search", messageHandler.SearchMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
 
 			// 文件相关
 			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)
 			authorized.POST("/files/upload-callback", fileHandler.UploadCallback)
+			
+			// 收藏相关
+			authorized.POST("/messages/collect", favoriteHandler.CollectMessage)
+			authorized.GET("/favorites", favoriteHandler.GetFavorites)
+			authorized.DELETE("/favorites/:id", favoriteHandler.DeleteFavorite)
+			
+			// 举报相关
+			authorized.POST("/messages/report", reportHandler.ReportMessage)
+			authorized.GET("/reports", reportHandler.GetReports)
 
 			// TRTC相关（纯数据流接口）
 			authorized.POST("/trtc/user-sig", trtcHandler.GetUserSig)
@@ -153,10 +165,10 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		{
 			// 用户管理
 			admin.GET("/users", userHandler.SearchUsers)
-
-			// TODO: 添加更多管理员API
-			// admin.GET("/logs", adminHandler.GetOperationLogs)
-			// admin.GET("/stats", adminHandler.GetStatistics)
+			
+			// 举报管理
+			admin.GET("/reports", reportHandler.GetAllReports)
+			admin.PUT("/reports/:id", reportHandler.UpdateReportStatus)
 		}
 	}
 

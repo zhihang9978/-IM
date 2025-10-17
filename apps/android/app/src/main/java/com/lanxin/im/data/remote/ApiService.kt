@@ -121,6 +121,31 @@ interface ApiService {
     
     @POST("trtc/call")
     suspend fun initiateCall(@Body request: InitiateCallRequest): ApiResponse<CallResponse>
+    
+    // ==================== 收藏模块 ====================
+    
+    @POST("messages/collect")
+    suspend fun collectMessage(@Body request: Map<String, Long>): ApiResponse<Any?>
+    
+    @GET("favorites")
+    suspend fun getFavorites(
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): ApiResponse<FavoriteListResponse>
+    
+    @DELETE("favorites/{id}")
+    suspend fun deleteFavorite(@Path("id") id: Long): ApiResponse<Any?>
+    
+    // ==================== 举报模块 ====================
+    
+    @POST("messages/report")
+    suspend fun reportMessage(@Body request: Map<String, Any>): ApiResponse<Any?>
+    
+    @GET("reports")
+    suspend fun getReports(
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): ApiResponse<ReportListResponse>
 }
 
 // ==================== 请求数据类 ====================
@@ -265,5 +290,37 @@ data class TRTCUserSigResponse(
 data class CallResponse(
     val room_id: String,
     val call_type: String
+)
+
+data class FavoriteListResponse(
+    val total: Int,
+    val page: Int,
+    val page_size: Int,
+    val favorites: List<FavoriteItem>
+)
+
+data class FavoriteItem(
+    val id: Long,
+    val user_id: Long,
+    val message_id: Long,
+    val content: String,
+    val type: String,
+    val created_at: Long
+)
+
+data class ReportListResponse(
+    val total: Int,
+    val page: Int,
+    val page_size: Int,
+    val reports: List<ReportItem>
+)
+
+data class ReportItem(
+    val id: Long,
+    val reporter_id: Long,
+    val message_id: Long,
+    val reason: String,
+    val status: String,
+    val created_at: Long
 )
 
