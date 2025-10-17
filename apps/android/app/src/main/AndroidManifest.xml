@@ -91,6 +91,18 @@
             android:windowSoftInputMode="stateAlwaysVisible"
             android:parentActivityName=".MainActivity" />
         
+        <!-- 图片预览Activity -->
+        <activity
+            android:name=".ui.media.ImagePreviewActivity"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:parentActivityName=".ui.chat.ChatActivity" />
+        
+        <!-- 视频播放Activity -->
+        <activity
+            android:name=".ui.media.VideoPlayerActivity"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:parentActivityName=".ui.chat.ChatActivity" />
+        
         <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"
@@ -103,6 +115,17 @@
         <activity
             android:name=".trtc.ScreenShareActivity"
             android:screenOrientation="portrait" />
+        
+        <!-- FileProvider for camera and file operations -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

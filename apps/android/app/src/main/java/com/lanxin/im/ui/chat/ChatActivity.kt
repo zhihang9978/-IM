@@ -1,13 +1,18 @@
 package com.lanxin.im.ui.chat
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
@@ -15,15 +20,19 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Message
 import com.lanxin.im.data.remote.RetrofitClient
@@ -34,6 +43,7 @@ import com.lanxin.im.utils.PermissionHelper
 import com.lanxin.im.utils.VoiceRecorder
 import com.lanxin.im.utils.VoicePlayer
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * 1对1聊天Activity（完整实现，无TODO）
@@ -66,6 +76,25 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var voicePlayer: VoicePlayer
     private val recordingHandler = Handler(Looper.getMainLooper())
     private var recordingStartY = 0f
+    
+    private var currentPhotoUri: Uri? = null
+    private var currentVideoUri: Uri? = null
+    
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { handleImageSelected(it) }
+    }
+    
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            currentPhotoUri?.let { handleImageSelected(it) }
+        }
+    }
+    
+    private val recordVideoLauncher = registerForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success) {
+            currentVideoUri?.let { handleVideoSelected(it) }
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,6 +143,12 @@ class ChatActivity : AppCompatActivity() {
             },
             onVoiceClick = { message ->
                 playVoiceMessage(message)
+            },
+            onImageClick = { message ->
+                previewImage(message)
+            },
+            onVideoClick = { message ->
+                playVideo(message)
             }
         )
         recyclerView.adapter = adapter
@@ -463,7 +498,188 @@ class ChatActivity : AppCompatActivity() {
      * 显示更多选项菜单
      */
     private fun showMoreOptions() {
-        Toast.makeText(this, "更多功能开发中", Toast.LENGTH_SHORT).show()
+        val bottomSheet = BottomSheetDialog(this)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_more_options, null)
+        bottomSheet.setContentView(view)
+        
+        view.findViewById<LinearLayout>(R.id.option_album).setOnClickListener {
+            bottomSheet.dismiss()
+            selectImageFromAlbum()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_camera).setOnClickListener {
+            bottomSheet.dismiss()
+            takePicture()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_video).setOnClickListener {
+            bottomSheet.dismiss()
+            recordVideo()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_file).setOnClickListener {
+            bottomSheet.dismiss()
+            Toast.makeText(this, "文件功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_location).setOnClickListener {
+            bottomSheet.dismiss()
+            Toast.makeText(this, "位置功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_contact).setOnClickListener {
+            bottomSheet.dismiss()
+            Toast.makeText(this, "名片功能开发中", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_voice_call).setOnClickListener {
+            bottomSheet.dismiss()
+            btnVoiceCall.performClick()
+        }
+        
+        view.findViewById<LinearLayout>(R.id.option_video_call).setOnClickListener {
+            bottomSheet.dismiss()
+            btnVideoCall.performClick()
+        }
+        
+        bottomSheet.show()
+    }
+    
+    /**
+     * 从相册选择图片
+     */
+    private fun selectImageFromAlbum() {
+        if (!PermissionHelper.hasStoragePermission(this)) {
+            PermissionHelper.showPermissionRationale(
+                this,
+                "需要存储权限",
+                "选择图片需要访问相册权限"
+            ) {
+                PermissionHelper.requestStoragePermission(this)
+            }
+            return
+        }
+        pickImageLauncher.launch("image/*")
+    }
+    
+    /**
+     * 拍照
+     */
+    private fun takePicture() {
+        if (!PermissionHelper.hasCameraPermission(this)) {
+            PermissionHelper.showPermissionRationale(
+                this,
+                "需要相机权限",
+                "拍照需要使用相机权限"
+            ) {
+                PermissionHelper.requestCameraPermission(this)
+            }
+            return
+        }
+        
+        val photoFile = File(getExternalFilesDir(null), "photo_${System.currentTimeMillis()}.jpg")
+        currentPhotoUri = FileProvider.getUriForFile(
+            this,
+            "${packageName}.fileprovider",
+            photoFile
+        )
+        takePictureLauncher.launch(currentPhotoUri)
+    }
+    
+    /**
+     * 录制视频
+     */
+    private fun recordVideo() {
+        if (!PermissionHelper.hasCameraPermission(this)) {
+            PermissionHelper.showPermissionRationale(
+                this,
+                "需要相机权限",
+                "录制视频需要使用相机权限"
+            ) {
+                PermissionHelper.requestCameraPermission(this)
+            }
+            return
+        }
+        
+        val videoFile = File(getExternalFilesDir(null), "video_${System.currentTimeMillis()}.mp4")
+        currentVideoUri = FileProvider.getUriForFile(
+            this,
+            "${packageName}.fileprovider",
+            videoFile
+        )
+        recordVideoLauncher.launch(currentVideoUri)
+    }
+    
+    /**
+     * 处理选中的图片
+     */
+    private fun handleImageSelected(uri: Uri) {
+        sendImageMessage(uri.toString())
+    }
+    
+    /**
+     * 处理选中的视频
+     */
+    private fun handleVideoSelected(uri: Uri) {
+        sendVideoMessage(uri.toString())
+    }
+    
+    /**
+     * 发送图片消息
+     */
+    private fun sendImageMessage(imagePath: String) {
+        lifecycleScope.launch {
+            try {
+                Toast.makeText(this@ChatActivity, "正在发送图片...", Toast.LENGTH_SHORT).show()
+                val request = com.lanxin.im.data.remote.SendMessageRequest(
+                    receiver_id = peerId,
+                    content = imagePath,
+                    type = "image"
+                )
+                val response = RetrofitClient.apiService.sendMessage(request)
+                if (response.code == 0 && response.data != null) {
+                    val newMessage = response.data.message
+                    val currentList = adapter.currentList.toMutableList()
+                    currentList.add(newMessage)
+                    adapter.submitList(currentList)
+                    recyclerView.scrollToPosition(currentList.size - 1)
+                    Toast.makeText(this@ChatActivity, "发送成功", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * 发送视频消息
+     */
+    private fun sendVideoMessage(videoPath: String) {
+        lifecycleScope.launch {
+            try {
+                Toast.makeText(this@ChatActivity, "正在发送视频...", Toast.LENGTH_SHORT).show()
+                val request = com.lanxin.im.data.remote.SendMessageRequest(
+                    receiver_id = peerId,
+                    content = videoPath,
+                    type = "video"
+                )
+                val response = RetrofitClient.apiService.sendMessage(request)
+                if (response.code == 0 && response.data != null) {
+                    val newMessage = response.data.message
+                    val currentList = adapter.currentList.toMutableList()
+                    currentList.add(newMessage)
+                    adapter.submitList(currentList)
+                    recyclerView.scrollToPosition(currentList.size - 1)
+                    Toast.makeText(this@ChatActivity, "发送成功", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
     
     /**
@@ -487,6 +703,24 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
+     * 预览图片
+     */
+    private fun previewImage(message: Message) {
+        val intent = Intent(this, com.lanxin.im.ui.media.ImagePreviewActivity::class.java)
+        intent.putExtra("image_url", message.content)
+        startActivity(intent)
+    }
+    
+    /**
+     * 播放视频
+     */
+    private fun playVideo(message: Message) {
+        val intent = Intent(this, com.lanxin.im.ui.media.VideoPlayerActivity::class.java)
+        intent.putExtra("video_url", message.content)
+        startActivity(intent)
+    }
+    
+    /**
      * 权限请求回调
      */
     override fun onRequestPermissionsResult(
@@ -501,6 +735,20 @@ class ChatActivity : AppCompatActivity() {
                     Toast.makeText(this, "已获得录音权限", Toast.LENGTH_SHORT).show()
                 } else {
                     PermissionHelper.showPermissionDeniedMessage(this, "录音")
+                }
+            }
+            PermissionHelper.REQUEST_CAMERA -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "已获得相机权限", Toast.LENGTH_SHORT).show()
+                } else {
+                    PermissionHelper.showPermissionDeniedMessage(this, "相机")
+                }
+            }
+            PermissionHelper.REQUEST_STORAGE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "已获得存储权限", Toast.LENGTH_SHORT).show()
+                } else {
+                    PermissionHelper.showPermissionDeniedMessage(this, "存储")
                 }
             }
         }

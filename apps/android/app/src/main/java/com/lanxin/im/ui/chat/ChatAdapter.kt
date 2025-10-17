@@ -16,12 +16,14 @@ import java.util.*
 
 /**
  * 聊天消息适配器
- * 支持文本和语音消息类型
+ * 支持文本、语音、图片和视频消息类型
  */
 class ChatAdapter(
     private val currentUserId: Long,
     private val onMessageLongClick: (Message) -> Unit,
-    private val onVoiceClick: ((Message) -> Unit)? = null
+    private val onVoiceClick: ((Message) -> Unit)? = null,
+    private val onImageClick: ((Message) -> Unit)? = null,
+    private val onVideoClick: ((Message) -> Unit)? = null
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
     
     companion object {
@@ -29,18 +31,21 @@ class ChatAdapter(
         private const val VIEW_TYPE_RECEIVED = 2
         private const val VIEW_TYPE_VOICE_SENT = 3
         private const val VIEW_TYPE_VOICE_RECEIVED = 4
+        private const val VIEW_TYPE_IMAGE_SENT = 5
+        private const val VIEW_TYPE_IMAGE_RECEIVED = 6
+        private const val VIEW_TYPE_VIDEO_SENT = 7
+        private const val VIEW_TYPE_VIDEO_RECEIVED = 8
     }
     
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
         val isSent = message.senderId == currentUserId
-        val isVoice = message.type == "voice"
         
-        return when {
-            isSent && isVoice -> VIEW_TYPE_VOICE_SENT
-            !isSent && isVoice -> VIEW_TYPE_VOICE_RECEIVED
-            isSent -> VIEW_TYPE_SENT
-            else -> VIEW_TYPE_RECEIVED
+        return when (message.type) {
+            "voice" -> if (isSent) VIEW_TYPE_VOICE_SENT else VIEW_TYPE_VOICE_RECEIVED
+            "image" -> if (isSent) VIEW_TYPE_IMAGE_SENT else VIEW_TYPE_IMAGE_RECEIVED
+            "video" -> if (isSent) VIEW_TYPE_VIDEO_SENT else VIEW_TYPE_VIDEO_RECEIVED
+            else -> if (isSent) VIEW_TYPE_SENT else VIEW_TYPE_RECEIVED
         }
     }
     
@@ -66,6 +71,26 @@ class ChatAdapter(
                     .inflate(R.layout.item_message_voice_sent, parent, false)
                 VoiceReceivedViewHolder(view)
             }
+            VIEW_TYPE_IMAGE_SENT -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_image_sent, parent, false)
+                ImageSentViewHolder(view)
+            }
+            VIEW_TYPE_IMAGE_RECEIVED -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_image_sent, parent, false)
+                ImageReceivedViewHolder(view)
+            }
+            VIEW_TYPE_VIDEO_SENT -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_video_sent, parent, false)
+                VideoSentViewHolder(view)
+            }
+            VIEW_TYPE_VIDEO_RECEIVED -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_video_sent, parent, false)
+                VideoReceivedViewHolder(view)
+            }
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -77,6 +102,10 @@ class ChatAdapter(
             is ReceivedMessageViewHolder -> holder.bind(message, onMessageLongClick)
             is VoiceSentViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
             is VoiceReceivedViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
+            is ImageSentViewHolder -> holder.bind(message, onMessageLongClick, onImageClick)
+            is ImageReceivedViewHolder -> holder.bind(message, onMessageLongClick, onImageClick)
+            is VideoSentViewHolder -> holder.bind(message, onMessageLongClick, onVideoClick)
+            is VideoReceivedViewHolder -> holder.bind(message, onMessageLongClick, onVideoClick)
         }
     }
     
@@ -209,6 +238,134 @@ class ChatAdapter(
             }
             
             voiceBubble.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 发送图片消息ViewHolder
+    class ImageSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivImage: ImageView = itemView.findViewById(R.id.iv_image)
+        private val imageCard: View = itemView.findViewById(R.id.image_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onImageClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            Glide.with(itemView.context)
+                .load(message.content)
+                .centerCrop()
+                .into(ivImage)
+            
+            imageCard.setOnClickListener {
+                onImageClick?.invoke(message)
+            }
+            
+            imageCard.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 接收图片消息ViewHolder
+    class ImageReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivImage: ImageView = itemView.findViewById(R.id.iv_image)
+        private val imageCard: View = itemView.findViewById(R.id.image_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onImageClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            Glide.with(itemView.context)
+                .load(message.content)
+                .centerCrop()
+                .into(ivImage)
+            
+            imageCard.setOnClickListener {
+                onImageClick?.invoke(message)
+            }
+            
+            imageCard.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 发送视频消息ViewHolder
+    class VideoSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivThumbnail: ImageView = itemView.findViewById(R.id.iv_thumbnail)
+        private val videoCard: View = itemView.findViewById(R.id.video_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onVideoClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            Glide.with(itemView.context)
+                .load(message.content)
+                .centerCrop()
+                .into(ivThumbnail)
+            
+            videoCard.setOnClickListener {
+                onVideoClick?.invoke(message)
+            }
+            
+            videoCard.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+    }
+    
+    // 接收视频消息ViewHolder
+    class VideoReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val ivThumbnail: ImageView = itemView.findViewById(R.id.iv_thumbnail)
+        private val videoCard: View = itemView.findViewById(R.id.video_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onVideoClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            Glide.with(itemView.context)
+                .load(message.content)
+                .centerCrop()
+                .into(ivThumbnail)
+            
+            videoCard.setOnClickListener {
+                onVideoClick?.invoke(message)
+            }
+            
+            videoCard.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
