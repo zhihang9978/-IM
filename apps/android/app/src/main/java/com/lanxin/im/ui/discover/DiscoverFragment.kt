@@ -28,12 +28,10 @@ class DiscoverFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 朋友圈（功能待后续版本）
         view.findViewById<View>(R.id.btn_moments).setOnClickListener {
-            // 功能待实现
+            Toast.makeText(requireContext(), "朋友圈功能开发中", Toast.LENGTH_SHORT).show()
         }
         
-        // 扫一扫（完整实现，跳转到扫一扫页面）
         view.findViewById<View>(R.id.btn_scan).setOnClickListener {
             val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ScanQRCodeActivity::class.java)
             startActivity(intent)

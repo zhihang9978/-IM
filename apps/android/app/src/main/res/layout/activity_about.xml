@@ -48,9 +48,10 @@
         
         <!-- Logo -->
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/ic_profile"
+            android:id="@+id/iv_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@mipmap/ic_launcher"
             android:contentDescription="蓝信Logo" />
         
         <TextView

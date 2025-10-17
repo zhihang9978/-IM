@@ -1,6 +1,7 @@
 package com.lanxin.im
 
 import android.app.Application
+import com.lanxin.im.utils.AnalyticsHelper
 
 class LanxinApplication : Application() {
     
@@ -8,10 +9,8 @@ class LanxinApplication : Application() {
         super.onCreate()
         instance = this
         
-        // TODO: 初始化各种SDK和库
-        // 初始化数据库
-        // 初始化网络层
-        // 初始化TRTC SDK
+        AnalyticsHelper.init(this)
+        AnalyticsHelper.trackUserActive(this)
     }
     
     companion object {

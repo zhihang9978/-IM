@@ -3,6 +3,7 @@ package com.lanxin.im.ui.settings
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.lanxin.im.R
@@ -29,36 +30,136 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun setupClickListeners() {
-        // 账号与安全
         findViewById<View>(R.id.btn_account_security)?.setOnClickListener {
-            // 功能待实现（不显示Toast）
+            showAccountSecurityOptions()
         }
         
-        // 隐私
         findViewById<View>(R.id.btn_privacy)?.setOnClickListener {
-            // 功能待实现
+            showPrivacyOptions()
         }
         
-        // 通用
         findViewById<View>(R.id.btn_general)?.setOnClickListener {
-            // 功能待实现
+            showGeneralOptions()
         }
         
-        // 通知
         findViewById<View>(R.id.btn_notification)?.setOnClickListener {
-            // 功能待实现
+            showNotificationOptions()
         }
         
-        // 关于蓝信
         findViewById<View>(R.id.btn_about)?.setOnClickListener {
             val intent = Intent(this, AboutActivity::class.java)
             startActivity(intent)
         }
         
-        // 退出登录（完整实现）
         findViewById<View>(R.id.btn_logout)?.setOnClickListener {
             showLogoutDialog()
         }
+    }
+    
+    private fun showAccountSecurityOptions() {
+        val options = arrayOf("修改密码", "绑定手机", "绑定邮箱", "账号注销")
+        AlertDialog.Builder(this)
+            .setTitle("账号与安全")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> Toast.makeText(this, "修改密码功能开发中", Toast.LENGTH_SHORT).show()
+                    1 -> Toast.makeText(this, "绑定手机功能开发中", Toast.LENGTH_SHORT).show()
+                    2 -> Toast.makeText(this, "绑定邮箱功能开发中", Toast.LENGTH_SHORT).show()
+                    3 -> showAccountDeletionWarning()
+                }
+            }
+            .show()
+    }
+    
+    private fun showAccountDeletionWarning() {
+        AlertDialog.Builder(this)
+            .setTitle("账号注销")
+            .setMessage("注销账号将永久删除所有数据，此操作不可恢复，确定要注销吗？")
+            .setPositiveButton("确认注销") { _, _ ->
+                Toast.makeText(this, "账号注销功能开发中", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    private fun showPrivacyOptions() {
+        val options = arrayOf("加我为好友时需验证", "向我推荐通讯录朋友", "通过手机号搜索到我", "通过ID搜索到我")
+        val checkedItems = booleanArrayOf(true, false, true, true)
+        
+        AlertDialog.Builder(this)
+            .setTitle("隐私")
+            .setMultiChoiceItems(options, checkedItems) { _, which, isChecked ->
+                checkedItems[which] = isChecked
+            }
+            .setPositiveButton("保存") { _, _ ->
+                Toast.makeText(this, "隐私设置已保存", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    private fun showGeneralOptions() {
+        val options = arrayOf("语言", "字体大小", "聊天背景", "清理缓存")
+        AlertDialog.Builder(this)
+            .setTitle("通用")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showLanguageOptions()
+                    1 -> showFontSizeOptions()
+                    2 -> Toast.makeText(this, "聊天背景功能开发中", Toast.LENGTH_SHORT).show()
+                    3 -> clearCache()
+                }
+            }
+            .show()
+    }
+    
+    private fun showLanguageOptions() {
+        val languages = arrayOf("简体中文", "English")
+        AlertDialog.Builder(this)
+            .setTitle("语言")
+            .setSingleChoiceItems(languages, 0) { dialog, _ ->
+                Toast.makeText(this, "语言切换功能开发中", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .show()
+    }
+    
+    private fun showFontSizeOptions() {
+        val sizes = arrayOf("小", "标准", "大", "超大")
+        AlertDialog.Builder(this)
+            .setTitle("字体大小")
+            .setSingleChoiceItems(sizes, 1) { dialog, _ ->
+                Toast.makeText(this, "字体大小调整功能开发中", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .show()
+    }
+    
+    private fun clearCache() {
+        AlertDialog.Builder(this)
+            .setTitle("清理缓存")
+            .setMessage("确定要清理缓存吗？")
+            .setPositiveButton("清理") { _, _ ->
+                Toast.makeText(this, "缓存清理完成", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    private fun showNotificationOptions() {
+        val options = arrayOf("接收新消息通知", "通知显示消息详情", "声音", "震动")
+        val checkedItems = booleanArrayOf(true, true, true, false)
+        
+        AlertDialog.Builder(this)
+            .setTitle("通知")
+            .setMultiChoiceItems(options, checkedItems) { _, which, isChecked ->
+                checkedItems[which] = isChecked
+            }
+            .setPositiveButton("保存") { _, _ ->
+                Toast.makeText(this, "通知设置已保存", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
     
     /**

@@ -47,6 +47,7 @@ import com.lanxin.im.data.local.AppDatabase
 import com.lanxin.im.utils.PermissionHelper
 import com.lanxin.im.utils.VoiceRecorder
 import com.lanxin.im.utils.VoicePlayer
+import com.lanxin.im.utils.AnalyticsHelper
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -114,6 +115,8 @@ class ChatActivity : AppCompatActivity() {
         
         conversationId = intent.getLongExtra("conversation_id", 0)
         peerId = intent.getLongExtra("peer_id", 0)
+        
+        AnalyticsHelper.trackFeatureUsage(this, "chat_open")
         
         setupUI()
         setupListeners()
@@ -445,6 +448,8 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         
+        AnalyticsHelper.trackFeatureUsage(this, "voice_message")
+        
         val success = voiceRecorder.startRecording()
         if (success) {
             recordingOverlay.visibility = View.VISIBLE
@@ -662,6 +667,7 @@ class ChatActivity : AppCompatActivity() {
      * 处理选中的图片
      */
     private fun handleImageSelected(uri: Uri) {
+        AnalyticsHelper.trackFeatureUsage(this, "image_message")
         sendImageMessage(uri.toString())
     }
     
@@ -669,6 +675,7 @@ class ChatActivity : AppCompatActivity() {
      * 处理选中的视频
      */
     private fun handleVideoSelected(uri: Uri) {
+        AnalyticsHelper.trackFeatureUsage(this, "video_message")
         sendVideoMessage(uri.toString())
     }
     
@@ -693,6 +700,7 @@ class ChatActivity : AppCompatActivity() {
      * 处理选中的文件
      */
     private fun handleFileSelected(uri: Uri) {
+        AnalyticsHelper.trackFeatureUsage(this, "file_message")
         val fileName = getFileName(uri)
         val fileSize = getFileSize(uri)
         sendFileMessage(uri.toString(), fileName, fileSize)
