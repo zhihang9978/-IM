@@ -48,7 +48,12 @@ import com.lanxin.im.utils.PermissionHelper
 import com.lanxin.im.utils.VoiceRecorder
 import com.lanxin.im.utils.VoicePlayer
 import com.lanxin.im.utils.AnalyticsHelper
+import com.lanxin.im.utils.VideoCompressor
+import com.lanxin.im.utils.BurnAfterReadHelper
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -167,6 +172,9 @@ class ChatActivity : AppCompatActivity() {
             },
             onFileClick = { message ->
                 openFile(message)
+            },
+            onBurnMessageDelete = { message ->
+                deleteBurnMessage(message)
             }
         )
         recyclerView.adapter = adapter
@@ -676,7 +684,42 @@ class ChatActivity : AppCompatActivity() {
      */
     private fun handleVideoSelected(uri: Uri) {
         AnalyticsHelper.trackFeatureUsage(this, "video_message")
-        sendVideoMessage(uri.toString())
+        compressAndSendVideo(uri)
+    }
+    
+    /**
+     * 压缩并发送视频
+     */
+    private fun compressAndSendVideo(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                Toast.makeText(this@ChatActivity, "正在处理视频...", Toast.LENGTH_SHORT).show()
+                
+                val outputFile = File(cacheDir, "compressed_${System.currentTimeMillis()}.mp4")
+                val compressedPath = VideoCompressor.compressVideo(
+                    this@ChatActivity,
+                    uri,
+                    outputFile
+                ) { progress ->
+                    runOnUiThread {
+                        if (progress % 20 == 0) {
+                            Toast.makeText(this@ChatActivity, "处理中 $progress%", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                
+                if (compressedPath != null) {
+                    sendVideoMessage(compressedPath)
+                } else {
+                    Toast.makeText(this@ChatActivity, "视频处理失败，使用原视频", Toast.LENGTH_SHORT).show()
+                    sendVideoMessage(uri.toString())
+                }
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Video compression error", e)
+                Toast.makeText(this@ChatActivity, "处理失败，使用原视频", Toast.LENGTH_SHORT).show()
+                sendVideoMessage(uri.toString())
+            }
+        }
     }
     
     /**
@@ -897,6 +940,24 @@ class ChatActivity : AppCompatActivity() {
             "zip" -> "application/zip"
             else -> "*/*"
         }
+    }
+    
+    /**
+     * 删除阅后即焚消息
+     */
+    private fun deleteBurnMessage(message: Message) {
+        Log.d("ChatActivity", "Deleting burn message: ${message.id}")
+        
+        val currentList = adapter.currentList.toMutableList()
+        currentList.remove(message)
+        adapter.submitList(currentList)
+        
+        Toast.makeText(this, "阅后即焚消息已销毁", Toast.LENGTH_SHORT).show()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        BurnAfterReadHelper.cancelAllCountdowns()
     }
     
     /**

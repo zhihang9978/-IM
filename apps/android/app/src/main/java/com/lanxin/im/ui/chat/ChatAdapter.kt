@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Message
+import com.lanxin.im.utils.BurnAfterReadHelper
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,7 +29,8 @@ class ChatAdapter(
     private val onVoiceClick: ((Message) -> Unit)? = null,
     private val onImageClick: ((Message) -> Unit)? = null,
     private val onVideoClick: ((Message) -> Unit)? = null,
-    private val onFileClick: ((Message) -> Unit)? = null
+    private val onFileClick: ((Message) -> Unit)? = null,
+    private val onBurnMessageDelete: ((Message) -> Unit)? = null
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
     
     companion object {
@@ -116,8 +118,8 @@ class ChatAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = getItem(position)
         when (holder) {
-            is SentMessageViewHolder -> holder.bind(message, onMessageLongClick)
-            is ReceivedMessageViewHolder -> holder.bind(message, onMessageLongClick)
+            is SentMessageViewHolder -> holder.bind(message, onMessageLongClick, onBurnMessageDelete)
+            is ReceivedMessageViewHolder -> holder.bind(message, onMessageLongClick, onBurnMessageDelete)
             is VoiceSentViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
             is VoiceReceivedViewHolder -> holder.bind(message, onMessageLongClick, onVoiceClick)
             is ImageSentViewHolder -> holder.bind(message, onMessageLongClick, onImageClick)
@@ -136,7 +138,11 @@ class ChatAdapter(
         private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
         private val messageBubble: View = itemView.findViewById(R.id.message_bubble)
         
-        fun bind(message: Message, onLongClick: (Message) -> Unit) {
+        fun bind(
+            message: Message, 
+            onLongClick: (Message) -> Unit,
+            onBurnDelete: ((Message) -> Unit)? = null
+        ) {
             // 根据消息状态显示内容
             if (message.status == "recalled") {
                 tvContent.text = "你撤回了一条消息"
@@ -202,7 +208,11 @@ class ChatAdapter(
         private val tvTime: TextView = itemView.findViewById(R.id.tv_time)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
         
-        fun bind(message: Message, onLongClick: (Message) -> Unit) {
+        fun bind(
+            message: Message, 
+            onLongClick: (Message) -> Unit,
+            onBurnDelete: ((Message) -> Unit)? = null
+        ) {
             // 根据消息状态显示内容
             if (message.status == "recalled") {
                 tvContent.text = "对方撤回了一条消息"
@@ -211,6 +221,28 @@ class ChatAdapter(
                 val content = message.content.split("|MENTIONS:")[0]
                 
                 if (message.type == "burn") {
+                    // 阅后即焚消息
+                    if (!BurnAfterReadHelper.isCountingDown(message.id)) {
+                        // 首次查看，启动倒计时
+                        BurnAfterReadHelper.startBurnCountdown(
+                            messageId = message.id,
+                            onCountdown = { seconds ->
+                                val burnText = "🔥 $content [${seconds}秒后销毁]"
+                                val burnMessage = SpannableString(burnText)
+                                burnMessage.setSpan(
+                                    ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.error)),
+                                    content.length + 3,
+                                    burnText.length,
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+                                tvContent.post { tvContent.text = burnMessage }
+                            },
+                            onDelete = {
+                                onBurnDelete?.invoke(message)
+                            }
+                        )
+                    }
+                    
                     val burnMessage = SpannableString("🔥 $content [阅后即焚]")
                     burnMessage.setSpan(
                         ForegroundColorSpan(ContextCompat.getColor(itemView.context, R.color.error)),
