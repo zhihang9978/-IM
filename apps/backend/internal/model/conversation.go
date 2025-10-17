@@ -18,7 +18,7 @@ type Conversation struct {
 	IsBlocked     bool       `gorm:"default:false" json:"is_blocked"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
-	
+
 	// 关联
 	User1       *User    `gorm:"foreignKey:User1ID" json:"user1,omitempty"`
 	User2       *User    `gorm:"foreignKey:User2ID" json:"user2,omitempty"`
@@ -35,4 +35,3 @@ const (
 	ConversationTypeSingle = "single"
 	ConversationTypeGroup  = "group"
 )
-

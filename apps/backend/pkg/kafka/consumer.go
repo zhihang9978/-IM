@@ -75,4 +75,3 @@ func (c *Consumer) Start(ctx context.Context) {
 func (c *Consumer) Close() error {
 	return c.reader.Close()
 }
-

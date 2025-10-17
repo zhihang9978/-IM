@@ -38,15 +38,15 @@ func (h *ConversationHandler) GetConversations(c *gin.Context) {
 	for i, conv := range conversations {
 		// ✅ 计算真实未读数（不再是硬编码0）
 		unreadCount := h.conversationDAO.GetUnreadCount(conv.ID, userID)
-		
+
 		item := map[string]interface{}{
-			"id":            conv.ID,
-			"type":          conv.Type,
-			"unread_count":  unreadCount,          // ✅ 真实计算的未读数
-			"updated_at":    conv.UpdatedAt.Unix(),
-			"last_message":  conv.LastMessage,     // ✅ 完整的最后一条消息
+			"id":           conv.ID,
+			"type":         conv.Type,
+			"unread_count": unreadCount, // ✅ 真实计算的未读数
+			"updated_at":   conv.UpdatedAt.Unix(),
+			"last_message": conv.LastMessage, // ✅ 完整的最后一条消息
 		}
-		
+
 		// ✅ 添加对方用户信息（单聊）
 		if conv.Type == "single" {
 			if conv.User1ID != nil && *conv.User1ID != userID {
@@ -58,7 +58,7 @@ func (h *ConversationHandler) GetConversations(c *gin.Context) {
 			// ✅ 群聊信息
 			item["group"] = conv.Group
 		}
-		
+
 		items[i] = item
 	}
 
@@ -85,14 +85,14 @@ func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	var req struct {
 		IsMuted   *bool `json:"is_muted"`
 		IsTop     *bool `json:"is_top"`
 		IsStarred *bool `json:"is_starred"`
 		IsBlocked *bool `json:"is_blocked"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -101,7 +101,7 @@ func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 构建更新字段
 	settings := make(map[string]interface{})
 	if req.IsMuted != nil {
@@ -116,7 +116,7 @@ func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
 	if req.IsBlocked != nil {
 		settings["is_blocked"] = *req.IsBlocked
 	}
-	
+
 	if len(settings) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -125,7 +125,7 @@ func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 更新设置
 	if err := h.conversationDAO.UpdateSettings(uint(conversationID), userID, settings); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -135,7 +135,7 @@ func (h *ConversationHandler) UpdateConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Settings updated successfully",
@@ -156,7 +156,7 @@ func (h *ConversationHandler) GetConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	settings, err := h.conversationDAO.GetConversationSettings(uint(conversationID), userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -166,7 +166,7 @@ func (h *ConversationHandler) GetConversationSettings(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
@@ -178,4 +178,3 @@ func (h *ConversationHandler) GetConversationSettings(c *gin.Context) {
 		},
 	})
 }
-

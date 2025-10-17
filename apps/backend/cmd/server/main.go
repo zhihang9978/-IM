@@ -142,12 +142,12 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 文件相关
 			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)
 			authorized.POST("/files/upload-callback", fileHandler.UploadCallback)
-			
+
 			// 收藏相关
 			authorized.POST("/messages/collect", favoriteHandler.CollectMessage)
 			authorized.GET("/favorites", favoriteHandler.GetFavorites)
 			authorized.DELETE("/favorites/:id", favoriteHandler.DeleteFavorite)
-			
+
 			// 举报相关
 			authorized.POST("/messages/report", reportHandler.ReportMessage)
 			authorized.GET("/reports", reportHandler.GetReports)
@@ -167,7 +167,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		{
 			// 用户管理
 			admin.GET("/users", userHandler.SearchUsers)
-			
+
 			// 举报管理
 			admin.GET("/reports", reportHandler.GetAllReports)
 			admin.PUT("/reports/:id", reportHandler.UpdateReportStatus)

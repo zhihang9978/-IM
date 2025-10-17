@@ -36,30 +36,33 @@ func (d *ConversationDAO) Create(conversation *model.Conversation) error {
 }
 
 // GetUnreadCount 获取会话的未读消息数量
-// 
+//
 // 参数说明：
-//   conversationID - 会话ID
-//   userID - 当前用户ID（作为接收者）
-// 
+//
+//	conversationID - 会话ID
+//	userID - 当前用户ID（作为接收者）
+//
 // 返回说明：
-//   返回该会话中，接收者为userID且状态不为"read"的消息数量
-// 
+//
+//	返回该会话中，接收者为userID且状态不为"read"的消息数量
+//
 // 使用场景：
-//   在会话列表中显示未读徽章
+//
+//	在会话列表中显示未读徽章
 func (d *ConversationDAO) GetUnreadCount(conversationID, userID uint) int {
 	var count int64
-	
+
 	// 统计条件：
 	// 1. 属于该会话
 	// 2. 接收者是当前用户
 	// 3. 状态不是"read"（包括sent和delivered）
 	d.db.Model(&model.Message{}).
-		Where("conversation_id = ? AND receiver_id = ? AND status != ?", 
-			conversationID, 
-			userID, 
+		Where("conversation_id = ? AND receiver_id = ? AND status != ?",
+			conversationID,
+			userID,
 			model.MessageStatusRead).
 		Count(&count)
-		
+
 	return int(count)
 }
 
@@ -72,7 +75,7 @@ func (d *ConversationDAO) UpdateSettings(conversationID, userID uint, settings m
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新设置
 	return d.db.Model(&model.Conversation{}).
 		Where("id = ?", conversationID).
@@ -87,4 +90,3 @@ func (d *ConversationDAO) GetConversationSettings(conversationID, userID uint) (
 		First(&conv).Error
 	return &conv, err
 }
-
