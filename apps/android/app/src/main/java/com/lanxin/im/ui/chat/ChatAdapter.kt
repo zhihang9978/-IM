@@ -73,12 +73,12 @@ class ChatAdapter(
             }
             VIEW_TYPE_VOICE_SENT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_voice_sent, parent, false)
+                    .inflate(R.layout.item_message_voice_sent_wildfire, parent, false)
                 VoiceSentViewHolder(view)
             }
             VIEW_TYPE_VOICE_RECEIVED -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_voice_sent, parent, false)
+                    .inflate(R.layout.item_message_voice_received_wildfire, parent, false)
                 VoiceReceivedViewHolder(view)
             }
             VIEW_TYPE_IMAGE_SENT -> {
@@ -292,12 +292,13 @@ class ChatAdapter(
         }
     }
     
-    // 发送语音消息ViewHolder
+    // 发送语音消息ViewHolder (WildFire IM style)
     class VoiceSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvDuration: TextView = itemView.findViewById(R.id.tv_duration)
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivVoiceIcon: ImageView = itemView.findViewById(R.id.iv_voice_icon)
-        private val voiceBubble: View = itemView.findViewById(R.id.voice_bubble)
+        private val durationTextView: TextView = itemView.findViewById(R.id.durationTextView)
+        private val audioImageView: ImageView = itemView.findViewById(R.id.audioImageView)
+        private val audioContentLayout: View = itemView.findViewById(R.id.audioContentLayout)
+        private val speechToTextLinearLayout: View = itemView.findViewById(R.id.speechToTextLinearLayout)
+        private val speechToTextTextView: TextView = itemView.findViewById(R.id.speechToTextTextView)
         
         fun bind(
             message: Message,
@@ -305,30 +306,35 @@ class ChatAdapter(
             onVoiceClick: ((Message) -> Unit)?
         ) {
             val duration = message.content.toIntOrNull() ?: 0
-            tvDuration.text = "${duration}''"
+            durationTextView.text = "${duration}''"
             
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
-            
-            voiceBubble.setOnClickListener {
+            // 点击播放语音
+            audioContentLayout.setOnClickListener {
                 onVoiceClick?.invoke(message)
+                // TODO: 播放时启动动画
+                // (audioImageView.background as? AnimationDrawable)?.start()
             }
             
-            voiceBubble.setOnLongClickListener {
+            // 长按菜单
+            audioContentLayout.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
+            
+            // 语音转文字（如果有的话）
+            // TODO: 实现语音转文字显示逻辑
+            speechToTextLinearLayout.visibility = View.GONE
         }
     }
     
-    // 接收语音消息ViewHolder
+    // 接收语音消息ViewHolder (WildFire IM style)
     class VoiceReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvDuration: TextView = itemView.findViewById(R.id.tv_duration)
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivVoiceIcon: ImageView = itemView.findViewById(R.id.iv_voice_icon)
-        private val voiceBubble: View = itemView.findViewById(R.id.voice_bubble)
+        private val durationTextView: TextView = itemView.findViewById(R.id.durationTextView)
+        private val audioImageView: ImageView = itemView.findViewById(R.id.audioImageView)
+        private val audioContentLayout: View = itemView.findViewById(R.id.audioContentLayout)
+        private val playStatusIndicator: View = itemView.findViewById(R.id.playStatusIndicator)
+        private val speechToTextLinearLayout: View = itemView.findViewById(R.id.speechToTextLinearLayout)
+        private val speechToTextTextView: TextView = itemView.findViewById(R.id.speechToTextTextView)
         
         fun bind(
             message: Message,
@@ -336,21 +342,29 @@ class ChatAdapter(
             onVoiceClick: ((Message) -> Unit)?
         ) {
             val duration = message.content.toIntOrNull() ?: 0
-            tvDuration.text = "${duration}''"
+            durationTextView.text = "${duration}''"
             
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
+            // 红点状态指示器（未播放显示）
+            // TODO: 根据播放状态显示/隐藏红点
+            playStatusIndicator.visibility = View.GONE
             
-            voiceBubble.setOnClickListener {
+            // 点击播放语音
+            audioContentLayout.setOnClickListener {
                 onVoiceClick?.invoke(message)
+                playStatusIndicator.visibility = View.GONE
+                // TODO: 播放时启动动画
+                // (audioImageView.background as? AnimationDrawable)?.start()
             }
             
-            voiceBubble.setOnLongClickListener {
+            // 长按菜单
+            audioContentLayout.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
+            
+            // 语音转文字（如果有的话）
+            // TODO: 实现语音转文字显示逻辑
+            speechToTextLinearLayout.visibility = View.GONE
         }
     }
     
