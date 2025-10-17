@@ -189,3 +189,9 @@ data class CallInvite(
     val call_type: String // audio, video
 )
 
+data class ReadReceipt(
+    val conversation_id: Long,
+    val reader_id: Long,
+    val read_at: String
+)
+

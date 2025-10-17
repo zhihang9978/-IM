@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- 顶部标题栏 -->
+    <!-- 顶部标题栏（按设计文档） -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="0dp"
@@ -20,6 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         
+        <!-- 返回按钮 -->
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="48dp"
@@ -28,16 +29,49 @@
             android:src="@drawable/ic_back"
             android:contentDescription="返回" />
         
-        <TextView
-            android:id="@+id/tv_title"
+        <!-- 对方名称和在线状态 -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="张三"
-            android:textSize="@dimen/text_size_large"
-            android:textColor="@color/text_primary"
-            android:gravity="center" />
+            android:orientation="vertical"
+            android:gravity="center">
+            
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="张三"
+                android:textSize="@dimen/text_size_large"
+                android:textColor="@color/text_primary" />
+            
+            <!-- 在线状态指示器（按设计文档） -->
+            <LinearLayout
+                android:id="@+id/online_status_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="2dp">
+                
+                <View
+                    android:id="@+id/status_indicator"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_status_online" />
+                
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/status_online"
+                    android:textSize="12sp"
+                    android:textColor="@color/status_online" />
+            </LinearLayout>
+        </LinearLayout>
         
+        <!-- 电话按钮 -->
         <ImageButton
             android:id="@+id/btn_voice_call"
             android:layout_width="48dp"
@@ -46,6 +80,7 @@
             android:src="@drawable/ic_phone"
             android:contentDescription="@string/chat_voice_call" />
         
+        <!-- 视频按钮 -->
         <ImageButton
             android:id="@+id/btn_video_call"
             android:layout_width="48dp"
@@ -53,6 +88,15 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_video"
             android:contentDescription="@string/chat_video_call" />
+        
+        <!-- 更多菜单按钮（按设计文档） -->
+        <ImageButton
+            android:id="@+id/btn_more"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_more_vert"
+            android:contentDescription="更多" />
     </LinearLayout>
 
     <!-- 消息列表 -->
