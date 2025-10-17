@@ -42,11 +42,21 @@ func (s *UserService) UpdateUser(userID uint, updates map[string]interface{}, ip
 	}
 	if phone, ok := updates["phone"]; ok {
 		oldValues["phone"] = user.Phone
-		user.Phone = phone.(string)
+		phoneStr := phone.(string)
+		if phoneStr == "" {
+			user.Phone = nil
+		} else {
+			user.Phone = &phoneStr
+		}
 	}
 	if email, ok := updates["email"]; ok {
 		oldValues["email"] = user.Email
-		user.Email = email.(string)
+		emailStr := email.(string)
+		if emailStr == "" {
+			user.Email = nil
+		} else {
+			user.Email = &emailStr
+		}
 	}
 
 	err = s.userDAO.Update(user)
