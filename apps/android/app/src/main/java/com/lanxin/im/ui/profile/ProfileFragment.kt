@@ -49,14 +49,17 @@ class ProfileFragment : Fragment() {
             try {
                 // 调用API获取当前用户信息
                 val response = RetrofitClient.apiService.getCurrentUser()
-                if (response.code == 0 && response.data != null) {
-                    val user = response.data
-                    tvUsername.text = user.username
-                    tvLanxinId.text = "蓝信号: ${user.lanxinId}"
+                response.data?.let { user ->
+                    tvUsername.text = user.username ?: "用户"
+                    tvLanxinId.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
                     // TODO: 使用Glide加载头像
+                    // Glide.with(this@ProfileFragment).load(user.avatar).into(ivAvatar)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                // 加载失败，显示默认信息
+                tvUsername.text = "用户"
+                tvLanxinId.text = "蓝信号: 未登录"
             }
         }
     }
