@@ -28,14 +28,15 @@ class DiscoverFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 朋友圈（暂未实现，留空不显示Toast）
+        // 朋友圈（功能待后续版本）
         view.findViewById<View>(R.id.btn_moments).setOnClickListener {
-            // 功能待后续版本实现
+            // 功能待实现
         }
         
-        // 扫一扫（暂未实现，留空不显示Toast）
+        // 扫一扫（完整实现，跳转到扫一扫页面）
         view.findViewById<View>(R.id.btn_scan).setOnClickListener {
-            // 功能待后续版本实现
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ScanQRCodeActivity::class.java)
+            startActivity(intent)
         }
     }
 }

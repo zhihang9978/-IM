@@ -64,6 +64,27 @@
             android:name=".ui.settings.AboutActivity"
             android:parentActivityName=".ui.settings.SettingsActivity" />
         
+        <!-- 添加好友Activity -->
+        <activity
+            android:name=".ui.social.AddFriendActivity"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- 投诉举报Activity -->
+        <activity
+            android:name=".ui.social.ReportActivity"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- 扫一扫Activity -->
+        <activity
+            android:name=".ui.social.ScanQRCodeActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        
+        <!-- 收藏Activity -->
+        <activity
+            android:name=".ui.social.FavoritesActivity"
+            android:parentActivityName=".MainActivity" />
+        
         <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"

@@ -64,9 +64,10 @@ class ProfileFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 收藏（功能待后续版本）
+        // 收藏（完整实现，跳转到收藏页面）
         view.findViewById<View>(R.id.btn_favorites).setOnClickListener {
-            // 功能待实现
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.FavoritesActivity::class.java)
+            startActivity(intent)
         }
         
         // 设置（完整实现，跳转到设置页面）
@@ -75,9 +76,10 @@ class ProfileFragment : Fragment() {
             startActivity(intent)
         }
         
-        // 投诉举报（功能待后续版本）
+        // 投诉举报（完整实现，跳转到投诉举报页面）
         view.findViewById<View>(R.id.btn_report).setOnClickListener {
-            // 功能待实现
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ReportActivity::class.java)
+            startActivity(intent)
         }
     }
 }
