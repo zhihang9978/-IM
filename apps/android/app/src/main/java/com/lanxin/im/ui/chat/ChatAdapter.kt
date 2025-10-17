@@ -16,14 +16,15 @@ import java.util.*
 
 /**
  * 聊天消息适配器
- * 支持文本、语音、图片和视频消息类型
+ * 支持文本、语音、图片、视频和文件消息类型
  */
 class ChatAdapter(
     private val currentUserId: Long,
     private val onMessageLongClick: (Message) -> Unit,
     private val onVoiceClick: ((Message) -> Unit)? = null,
     private val onImageClick: ((Message) -> Unit)? = null,
-    private val onVideoClick: ((Message) -> Unit)? = null
+    private val onVideoClick: ((Message) -> Unit)? = null,
+    private val onFileClick: ((Message) -> Unit)? = null
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
     
     companion object {
@@ -35,6 +36,8 @@ class ChatAdapter(
         private const val VIEW_TYPE_IMAGE_RECEIVED = 6
         private const val VIEW_TYPE_VIDEO_SENT = 7
         private const val VIEW_TYPE_VIDEO_RECEIVED = 8
+        private const val VIEW_TYPE_FILE_SENT = 9
+        private const val VIEW_TYPE_FILE_RECEIVED = 10
     }
     
     override fun getItemViewType(position: Int): Int {
@@ -45,6 +48,7 @@ class ChatAdapter(
             "voice" -> if (isSent) VIEW_TYPE_VOICE_SENT else VIEW_TYPE_VOICE_RECEIVED
             "image" -> if (isSent) VIEW_TYPE_IMAGE_SENT else VIEW_TYPE_IMAGE_RECEIVED
             "video" -> if (isSent) VIEW_TYPE_VIDEO_SENT else VIEW_TYPE_VIDEO_RECEIVED
+            "file" -> if (isSent) VIEW_TYPE_FILE_SENT else VIEW_TYPE_FILE_RECEIVED
             else -> if (isSent) VIEW_TYPE_SENT else VIEW_TYPE_RECEIVED
         }
     }
@@ -91,6 +95,16 @@ class ChatAdapter(
                     .inflate(R.layout.item_message_video_sent, parent, false)
                 VideoReceivedViewHolder(view)
             }
+            VIEW_TYPE_FILE_SENT -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_file_sent, parent, false)
+                FileSentViewHolder(view)
+            }
+            VIEW_TYPE_FILE_RECEIVED -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_message_file_sent, parent, false)
+                FileReceivedViewHolder(view)
+            }
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -106,6 +120,8 @@ class ChatAdapter(
             is ImageReceivedViewHolder -> holder.bind(message, onMessageLongClick, onImageClick)
             is VideoSentViewHolder -> holder.bind(message, onMessageLongClick, onVideoClick)
             is VideoReceivedViewHolder -> holder.bind(message, onMessageLongClick, onVideoClick)
+            is FileSentViewHolder -> holder.bind(message, onMessageLongClick, onFileClick)
+            is FileReceivedViewHolder -> holder.bind(message, onMessageLongClick, onFileClick)
         }
     }
     
@@ -368,6 +384,100 @@ class ChatAdapter(
             videoCard.setOnLongClickListener {
                 onLongClick(message)
                 true
+            }
+        }
+    }
+    
+    // 发送文件消息ViewHolder
+    class FileSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val tvFileName: TextView = itemView.findViewById(R.id.tv_file_name)
+        private val tvFileSize: TextView = itemView.findViewById(R.id.tv_file_size)
+        private val fileCard: View = itemView.findViewById(R.id.file_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onFileClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            val parts = message.content.split("|")
+            if (parts.size >= 2) {
+                tvFileName.text = parts[0]
+                val size = parts[1].toLongOrNull() ?: 0L
+                tvFileSize.text = formatFileSize(size)
+            } else {
+                tvFileName.text = "未知文件"
+                tvFileSize.text = "0 B"
+            }
+            
+            fileCard.setOnClickListener {
+                onFileClick?.invoke(message)
+            }
+            
+            fileCard.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+        
+        private fun formatFileSize(size: Long): String {
+            return when {
+                size < 1024 -> "$size B"
+                size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
+                size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024))
+                else -> String.format("%.1f GB", size / (1024.0 * 1024 * 1024))
+            }
+        }
+    }
+    
+    // 接收文件消息ViewHolder
+    class FileReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val tvFileName: TextView = itemView.findViewById(R.id.tv_file_name)
+        private val tvFileSize: TextView = itemView.findViewById(R.id.tv_file_size)
+        private val fileCard: View = itemView.findViewById(R.id.file_card)
+        
+        fun bind(
+            message: Message,
+            onLongClick: (Message) -> Unit,
+            onFileClick: ((Message) -> Unit)?
+        ) {
+            Glide.with(itemView.context)
+                .load(R.drawable.ic_profile)
+                .circleCrop()
+                .into(ivAvatar)
+            
+            val parts = message.content.split("|")
+            if (parts.size >= 2) {
+                tvFileName.text = parts[0]
+                val size = parts[1].toLongOrNull() ?: 0L
+                tvFileSize.text = formatFileSize(size)
+            } else {
+                tvFileName.text = "未知文件"
+                tvFileSize.text = "0 B"
+            }
+            
+            fileCard.setOnClickListener {
+                onFileClick?.invoke(message)
+            }
+            
+            fileCard.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
+        }
+        
+        private fun formatFileSize(size: Long): String {
+            return when {
+                size < 1024 -> "$size B"
+                size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
+                size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024))
+                else -> String.format("%.1f GB", size / (1024.0 * 1024 * 1024))
             }
         }
     }

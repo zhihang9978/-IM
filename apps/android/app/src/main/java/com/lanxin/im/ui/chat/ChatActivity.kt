@@ -96,6 +96,10 @@ class ChatActivity : AppCompatActivity() {
         }
     }
     
+    private val pickFileLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { handleFileSelected(it) }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -149,6 +153,9 @@ class ChatActivity : AppCompatActivity() {
             },
             onVideoClick = { message ->
                 playVideo(message)
+            },
+            onFileClick = { message ->
+                openFile(message)
             }
         )
         recyclerView.adapter = adapter
@@ -519,7 +526,7 @@ class ChatActivity : AppCompatActivity() {
         
         view.findViewById<LinearLayout>(R.id.option_file).setOnClickListener {
             bottomSheet.dismiss()
-            Toast.makeText(this, "文件功能开发中", Toast.LENGTH_SHORT).show()
+            selectFile()
         }
         
         view.findViewById<LinearLayout>(R.id.option_location).setOnClickListener {
@@ -625,6 +632,60 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
+     * 选择文件
+     */
+    private fun selectFile() {
+        if (!PermissionHelper.hasStoragePermission(this)) {
+            PermissionHelper.showPermissionRationale(
+                this,
+                "需要存储权限",
+                "选择文件需要访问存储权限"
+            ) {
+                PermissionHelper.requestStoragePermission(this)
+            }
+            return
+        }
+        pickFileLauncher.launch("*/*")
+    }
+    
+    /**
+     * 处理选中的文件
+     */
+    private fun handleFileSelected(uri: Uri) {
+        val fileName = getFileName(uri)
+        val fileSize = getFileSize(uri)
+        sendFileMessage(uri.toString(), fileName, fileSize)
+    }
+    
+    /**
+     * 获取文件名
+     */
+    private fun getFileName(uri: Uri): String {
+        var fileName = "未知文件"
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (cursor.moveToFirst() && nameIndex >= 0) {
+                fileName = cursor.getString(nameIndex)
+            }
+        }
+        return fileName
+    }
+    
+    /**
+     * 获取文件大小
+     */
+    private fun getFileSize(uri: Uri): Long {
+        var fileSize = 0L
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+            if (cursor.moveToFirst() && sizeIndex >= 0) {
+                fileSize = cursor.getLong(sizeIndex)
+            }
+        }
+        return fileSize
+    }
+    
+    /**
      * 发送图片消息
      */
     private fun sendImageMessage(imagePath: String) {
@@ -683,6 +744,35 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
+     * 发送文件消息
+     */
+    private fun sendFileMessage(filePath: String, fileName: String, fileSize: Long) {
+        lifecycleScope.launch {
+            try {
+                Toast.makeText(this@ChatActivity, "正在发送文件...", Toast.LENGTH_SHORT).show()
+                val request = com.lanxin.im.data.remote.SendMessageRequest(
+                    receiver_id = peerId,
+                    content = "$fileName|$fileSize|$filePath",
+                    type = "file"
+                )
+                val response = RetrofitClient.apiService.sendMessage(request)
+                if (response.code == 0 && response.data != null) {
+                    val newMessage = response.data.message
+                    val currentList = adapter.currentList.toMutableList()
+                    currentList.add(newMessage)
+                    adapter.submitList(currentList)
+                    recyclerView.scrollToPosition(currentList.size - 1)
+                    Toast.makeText(this@ChatActivity, "发送成功", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ChatActivity, response.message, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
      * 播放语音消息
      */
     private fun playVoiceMessage(message: Message) {
@@ -718,6 +808,46 @@ class ChatActivity : AppCompatActivity() {
         val intent = Intent(this, com.lanxin.im.ui.media.VideoPlayerActivity::class.java)
         intent.putExtra("video_url", message.content)
         startActivity(intent)
+    }
+    
+    /**
+     * 打开文件
+     */
+    private fun openFile(message: Message) {
+        val parts = message.content.split("|")
+        if (parts.size >= 3) {
+            val fileName = parts[0]
+            val filePath = parts[2]
+            
+            try {
+                val uri = Uri.parse(filePath)
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.setDataAndType(uri, getMimeType(fileName))
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(Intent.createChooser(intent, "打开文件"))
+            } catch (e: Exception) {
+                Toast.makeText(this, "无法打开文件", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * 根据文件名获取MIME类型
+     */
+    private fun getMimeType(fileName: String): String {
+        return when (fileName.substringAfterLast('.', "").lowercase()) {
+            "pdf" -> "application/pdf"
+            "doc", "docx" -> "application/msword"
+            "xls", "xlsx" -> "application/vnd.ms-excel"
+            "ppt", "pptx" -> "application/vnd.ms-powerpoint"
+            "txt" -> "text/plain"
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "mp4" -> "video/mp4"
+            "mp3" -> "audio/mpeg"
+            "zip" -> "application/zip"
+            else -> "*/*"
+        }
     }
     
     /**
