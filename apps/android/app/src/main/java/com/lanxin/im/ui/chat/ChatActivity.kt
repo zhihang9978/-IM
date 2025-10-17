@@ -51,6 +51,7 @@ import com.lanxin.im.utils.AnalyticsHelper
 import com.lanxin.im.utils.VideoCompressor
 import com.lanxin.im.utils.BurnAfterReadHelper
 import android.util.Log
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -78,6 +79,12 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var tvRecordingTime: TextView
     private lateinit var tvRecordingHint: TextView
     private lateinit var ivRecordingIcon: ImageView
+    
+    // WildFire IM style components
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var unreadCountLinearLayout: LinearLayout
+    private lateinit var unreadCountTextView: TextView
+    private lateinit var unreadMentionCountTextView: TextView
     
     private var conversationId: Long = 0
     private var peerId: Long = 0
@@ -116,7 +123,7 @@ class ChatActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chat)
+        setContentView(R.layout.activity_chat_wildfire)
         
         conversationId = intent.getLongExtra("conversation_id", 0)
         peerId = intent.getLongExtra("peer_id", 0)
@@ -146,6 +153,18 @@ class ChatActivity : AppCompatActivity() {
         tvRecordingTime = findViewById(R.id.tv_recording_time)
         tvRecordingHint = findViewById(R.id.tv_recording_hint)
         ivRecordingIcon = findViewById(R.id.iv_recording_icon)
+        
+        // WildFire IM style components
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        unreadCountLinearLayout = findViewById(R.id.unreadCountLinearLayout)
+        unreadCountTextView = findViewById(R.id.unreadCountTextView)
+        unreadMentionCountTextView = findViewById(R.id.unreadMentionCountTextView)
+        
+        // 设置SwipeRefreshLayout (WildFire IM style)
+        swipeRefreshLayout.setColorSchemeResources(R.color.primary)
+        swipeRefreshLayout.setOnRefreshListener {
+            loadHistoryMessages()
+        }
         
         // 设置RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this).apply {
@@ -417,6 +436,23 @@ class ChatActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * 加载历史消息 (WildFire IM style - SwipeRefreshLayout)
+     */
+    private fun loadHistoryMessages() {
+        lifecycleScope.launch {
+            try {
+                // TODO: 实现加载更早的历史消息
+                // 当前简化实现：直接停止刷新
+                swipeRefreshLayout.isRefreshing = false
+                Toast.makeText(this@ChatActivity, "已加载最新消息", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
