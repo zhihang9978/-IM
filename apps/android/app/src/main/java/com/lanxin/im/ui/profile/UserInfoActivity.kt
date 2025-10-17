@@ -61,6 +61,14 @@ class UserInfoActivity : AppCompatActivity() {
         loadUserInfo()
     }
     
+    /**
+     * Activity过渡动画 (WildFire IM style)
+     */
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+    
     private fun setupUI() {
         // 基本信息
         avatarImageView = findViewById(R.id.avatarImageView)

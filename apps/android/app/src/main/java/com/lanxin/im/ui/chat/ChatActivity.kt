@@ -148,6 +148,15 @@ class ChatActivity : AppCompatActivity() {
         loadMessages()
     }
     
+    /**
+     * 设置Activity过渡动画
+     * WildFire IM style: 右滑进入，左滑退出
+     */
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+    
     private fun setupUI() {
         // 初始化视图
         recyclerView = findViewById(R.id.recycler_view_messages)
