@@ -106,31 +106,48 @@ Devin的状态: ✅ 基础设施和测试完成，仅剩APK打包
 
 优先级1 - 必须完成（2.5小时）
 ───────────────────────────────────────────────────────────────
-[ ] 1. Android APK打包（基础版，不含音视频）
+[ ] 1. 确认TRTC密钥配置
+    
+    文件: apps/backend/config/config.yaml
+    确认:
+      trtc:
+        sdk_app_id: 1600109367  # 已填写？
+        secret_key: "实际密钥"   # 已填写？
+    
+    验证:
+      systemctl restart lanxin
+      curl http://localhost:8080/api/v1/trtc/user-sig
+    
+    时间: 10分钟
+
+[ ] 2. Android APK打包（完整版，包含音视频）
     
     步骤:
-      cd apps/android/app/src/main/java/com/lanxin/im
-      mv trtc trtc.disabled
       cd apps/android
+      ./gradlew clean
       ./gradlew assembleRelease
     
-    产出: app-release.apk（可用于测试）
+    说明:
+      - TRTC SDK会自动下载（约50MB）
+      - 音视频功能完整
+      - 自动签名
+    
+    产出: app-release.apk（完整版）
     时间: 约1-2小时
 
-[ ] 2. 合并master分支最新代码
+[ ] 3. 合并master分支最新代码
     
     步骤:
       git checkout devin/1760621402-deployment-setup
       git merge master
-      # 解决冲突（如果有）
       git push
     
-    获得: VideoCall、ScreenShare等最新代码
+    获得: VideoCall、ScreenShare、API修复
     时间: 约30分钟
 
 优先级2 - 建议完成（1小时）
 ───────────────────────────────────────────────────────────────
-[ ] 3. 配置Prometheus完整告警规则
+[ ] 4. 配置Prometheus完整告警规则
     
     待配置:
       - CPU > 85%告警

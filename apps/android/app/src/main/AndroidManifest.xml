@@ -48,10 +48,7 @@
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".MainActivity" />
         
-        <!-- 音视频通话Activity -->
-        <!-- 注意：需要先添加腾讯云TRTC SDK才能启用以下Activity -->
-        <!-- 取消注释前，请先在build.gradle.kts中添加TRTC SDK依赖 -->
-        <!--
+        <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"
             android:screenOrientation="portrait" />
@@ -63,7 +60,6 @@
         <activity
             android:name=".trtc.ScreenShareActivity"
             android:screenOrientation="portrait" />
-        -->
     </application>
 
 </manifest>

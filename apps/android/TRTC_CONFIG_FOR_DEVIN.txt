@@ -1,0 +1,152 @@
+═══════════════════════════════════════════════════════════════
+  腾讯云TRTC配置说明 - Devin必须填写
+═══════════════════════════════════════════════════════════════
+
+重要：音视频功能需要腾讯云TRTC SDK和密钥
+
+═══════════════════════════════════════════════════════════════
+需要Devin配置的密钥
+═══════════════════════════════════════════════════════════════
+
+1. 后端配置（已有，需填写实际值）
+   文件: apps/backend/config/config.yaml
+   
+   trtc:
+     sdk_app_id: 0  # ⚠️ Devin请填写实际的TRTC应用ID
+     secret_key: ""  # ⚠️ Devin请填写实际的TRTC密钥
+     expire_time: 86400
+
+或者使用环境变量:
+   export TRTC_SDK_APP_ID="YOUR_APP_ID"
+   export TRTC_SECRET_KEY="YOUR_SECRET_KEY"
+
+2. Android配置（可选，如需客户端直接配置）
+   
+   可以在Android代码中硬编码（不推荐）或从后端获取（推荐）。
+   
+   当前实现：从后端API获取UserSig ✅ 推荐
+   
+   API: POST /api/v1/trtc/user-sig
+   返回: { sdk_app_id, user_sig, room_id }
+
+═══════════════════════════════════════════════════════════════
+TRTC SDK依赖状态
+═══════════════════════════════════════════════════════════════
+
+✅ 已在build.gradle.kts中配置:
+   implementation("com.tencent.liteav:LiteAVSDK_TRTC:11.5.0")
+
+⚠️ SDK下载说明:
+   - Gradle会自动从腾讯云Maven仓库下载
+   - 如果网络问题，可以手动下载AAR文件（见HOW_TO_ADD_TRTC_SDK.txt）
+   - 首次构建时需要下载，约50MB
+
+✅ 音视频Activity已在AndroidManifest中注册:
+   - AudioCallActivity（音频通话）
+   - VideoCallActivity（视频通话）
+   - ScreenShareActivity（屏幕共享）
+
+═══════════════════════════════════════════════════════════════
+验证TRTC配置
+═══════════════════════════════════════════════════════════════
+
+1. 检查后端配置
+   
+   # 查看配置文件
+   cat apps/backend/config/config.yaml | grep -A 5 "trtc:"
+   
+   # 应该看到sdk_app_id和secret_key的实际值
+
+2. 测试UserSig生成
+   
+   # 登录后调用TRTC API
+   curl -X POST http://154.40.45.200:8080/api/v1/trtc/user-sig \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"room_id": "test_room", "user_id": 1}'
+   
+   # 应该返回有效的UserSig
+
+3. Android应用测试
+   
+   - 安装APK到设备
+   - 登录账号
+   - 点击音频/视频通话按钮
+   - 应该能进入通话界面并连接
+
+═══════════════════════════════════════════════════════════════
+如何获取TRTC密钥（如果还没有）
+═══════════════════════════════════════════════════════════════
+
+1. 访问腾讯云控制台
+   https://console.cloud.tencent.com/trtc
+
+2. 创建应用或选择现有应用
+   - 应用名称: 蓝信通讯
+   - 应用类型: 通用型
+
+3. 获取SDKAppID
+   在应用列表中可以看到SDKAppID（一串数字）
+
+4. 获取密钥
+   - 点击"应用管理" → "快速上手"
+   - 复制密钥（SecretKey）
+
+5. 配置到项目
+   - 更新config.yaml
+   - 或设置环境变量
+   - 重启后端服务
+
+═══════════════════════════════════════════════════════════════
+当前TRTC配置状态（根据Devin的DEPLOYMENT.md）
+═══════════════════════════════════════════════════════════════
+
+从Devin的部署文档看到:
+  TRTC SDKAppID: 1600109367 （已配置）
+  TRTC Secret Key: （已配置到config.yaml）
+
+⚠️ Devin请确认:
+  1. config.yaml中的TRTC配置是否已填写实际值
+  2. 后端服务是否已重启使配置生效
+  3. 测试UserSig API是否能正常返回签名
+
+═══════════════════════════════════════════════════════════════
+Android APK打包（包含音视频功能）
+═══════════════════════════════════════════════════════════════
+
+现在可以直接打包完整版APK:
+
+步骤:
+  cd apps/android
+  ./gradlew clean
+  ./gradlew assembleRelease
+
+说明:
+  - TRTC SDK会自动下载（首次需要网络）
+  - 音视频Activity已启用
+  - 所有功能完整
+
+如果TRTC SDK下载失败:
+  - 检查网络连接
+  - 或手动下载AAR文件添加到libs/目录
+  - 见 HOW_TO_ADD_TRTC_SDK.txt
+
+═══════════════════════════════════════════════════════════════
+总结给Devin
+═══════════════════════════════════════════════════════════════
+
+✅ TRTC SDK依赖已恢复
+✅ TRTC Activity已启用
+✅ 音视频功能代码完整
+
+⚠️ Devin需要确认:
+  1. 后端config.yaml中TRTC密钥已填写
+  2. 后端服务已重启
+  3. 可以直接打包APK（包含音视频）
+
+🎯 打包命令:
+  cd apps/android
+  ./gradlew assembleRelease
+
+═══════════════════════════════════════════════════════════════
+
