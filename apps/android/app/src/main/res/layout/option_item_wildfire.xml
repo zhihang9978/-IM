@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Option item layout (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+  Adapted for LanXin IM
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/selector_common_item_wf"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/contactLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <!-- 左侧图标（可选） -->
+        <ImageView
+            android:id="@+id/leftImageView"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- 标题区域 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/titleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:singleLine="true"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                tools:text="设置备注和标签" />
+
+            <!-- 徽章（可选） -->
+            <TextView
+                android:id="@+id/badgeTextView"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/shape_red_dot_wf"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:text="9"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- 描述文字（可选） -->
+        <TextView
+            android:id="@+id/descTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:singleLine="true"
+            android:textColor="@color/textSecondary"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="描述"
+            tools:visibility="visible" />
+
+        <!-- 右侧开关（可选） -->
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- 右箭头（可选） -->
+        <ImageView
+            android:id="@+id/rightArrowImageView"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_back"
+            android:rotation="180"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <!-- 分割线 -->
+    <View
+        android:id="@+id/dividerView"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:background="@color/divider"
+        android:visibility="visible" />
+
+</LinearLayout>
+

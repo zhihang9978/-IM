@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Extension panel layout (WildFire IM style)
+  Source: WildFireChat android-chat-master (Apache 2.0)
+  Simplified GridLayout version for LanXin IM
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#F8F8F8"
+    android:padding="16dp">
+
+    <!-- 第一行：4个功能 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- 相册 -->
+        <LinearLayout
+            android:id="@+id/btn_album"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_pic"
+                android:contentDescription="相册" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="相册"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 拍摄 -->
+        <LinearLayout
+            android:id="@+id/btn_camera"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_shot"
+                android:contentDescription="拍摄" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="拍摄"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 位置 -->
+        <LinearLayout
+            android:id="@+id/btn_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_location"
+                android:contentDescription="位置" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="位置"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 文件 -->
+        <LinearLayout
+            android:id="@+id/btn_file"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_file"
+                android:contentDescription="文件" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="文件"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 第二行：4个功能 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="8dp">
+
+        <!-- 视频通话 -->
+        <LinearLayout
+            android:id="@+id/btn_video_call_ext"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_video"
+                android:contentDescription="视频通话" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="视频通话"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 语音通话 -->
+        <LinearLayout
+            android:id="@+id/btn_voice_call_ext"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_func_voice"
+                android:contentDescription="语音通话" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="语音通话"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 名片 -->
+        <LinearLayout
+            android:id="@+id/btn_user_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@mipmap/ic_user_card"
+                android:contentDescription="名片" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="名片"
+                android:textColor="@color/textPrimary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 占位 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+</LinearLayout>
+
