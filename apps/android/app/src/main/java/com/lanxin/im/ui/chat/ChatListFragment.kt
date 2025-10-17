@@ -59,6 +59,7 @@ class ChatListFragment : Fragment() {
                 val response = RetrofitClient.apiService.getConversations()
                 if (response.code == 0 && response.data != null) {
                     // 转换为ConversationDisplayItem (WildFire IM style)
+                    // 使用API返回的完整数据
                     val displayItems = response.data.conversations.map { item ->
                         val conversation = Conversation(
                             id = item.id,
@@ -66,7 +67,7 @@ class ChatListFragment : Fragment() {
                             user1Id = null,
                             user2Id = null,
                             groupId = null,
-                            lastMessageId = null,
+                            lastMessageId = item.last_message?.id,
                             lastMessageAt = item.updated_at,
                             unreadCount = item.unread_count,
                             createdAt = System.currentTimeMillis(),
@@ -75,13 +76,13 @@ class ChatListFragment : Fragment() {
                         
                         ConversationDisplayItem(
                             conversation = conversation,
-                            avatar = null, // TODO: 从API或数据库获取
-                            name = "用户${item.id}", // TODO: 从API或数据库获取
-                            lastMessageContent = null, // TODO: 从API或数据库获取
-                            lastMessageType = "text", // TODO: 从API或数据库获取
-                            draft = null, // TODO: 从数据库获取
-                            isMuted = false, // TODO: 从数据库获取
-                            isTop = false // TODO: 从数据库获取
+                            avatar = item.user?.avatar,
+                            name = item.user?.username ?: item.user?.displayName ?: "用户${item.id}",
+                            lastMessageContent = item.last_message?.content,
+                            lastMessageType = item.last_message?.type ?: "text",
+                            draft = null, // 草稿从本地数据库获取
+                            isMuted = false, // 免打扰从本地数据库获取
+                            isTop = false // 置顶从本地数据库获取
                         )
                     }
                     
