@@ -195,3 +195,17 @@
 
 **下一步**: 进入第二部分（阶段6-8）- 聊天界面
 
+### ✅ 阶段6: 聊天主界面布局（已完成）
+- 完成时间: 2025-10-17
+- Git提交: (待记录)
+- 内容:
+  - ✅ 创建activity_chat_wildfire.xml
+  - ✅ 添加SwipeRefreshLayout下拉刷新
+  - ✅ 添加未读消息提示（右侧悬浮）
+  - ✅ 添加@消息提示
+  - ✅ 复制shape_unread_message_count_label_bg_wf.xml
+  - ✅ 更新ChatActivity使用新布局
+  - ✅ 添加loadHistoryMessages()方法
+  - ✅ 保留蓝信Toolbar和输入面板
+  - ⚠️ 简化实现（未复制InputAwareLayout，使用LinearLayout替代）
+
