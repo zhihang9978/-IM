@@ -58,9 +58,9 @@ class ChatListFragment : Fragment() {
                 // 调用API获取会话列表
                 val response = RetrofitClient.apiService.getConversations()
                 if (response.code == 0 && response.data != null) {
-                    // 显示会话列表
-                    adapter.submitList(response.data.conversations.map { item ->
-                        Conversation(
+                    // 转换为ConversationDisplayItem (WildFire IM style)
+                    val displayItems = response.data.conversations.map { item ->
+                        val conversation = Conversation(
                             id = item.id,
                             type = item.type,
                             user1Id = null,
@@ -72,7 +72,20 @@ class ChatListFragment : Fragment() {
                             createdAt = System.currentTimeMillis(),
                             updatedAt = System.currentTimeMillis()
                         )
-                    })
+                        
+                        ConversationDisplayItem(
+                            conversation = conversation,
+                            avatar = null, // TODO: 从API或数据库获取
+                            name = "用户${item.id}", // TODO: 从API或数据库获取
+                            lastMessageContent = null, // TODO: 从API或数据库获取
+                            lastMessageType = "text", // TODO: 从API或数据库获取
+                            draft = null, // TODO: 从数据库获取
+                            isMuted = false, // TODO: 从数据库获取
+                            isTop = false // TODO: 从数据库获取
+                        )
+                    }
+                    
+                    adapter.submitList(displayItems)
                 }
             } catch (e: Exception) {
                 // 加载失败，显示空列表
