@@ -171,14 +171,50 @@ func (s *MessageService) RecallMessage(messageID, userID uint, ip, userAgent str
 	return err
 }
 
-// MarkAsRead 标记消息为已读
+// MarkAsRead 标记消息为已读并发送已读回执
 func (s *MessageService) MarkAsRead(conversationID, userID uint) error {
+	// 标记会话中所有未读消息为已读
 	err := s.messageDAO.MarkAsRead(conversationID, userID)
+	if err != nil {
+		return err
+	}
 	
-	// 通知发送者消息已读（通过WebSocket）
-	// TODO: 获取会话中的对方用户ID并发送已读回执
+	// 获取该会话中userID作为接收者的所有消息，找到发送者
+	messages, _, err := s.messageDAO.GetByConversationID(conversationID, 1, 100)
+	if err != nil || len(messages) == 0 {
+		return err
+	}
 	
-	return err
+	// 找出对方用户ID（发送者）
+	var senderID uint
+	for _, msg := range messages {
+		if msg.ReceiverID == userID {
+			senderID = msg.SenderID
+			break
+		}
+	}
+	
+	if senderID == 0 {
+		return nil // 没有找到对方
+	}
+	
+	// 通过WebSocket发送已读回执给所有发送者
+	go func() {
+		if s.hub.IsUserOnline(senderID) {
+			// 发送已读回执通知
+			readReceipt := map[string]interface{}{
+				"conversation_id": conversationID,
+				"reader_id":       userID,
+				"read_at":         time.Now().Format(time.RFC3339),
+			}
+			s.hub.SendToUser(senderID, map[string]interface{}{
+				"type": "read_receipt",
+				"data": readReceipt,
+			})
+		}
+	}()
+	
+	return nil
 }
 
 // GetMessages 获取消息列表
