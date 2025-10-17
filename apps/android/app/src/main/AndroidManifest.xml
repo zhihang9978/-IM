@@ -54,6 +54,16 @@
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".MainActivity" />
         
+        <!-- 设置Activity -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- 关于Activity -->
+        <activity
+            android:name=".ui.settings.AboutActivity"
+            android:parentActivityName=".ui.settings.SettingsActivity" />
+        
         <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"

@@ -64,19 +64,20 @@ class ProfileFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 收藏（暂未实现，留空不显示Toast）
+        // 收藏（功能待后续版本）
         view.findViewById<View>(R.id.btn_favorites).setOnClickListener {
-            // 功能待后续版本实现
+            // 功能待实现
         }
         
-        // 设置（暂未实现，留空不显示Toast）
+        // 设置（完整实现，跳转到设置页面）
         view.findViewById<View>(R.id.btn_settings).setOnClickListener {
-            // 功能待后续版本实现
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.settings.SettingsActivity::class.java)
+            startActivity(intent)
         }
         
-        // 投诉举报（暂未实现，留空不显示Toast）
+        // 投诉举报（功能待后续版本）
         view.findViewById<View>(R.id.btn_report).setOnClickListener {
-            // 功能待后续版本实现
+            // 功能待实现
         }
     }
 }
