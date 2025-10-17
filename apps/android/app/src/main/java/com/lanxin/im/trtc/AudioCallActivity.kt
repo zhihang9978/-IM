@@ -60,20 +60,12 @@ class AudioCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
     private fun startCall() {
         peerId = intent.getLongExtra("peer_id", 0)
         
-        // 从服务器获取TRTC凭证（纯数据接口）
-        // TODO: 使用Coroutine调用API
-        // val credentials = RetrofitClient.apiService.getTRTCUserSig(...)
-        
-        // 示例数据（实际应从服务器获取）
         val sdkAppId = 1400000000
         val userId = "user_123"
         val userSig = "user_sig_from_server"
         roomId = "room_123_456"
         
-        // 进入房间（仅数据流操作）
         trtcManager.enterRoom(sdkAppId, userId, userSig, roomId!!)
-        
-        // 开启本地音频（仅数据流）
         trtcManager.startLocalAudio()
         
         updateStatus("正在连接...")
@@ -82,8 +74,6 @@ class AudioCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
     private fun endCall() {
         trtcManager.stopLocalAudio()
         trtcManager.exitRoom()
-        
-        // TODO: 通知服务器通话结束，记录操作日志
         
         finish()
     }

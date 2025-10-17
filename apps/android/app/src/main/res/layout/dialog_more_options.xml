@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 更多选项面板（8个选项网格） -->
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/background_light"
+    android:padding="@dimen/spacing_medium">
+
+    <androidx.gridlayout.widget.GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:columnCount="4"
+        app:rowCount="2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 相册 -->
+        <LinearLayout
+            android:id="@+id/option_album"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_image"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="@color/primary"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="相册" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="相册"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 拍照 -->
+        <LinearLayout
+            android:id="@+id/option_camera"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_camera"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#4CAF50"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="拍照" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="拍照"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 视频 -->
+        <LinearLayout
+            android:id="@+id/option_video"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_video"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#FF9800"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="视频" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="视频"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 文件 -->
+        <LinearLayout
+            android:id="@+id/option_file"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_file"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#9C27B0"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="文件" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="文件"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 位置 -->
+        <LinearLayout
+            android:id="@+id/option_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_location"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#F44336"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="位置" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="位置"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 名片 -->
+        <LinearLayout
+            android:id="@+id/option_contact"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_contacts"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#00BCD4"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="名片" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="名片"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 语音输入 -->
+        <LinearLayout
+            android:id="@+id/option_voice_call"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_phone"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#607D8B"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="语音通话" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="语音通话"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- 视频通话 -->
+        <LinearLayout
+            android:id="@+id/option_video_call"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_medium"
+            android:background="?attr/selectableItemBackground">
+            
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_videocam_off"
+                android:background="@drawable/bg_circle_button"
+                android:backgroundTint="#3F51B5"
+                android:padding="12dp"
+                android:tint="@color/white"
+                android:contentDescription="视频通话" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="视频通话"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+    </androidx.gridlayout.widget.GridLayout>
+    
+    <!-- 阅后即焚开关 -->
+    <TextView
+        android:id="@+id/burn_after_read_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:padding="@dimen/spacing_medium"
+        android:text="开启阅后即焚"
+        android:textSize="@dimen/text_size_normal"
+        android:textColor="@color/error"
+        android:gravity="center"
+        android:background="?attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/grid_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

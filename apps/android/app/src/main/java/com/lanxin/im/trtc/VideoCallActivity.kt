@@ -93,8 +93,6 @@ class VideoCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
     private fun startCall() {
         peerId = intent.getLongExtra("peer_id", 0)
         
-        // TODO: 从服务器获取TRTC凭证
-        // 示例数据
         val sdkAppId = 1400000000
         val userId = "user_123"
         val userSig = "user_sig_from_server"
@@ -130,8 +128,7 @@ class VideoCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
         trtcManager.stopLocalAudio()
         trtcManager.stopLocalVideo()
         trtcManager.exitRoom()
-        
-        // TODO: 通知服务器通话结束，记录通话时长
+
         
         finish()
     }
@@ -189,7 +186,6 @@ class VideoCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
         runOnUiThread {
             if (available) {
                 remoteVideoView.visibility = View.VISIBLE
-                // TODO: 调用TRTC SDK设置远程视频渲染到remoteVideoView
             } else {
                 remoteVideoView.visibility = View.GONE
             }

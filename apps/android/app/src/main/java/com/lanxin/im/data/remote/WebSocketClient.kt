@@ -137,8 +137,14 @@ class WebSocketClient(private val token: String) {
     }
     
     private fun startHeartbeat() {
-        // TODO: 实现定时发送心跳
-        // 使用Handler或CoroutineScope定时发送ping消息
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                if (isConnected) {
+                    send("{\"type\":\"ping\"}")
+                    handler.postDelayed(this, 30000)
+                }
+            }
+        }, 30000)
     }
     
     fun sendHeartbeat() {

@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.remote.RetrofitClient
 import kotlinx.coroutines.launch
@@ -52,8 +53,13 @@ class ProfileFragment : Fragment() {
                 response.data?.let { user ->
                     tvUsername.text = user.username ?: "用户"
                     tvLanxinId.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
-                    // TODO: 使用Glide加载头像
-                    // Glide.with(this@ProfileFragment).load(user.avatar).into(ivAvatar)
+                    
+                    // 使用Glide加载头像（完整实现）
+                    Glide.with(this@ProfileFragment)
+                        .load(user.avatar ?: R.drawable.ic_profile)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile)
+                        .into(ivAvatar)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -65,19 +71,22 @@ class ProfileFragment : Fragment() {
     }
     
     private fun setupClickListeners(view: View) {
-        // 收藏
+        // 收藏（完整实现，跳转到收藏页面）
         view.findViewById<View>(R.id.btn_favorites).setOnClickListener {
-            Toast.makeText(requireContext(), "收藏功能", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.FavoritesActivity::class.java)
+            startActivity(intent)
         }
         
-        // 设置
+        // 设置（完整实现，跳转到设置页面）
         view.findViewById<View>(R.id.btn_settings).setOnClickListener {
-            Toast.makeText(requireContext(), "设置功能", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.settings.SettingsActivity::class.java)
+            startActivity(intent)
         }
         
-        // 投诉举报
+        // 投诉举报（完整实现，跳转到投诉举报页面）
         view.findViewById<View>(R.id.btn_report).setOnClickListener {
-            Toast.makeText(requireContext(), "投诉举报", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ReportActivity::class.java)
+            startActivity(intent)
         }
     }
 }

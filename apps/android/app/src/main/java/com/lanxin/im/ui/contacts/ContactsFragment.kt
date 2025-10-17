@@ -40,8 +40,11 @@ class ContactsFragment : Fragment() {
         recyclerView = view?.findViewById(R.id.recycler_view) ?: return
         
         adapter = ContactAdapter { contact ->
-            // 点击联系人，查看详情或发起聊天
-            // TODO: 跳转到联系人详情或聊天页面
+            // 点击联系人，进入聊天页面
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.chat.ChatActivity::class.java)
+            intent.putExtra("conversation_id", 0L) // 新会话
+            intent.putExtra("peer_id", contact.contactId)
+            startActivity(intent)
         }
         
         recyclerView.layoutManager = LinearLayoutManager(requireContext())

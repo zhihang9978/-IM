@@ -28,10 +28,19 @@ class ChatRepository(
         try {
             val response = apiService.getConversations()
             if (response.code == 0 && response.data != null) {
-                // TODO: 转换并保存到本地数据库
+                response.data.conversations.forEach { item ->
+                    val conversation = Conversation(
+                        id = item.id,
+                        type = item.type,
+                        peerId = item.user?.id ?: 0,
+                        lastMessage = item.last_message?.content ?: "",
+                        unreadCount = item.unread_count,
+                        updatedAt = item.updated_at
+                    )
+                    conversationDao.insertConversation(conversation)
+                }
             }
         } catch (e: Exception) {
-            // 网络错误，使用本地缓存
             e.printStackTrace()
         }
     }
