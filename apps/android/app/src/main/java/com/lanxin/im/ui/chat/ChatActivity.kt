@@ -193,6 +193,13 @@ class ChatActivity : AppCompatActivity() {
             stackFromEnd = true
         }
         
+        // 添加滚动监听 (WildFire IM style - 未读消息提示)
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                updateUnreadIndicator()
+            }
+        })
+        
         // 设置Adapter（消息长按菜单）
         // 获取当前用户ID（从SharedPreferences或Intent）
         val currentUserId = intent.getLongExtra("current_user_id", 1L)
@@ -522,18 +529,88 @@ class ChatActivity : AppCompatActivity() {
     }
     
     /**
-     * 加载历史消息 (WildFire IM style - SwipeRefreshLayout)
+     * 更新未读消息提示
+     * 参考：WildFireChat ConversationFragment.scrollToBottom() (Apache 2.0)
      */
+    private fun updateUnreadIndicator() {
+        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+        val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+        val totalCount = adapter.itemCount
+        
+        // 计算未读数量（从最后可见位置到末尾）
+        val unreadCount = totalCount - lastVisiblePosition - 1
+        
+        if (unreadCount > 0 && unreadCount < totalCount) {
+            // 显示未读提示
+            unreadCountLinearLayout.visibility = View.VISIBLE
+            unreadCountTextView.visibility = View.VISIBLE
+            unreadCountTextView.text = "${unreadCount}条消息"
+            
+            // 点击跳转到底部
+            unreadCountLinearLayout.setOnClickListener {
+                recyclerView.smoothScrollToPosition(totalCount - 1)
+                unreadCountLinearLayout.visibility = View.GONE
+            }
+        } else {
+            // 隐藏未读提示
+            unreadCountLinearLayout.visibility = View.GONE
+        }
+    }
+    
+    /**
+     * 加载历史消息 (WildFire IM style - SwipeRefreshLayout)
+     * 参考：WildFireChat ConversationFragment.loadMessage() (Apache 2.0)
+     */
+    private var oldestMessageId: Long = 0L
+    private var isLoadingHistory = false
+    
     private fun loadHistoryMessages() {
+        if (isLoadingHistory) return
+        isLoadingHistory = true
+        
         lifecycleScope.launch {
             try {
-                // TODO: 实现加载更早的历史消息
-                // 当前简化实现：直接停止刷新
+                // 获取当前最早的消息ID
+                val currentMessages = adapter.currentList
+                oldestMessageId = currentMessages.firstOrNull()?.id ?: 0L
+                
+                if (oldestMessageId == 0L) {
+                    // 没有消息，直接停止刷新
+                    swipeRefreshLayout.isRefreshing = false
+                    isLoadingHistory = false
+                    return@launch
+                }
+                
+                // 调用API获取更早的消息
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.apiService.getHistoryMessages(
+                        conversationId = conversationId,
+                        beforeMessageId = oldestMessageId,
+                        limit = 20
+                    )
+                }
+                
+                if (response.code == 0 && response.data != null) {
+                    val historyMessages = response.data.messages
+                    if (historyMessages.isNotEmpty()) {
+                        // 插入到列表顶部
+                        val newList = historyMessages + currentMessages
+                        adapter.submitList(newList)
+                        
+                        // 保持滚动位置 (WildFire IM style)
+                        recyclerView.scrollToPosition(historyMessages.size)
+                    } else {
+                        Toast.makeText(this@ChatActivity, "没有更多历史消息", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
                 swipeRefreshLayout.isRefreshing = false
-                Toast.makeText(this@ChatActivity, "已加载最新消息", Toast.LENGTH_SHORT).show()
+                isLoadingHistory = false
             } catch (e: Exception) {
                 e.printStackTrace()
                 swipeRefreshLayout.isRefreshing = false
+                isLoadingHistory = false
+                Toast.makeText(this@ChatActivity, "加载失败", Toast.LENGTH_SHORT).show()
             }
         }
     }

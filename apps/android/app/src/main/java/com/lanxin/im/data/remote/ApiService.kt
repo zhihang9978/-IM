@@ -74,6 +74,13 @@ interface ApiService {
         @Query("page_size") pageSize: Int = 50
     ): ApiResponse<MessageListResponse>
     
+    @GET("conversations/{id}/messages/history")
+    suspend fun getHistoryMessages(
+        @Path("id") conversationId: Long,
+        @Query("before_message_id") beforeMessageId: Long,
+        @Query("limit") limit: Int = 20
+    ): ApiResponse<MessageListResponse>
+    
     @POST("messages")
     suspend fun sendMessage(@Body request: SendMessageRequest): ApiResponse<MessageResponse>
     
