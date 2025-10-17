@@ -126,6 +126,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			
 			// 联系人相关（Android客户端需要）
 			authorized.GET("/contacts", contactHandler.GetContacts)
+			authorized.POST("/contacts", contactHandler.AddContact)
 			authorized.DELETE("/contacts", contactHandler.DeleteContact)
 			
 			// 消息相关

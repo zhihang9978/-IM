@@ -33,7 +33,19 @@ class ContactsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         setupRecyclerView()
+        setupClickListeners(view)
         loadContacts()
+    }
+    
+    private fun setupClickListeners(view: View) {
+        view.findViewById<View>(R.id.btn_add_friend)?.setOnClickListener {
+            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.AddFriendActivity::class.java)
+            startActivity(intent)
+        }
+        
+        view.findViewById<View>(R.id.btn_new_friends)?.setOnClickListener {
+            android.widget.Toast.makeText(requireContext(), "新的朋友功能开发中", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
     
     private fun setupRecyclerView() {
