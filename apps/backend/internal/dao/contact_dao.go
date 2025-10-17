@@ -30,3 +30,7 @@ func (d *ContactDAO) Create(contact *model.Contact) error {
 	return d.db.Create(contact).Error
 }
 
+func (d *ContactDAO) Delete(userID, contactID uint) error {
+	return d.db.Where("user_id = ? AND contact_id = ?", userID, contactID).Delete(&model.Contact{}).Error
+}
+

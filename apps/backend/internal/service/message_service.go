@@ -222,3 +222,7 @@ func (s *MessageService) GetMessages(conversationID uint, page, pageSize int) ([
 	return s.messageDAO.GetByConversationID(conversationID, page, pageSize)
 }
 
+func (s *MessageService) SearchMessages(userID uint, keyword string, page, pageSize int) ([]model.Message, int64, error) {
+	return s.messageDAO.SearchMessages(userID, keyword, page, pageSize)
+}
+

@@ -114,6 +114,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 认证相关
 			authorized.POST("/auth/refresh", authHandler.RefreshToken)
 			authorized.POST("/auth/logout", authHandler.Logout)
+			authorized.POST("/auth/change-password", authHandler.ChangePassword)
 			
 			// 用户相关
 			authorized.GET("/users/me", userHandler.GetCurrentUser)
@@ -125,12 +126,14 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			
 			// 联系人相关（Android客户端需要）
 			authorized.GET("/contacts", contactHandler.GetContacts)
+			authorized.DELETE("/contacts", contactHandler.DeleteContact)
 			
 			// 消息相关
 			authorized.POST("/messages", messageHandler.SendMessage)
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
+			authorized.GET("/messages/search", messageHandler.SearchMessages)
 			
 			// 文件相关
 			authorized.GET("/files/upload-token", fileHandler.GetUploadToken)

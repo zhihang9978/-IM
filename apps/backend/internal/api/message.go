@@ -151,3 +151,38 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	})
 }
 
+func (h *MessageHandler) SearchMessages(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	keyword := c.Query("keyword")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	if keyword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "keyword is required",
+			"data":    nil,
+		})
+		return
+	}
+
+	messages, total, err := h.messageService.SearchMessages(userID, keyword, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"total":    total,
+			"messages": messages,
+		},
+	})
+}
+

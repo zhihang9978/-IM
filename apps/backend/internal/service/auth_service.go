@@ -134,9 +134,26 @@ func (s *AuthService) RefreshToken(oldToken string) (string, error) {
 	return jwt.RefreshToken(oldToken, s.cfg.JWT.Secret, s.cfg.JWT.ExpireHours)
 }
 
-// generateLanxinID 生成蓝信号
+func (s *AuthService) ChangePassword(userID uint, oldPassword, newPassword string) error {
+	user, err := s.userDAO.GetByID(userID)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
+		return errors.New("incorrect old password")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), s.cfg.Security.BcryptCost)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+	return s.userDAO.Update(user)
+}
+
 func generateLanxinID() string {
-	// 使用时间戳作为基础
 	timestamp := time.Now().Unix()
 	return "LX" + fmt.Sprintf("%d", timestamp)
 }

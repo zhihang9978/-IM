@@ -57,3 +57,35 @@ func (h *ContactHandler) GetContacts(c *gin.Context) {
 	})
 }
 
+func (h *ContactHandler) DeleteContact(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	
+	var req struct {
+		ContactID uint `json:"contact_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid request parameters",
+			"data":    nil,
+		})
+		return
+	}
+
+	if err := h.contactDAO.Delete(userID, req.ContactID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data":    nil,
+	})
+}
+
