@@ -58,12 +58,19 @@ class ContactsFragment : Fragment() {
                 val response = RetrofitClient.apiService.getContacts()
                 if (response.code == 0 && response.data != null) {
                     // 转换为Contact列表（使用API返回的完整数据）
-                    val contacts = response.data.contacts.map { item ->
+                    // ⚠️ 处理user可能为null的情况
+                    val contacts = response.data.contacts.mapNotNull { item ->
+                        if (item.user == null) {
+                            // 跳过没有用户信息的联系人
+                            android.util.Log.w("ContactsFragment", "Contact ${item.id} has no user info")
+                            return@mapNotNull null
+                        }
+                        
                         Contact(
                             id = item.id,
                             userId = item.user_id,
                             contactId = item.contact_id,
-                            username = item.user?.username ?: "用户${item.contact_id}",
+                            username = item.user.username,
                             remark = item.remark,
                             tags = item.tags,
                             status = item.status,

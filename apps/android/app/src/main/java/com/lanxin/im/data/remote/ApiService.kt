@@ -211,7 +211,8 @@ data class ContactListResponse(
 data class ContactItem(
     val id: Long,
     val contact_id: Long,
-    val user: User,
+    val user_id: Long,
+    val user: User?,  // ⚠️ 改为可空，防止后端Preload失败导致崩溃
     val remark: String?,
     val tags: String?,
     val status: String,
