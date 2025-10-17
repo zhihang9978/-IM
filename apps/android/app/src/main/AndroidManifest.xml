@@ -31,9 +31,9 @@
         android:theme="@style/Theme.LanxinIM"
         android:usesCleartextTraffic="true">
         
-        <!-- 主Activity -->
+        <!-- 登录Activity（启动页） -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.auth.LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -41,6 +41,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- 主Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         
         <!-- 聊天Activity -->
         <activity
