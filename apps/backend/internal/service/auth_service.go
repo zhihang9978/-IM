@@ -61,11 +61,19 @@ func (s *AuthService) Register(username, password, phone, email string) (*model.
 	// 生成蓝信号（使用时间戳+随机数）
 	lanxinID := generateLanxinID()
 
+	var phonePtr, emailPtr *string
+	if phone != "" {
+		phonePtr = &phone
+	}
+	if email != "" {
+		emailPtr = &email
+	}
+
 	user := &model.User{
 		Username: username,
 		Password: string(hashedPassword),
-		Phone:    phone,
-		Email:    email,
+		Phone:    phonePtr,
+		Email:    emailPtr,
 		LanxinID: lanxinID,
 		Role:     "user",
 		Status:   "active",
