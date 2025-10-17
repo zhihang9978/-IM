@@ -97,11 +97,19 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 	
 	lanxinID := generateLanxinID()
 	
+	var phonePtr, emailPtr *string
+	if req.Phone != "" {
+		phonePtr = &req.Phone
+	}
+	if req.Email != "" {
+		emailPtr = &req.Email
+	}
+	
 	user := &model.User{
 		Username: req.Username,
 		Password: string(hashedPassword),
-		Phone:    req.Phone,
-		Email:    req.Email,
+		Phone:    phonePtr,
+		Email:    emailPtr,
 		LanxinID: lanxinID,
 		Role:     req.Role,
 		Status:   "active",
@@ -168,10 +176,18 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 		user.Username = *updates.Username
 	}
 	if updates.Phone != nil {
-		user.Phone = *updates.Phone
+		if *updates.Phone == "" {
+			user.Phone = nil
+		} else {
+			user.Phone = updates.Phone
+		}
 	}
 	if updates.Email != nil {
-		user.Email = *updates.Email
+		if *updates.Email == "" {
+			user.Email = nil
+		} else {
+			user.Email = updates.Email
+		}
 	}
 	if updates.Avatar != nil {
 		user.Avatar = *updates.Avatar
@@ -344,12 +360,21 @@ func (h *AdminHandler) ExportUsers(c *gin.Context) {
 			lastLoginAt = user.LastLoginAt.Format("2006-01-02 15:04:05")
 		}
 		
+		phone := ""
+		if user.Phone != nil {
+			phone = *user.Phone
+		}
+		email := ""
+		if user.Email != nil {
+			email = *user.Email
+		}
+		
 		record := []string{
 			fmt.Sprintf("%d", user.ID),
 			user.Username,
 			user.LanxinID,
-			user.Phone,
-			user.Email,
+			phone,
+			email,
 			user.Role,
 			user.Status,
 			lastLoginAt,
