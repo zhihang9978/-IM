@@ -58,7 +58,7 @@ class ContactsFragment : Fragment() {
                     adapter.submitList(response.data.contacts.map { item ->
                         Contact(
                             id = item.id,
-                            userId = item.user_id,
+                            userId = item.user.id,
                             contactId = item.contact_id,
                             remark = item.remark,
                             tags = item.tags,
