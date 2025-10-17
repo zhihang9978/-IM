@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lanxin/im-backend/internal/middleware"
 	"github.com/lanxin/im-backend/internal/service"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserHandler struct {
@@ -141,6 +142,97 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
 			"page_size": pageSize,
 			"users":     userResponses,
 		},
+	})
+}
+
+// hashPassword 生成密码哈希
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+// checkPasswordHash 验证密码
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// ChangePassword 修改密码
+// PUT /users/me/password
+// Body: {"old_password": "old123", "new_password": "new123"}
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	
+	var req struct {
+		OldPassword string `json:"old_password" binding:"required,min=6"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid request parameters",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 获取当前用户
+	user, err := h.userService.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    404,
+			"message": "User not found",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 验证旧密码
+	if !checkPasswordHash(req.OldPassword, user.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    401,
+			"message": "Old password is incorrect",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 验证新旧密码不同
+	if req.OldPassword == req.NewPassword {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "New password must be different from old password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 生成新密码哈希
+	hashedPassword, err := hashPassword(req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to hash password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	// 更新密码
+	if err := h.userService.UpdatePassword(userID, hashedPassword); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to update password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Password changed successfully",
+		"data":    nil,
 	})
 }
 

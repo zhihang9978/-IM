@@ -136,3 +136,13 @@ func (d *UserDAO) UpdateLastLogin(id uint) error {
 	return d.db.Model(&model.User{}).Where("id = ?", id).Update("last_login_at", gorm.Expr("NOW()")).Error
 }
 
+// UpdatePassword 更新用户密码
+// 参数：userID - 用户ID
+//      hashedPassword - 已哈希的新密码
+// 返回：error
+func (d *UserDAO) UpdatePassword(userID uint, hashedPassword string) error {
+	return d.db.Model(&model.User{}).
+		Where("id = ?", userID).
+		Update("password", hashedPassword).Error
+}
+
