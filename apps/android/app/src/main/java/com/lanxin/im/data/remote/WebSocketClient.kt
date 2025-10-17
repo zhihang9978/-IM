@@ -1,5 +1,7 @@
 package com.lanxin.im.data.remote
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.gson.Gson
 import com.lanxin.im.data.model.Message
@@ -23,6 +25,7 @@ class WebSocketClient(private val token: String) {
     private val gson = Gson()
     private val listeners = mutableListOf<WebSocketListener>()
     private var isConnected = false
+    private val handler = Handler(Looper.getMainLooper())
     
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS) // 长连接
@@ -140,7 +143,7 @@ class WebSocketClient(private val token: String) {
         handler.postDelayed(object : Runnable {
             override fun run() {
                 if (isConnected) {
-                    send("{\"type\":\"ping\"}")
+                    webSocket?.send("{\"type\":\"ping\"}")
                     handler.postDelayed(this, 30000)
                 }
             }
