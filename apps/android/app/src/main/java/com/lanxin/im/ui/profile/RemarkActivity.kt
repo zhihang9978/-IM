@@ -67,17 +67,26 @@ class RemarkActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                // 调用API更新备注
-                Toast.makeText(this@RemarkActivity, "备注已保存", Toast.LENGTH_SHORT).show()
+                // ✅ 调用真实API更新备注
+                val request = mapOf(
+                    "remark" to remark,
+                    "tags" to tags
+                )
                 
-                // TODO: 等待后端实现更新备注API
-                // val response = RetrofitClient.apiService.updateContactRemark(contactId, remark, tags)
+                val response = com.lanxin.im.data.remote.RetrofitClient.apiService.updateContactRemark(
+                    contactId,
+                    request
+                )
                 
-                // 返回结果
-                setResult(RESULT_OK)
-                finish()
+                if (response.code == 0) {
+                    Toast.makeText(this@RemarkActivity, "备注已保存", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                } else {
+                    Toast.makeText(this@RemarkActivity, "保存失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
-                Toast.makeText(this@RemarkActivity, "保存失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@RemarkActivity, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

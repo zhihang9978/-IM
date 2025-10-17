@@ -59,6 +59,12 @@ interface ApiService {
     @DELETE("contacts/{id}")
     suspend fun deleteContact(@Path("id") id: Long): ApiResponse<Any?>
     
+    @PUT("contacts/{id}/remark")
+    suspend fun updateContactRemark(
+        @Path("id") id: Long,
+        @Body request: Map<String, String>
+    ): ApiResponse<Any?>
+    
     // ==================== 消息模块 ====================
     
     @GET("conversations")

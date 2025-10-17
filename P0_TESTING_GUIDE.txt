@@ -1,0 +1,276 @@
+═══════════════════════════════════════════════════════════════
+  P0修复测试指南 - Day 1步骤5和9
+═══════════════════════════════════════════════════════════════
+
+前置条件:
+✅ 步骤1-4已完成（历史消息API代码）
+✅ 步骤6-8已完成（会话列表数据完善）
+✅ 代码已提交
+
+测试目标:
+验证历史消息API和会话列表API功能正常
+
+═══════════════════════════════════════════════════════════════
+步骤5: 测试历史消息API
+═══════════════════════════════════════════════════════════════
+
+【5.1】启动后端服务
+```bash
+cd apps/backend
+go run cmd/server/main.go
+```
+
+期望输出:
+```
+Server starting on :8080
+Server mode: development
+Domain: localhost
+WebSocket Hub started
+```
+
+【5.2】获取测试Token（新终端）
+```bash
+TOKEN=$(curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"identifier":"testuser","password":"password123"}' \
+  2>/dev/null | jq -r '.data.token')
+
+echo "Token: $TOKEN"
+```
+
+【5.3】测试历史消息API
+```bash
+# 测试1: 加载最新20条历史消息
+curl -X GET "http://localhost:8080/api/v1/conversations/1/messages/history?limit=20" \
+  -H "Authorization: Bearer $TOKEN" | jq
+
+# 测试2: 加载指定消息之前的20条
+curl -X GET "http://localhost:8080/api/v1/conversations/1/messages/history?before_message_id=100&limit=20" \
+  -H "Authorization: Bearer $TOKEN" | jq
+
+# 测试3: 加载5条历史消息
+curl -X GET "http://localhost:8080/api/v1/conversations/1/messages/history?before_message_id=50&limit=5" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+期望返回格式:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "total": 20,
+    "messages": [
+      {
+        "id": 80,
+        "conversation_id": 1,
+        "sender_id": 1,
+        "receiver_id": 2,
+        "content": "历史消息内容",
+        "type": "text",
+        "status": "read",
+        "created_at": "2025-10-16T10:00:00Z",
+        "sender": {
+          "id": 1,
+          "username": "user1"
+        },
+        "receiver": {
+          "id": 2,
+          "username": "user2"
+        }
+      }
+    ]
+  }
+}
+```
+
+验证检查:
+[ ] 返回HTTP 200
+[ ] code = 0
+[ ] messages数组存在
+[ ] messages按时间正序（早→晚）
+[ ] 每条消息包含sender和receiver
+[ ] before_message_id参数生效
+[ ] limit参数生效
+
+═══════════════════════════════════════════════════════════════
+步骤9: 测试会话列表API
+═══════════════════════════════════════════════════════════════
+
+【9.1】测试会话列表API
+```bash
+curl -X GET "http://localhost:8080/api/v1/conversations" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+期望返回格式:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "conversations": [
+      {
+        "id": 1,
+        "type": "single",
+        "user": {
+          "id": 2,
+          "username": "user2",
+          "avatar": "http://example.com/avatar.jpg"
+        },
+        "last_message": {
+          "id": 100,
+          "content": "最后一条消息内容",
+          "type": "text",
+          "created_at": "2025-10-17T10:00:00Z"
+        },
+        "unread_count": 5,
+        "updated_at": 1697500000
+      }
+    ]
+  }
+}
+```
+
+验证检查:
+[ ] 返回HTTP 200
+[ ] code = 0
+[ ] conversations数组存在
+[ ] last_message字段存在且不为null
+[ ] unread_count为真实数字（不是0）
+[ ] user字段包含完整信息
+[ ] 群聊包含group字段
+
+如果last_message为null:
+- 检查数据库是否有消息记录
+- 检查conversation表的last_message_id是否正确
+- 检查Preload是否生效
+
+如果unread_count仍为0:
+- 检查messages表中是否有未读消息
+- 检查status字段值
+- 检查GetUnreadCount方法SQL条件
+
+═══════════════════════════════════════════════════════════════
+步骤10-11: Android客户端测试
+═══════════════════════════════════════════════════════════════
+
+【10】Android测试历史消息加载
+1. 启动Android App
+2. 登录账号
+3. 打开任意聊天页面
+4. 向下滚动到顶部
+5. 下拉触发刷新
+6. 观察:
+   [ ] 显示加载指示器
+   [ ] 加载完成后显示历史消息
+   [ ] 消息正确插入列表顶部
+   [ ] 滚动位置保持在原位置
+   [ ] Toast提示"已加载XX条消息"或"没有更多历史消息"
+
+【11】Android测试会话列表显示
+1. 返回主页
+2. 查看会话列表
+3. 观察:
+   [ ] 显示最后一条消息内容（不是"[消息]"占位符）
+   [ ] 显示真实未读数（如果有未读消息）
+   [ ] 未读徽章显示正确（1-99+）
+   [ ] 免打扰会话显示红点
+   [ ] 时间格式正确
+
+═══════════════════════════════════════════════════════════════
+步骤12-13: 性能和边界测试
+═══════════════════════════════════════════════════════════════
+
+【12】性能测试
+```bash
+# 测试历史消息API性能
+ab -n 100 -c 10 \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/v1/conversations/1/messages/history?limit=20"
+```
+
+期望结果:
+- 平均响应时间 < 100ms
+- 99%请求 < 200ms
+- 0%失败率
+
+【13】边界测试
+```bash
+# 测试1: conversationID不存在
+curl "http://localhost:8080/api/v1/conversations/99999/messages/history?limit=20" \
+  -H "Authorization: Bearer $TOKEN"
+# 期望: 返回空数组
+
+# 测试2: beforeMessageID=1（最早的消息）
+curl "http://localhost:8080/api/v1/conversations/1/messages/history?before_message_id=1&limit=20" \
+  -H "Authorization: Bearer $TOKEN"
+# 期望: 返回空数组
+
+# 测试3: limit=0
+curl "http://localhost:8080/api/v1/conversations/1/messages/history?limit=0" \
+  -H "Authorization: Bearer $TOKEN"
+# 期望: 返回20条（默认值）
+
+# 测试4: limit=1000（超过最大限制）
+curl "http://localhost:8080/api/v1/conversations/1/messages/history?limit=1000" \
+  -H "Authorization: Bearer $TOKEN"
+# 期望: 返回100条（最大限制）
+```
+
+═══════════════════════════════════════════════════════════════
+步骤14-15: P0阶段验收
+═══════════════════════════════════════════════════════════════
+
+【14】创建验收报告
+文件: P0_VALIDATION_REPORT.txt
+内容:
+```
+P0阶段验收报告
+
+执行日期: ____________
+执行人: ____________
+
+测试结果:
+[ ] 历史消息API测试通过
+[ ] 会话列表API测试通过
+[ ] Android客户端测试通过
+[ ] 性能测试通过
+[ ] 边界测试通过
+
+发现问题: ____________
+修复情况: ____________
+
+验收结论: [ ] PASS [ ] FAIL
+```
+
+【15】验收通过才能进入Day 2
+验收人: 技术负责人
+签字: ____________
+日期: ____________
+
+如验收失败:
+1. 记录失败原因
+2. 立即修复问题
+3. 重新测试
+4. 重新验收
+5. 通过后才能继续
+
+═══════════════════════════════════════════════════════════════
+测试完成确认
+═══════════════════════════════════════════════════════════════
+
+Day 1 P0修复进度:
+代码实现: 7/8步骤完成 (87.5%)
+测试验证: 待执行
+
+下一步:
+1. 按本指南执行步骤5和9的API测试
+2. 执行步骤10-11的Android测试
+3. 执行步骤12-13的性能和边界测试
+4. 创建步骤14的验收报告
+5. 完成步骤15的验收签字
+6. 进入Day 2的P1级修复
+
+═══════════════════════════════════════════════════════════════
+
