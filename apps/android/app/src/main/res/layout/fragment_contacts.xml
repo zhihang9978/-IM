@@ -6,22 +6,33 @@
     android:orientation="vertical"
     android:background="@color/background_light">
 
-    <TextView
+    <!-- 搜索框（按设计文档） -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/nav_contacts"
-        android:textSize="@dimen/text_size_title"
-        android:textColor="@color/text_primary"
-        android:padding="@dimen/spacing_medium"
-        android:background="@color/white" />
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@color/white">
+        
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_search_input"
+            android:hint="@string/search"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp" />
+    </LinearLayout>
 
-    <TextView
+    <!-- 联系人列表 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center"
-        android:text="通讯录功能开发中..."
-        android:textColor="@color/text_secondary" />
+        android:background="@color/white" />
 
 </LinearLayout>
 

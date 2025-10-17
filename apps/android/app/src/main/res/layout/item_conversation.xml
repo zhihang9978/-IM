@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 会话列表项布局（按设计文档严格实现） -->
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- 头像 -->
+    <ImageView
+        android:id="@+id/iv_avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_profile"
+        android:background="@drawable/bg_circle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:contentDescription="头像" />
+
+    <!-- 未读消息红点 -->
+    <TextView
+        android:id="@+id/tv_unread_count"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginTop="-4dp"
+        android:layout_marginEnd="-4dp"
+        android:background="@drawable/bg_unread_badge"
+        android:text="3"
+        android:textSize="10sp"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/iv_avatar"
+        app:layout_constraintEnd_toEndOf="@id/iv_avatar" />
+
+    <!-- 联系人名称 -->
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:text="张三"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintTop_toTopOf="@id/iv_avatar"
+        app:layout_constraintStart_toEndOf="@id/iv_avatar"
+        app:layout_constraintEnd_toStartOf="@id/tv_time" />
+
+    <!-- 最后消息时间 -->
+    <TextView
+        android:id="@+id/tv_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10:30"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintTop_toTopOf="@id/iv_avatar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 最后一条消息 -->
+    <TextView
+        android:id="@+id/tv_last_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:text="会议材料准备得怎么样了？"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintTop_toBottomOf="@id/tv_name"
+        app:layout_constraintStart_toEndOf="@id/iv_avatar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/iv_avatar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

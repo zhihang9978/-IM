@@ -6,22 +6,45 @@
     android:orientation="vertical"
     android:background="@color/background_light">
 
-    <TextView
+    <!-- 朋友圈入口（按设计文档） -->
+    <LinearLayout
+        android:id="@+id/btn_moments"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/nav_discover"
-        android:textSize="@dimen/text_size_title"
-        android:textColor="@color/text_primary"
-        android:padding="@dimen/spacing_medium"
-        android:background="@color/white" />
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/white"
+        android:gravity="center_vertical">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/discover_moments"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
 
-    <TextView
+    <!-- 扫一扫入口（按设计文档） -->
+    <LinearLayout
+        android:id="@+id/btn_scan"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="发现功能开发中..."
-        android:textColor="@color/text_secondary" />
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/white"
+        android:gravity="center_vertical">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/discover_scan"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
 
 </LinearLayout>
 
