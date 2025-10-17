@@ -1,6 +1,7 @@
 package com.lanxin.im.trtc
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,10 @@ import com.lanxin.im.data.remote.RetrofitClient
  * 使用TRTCManager的纯数据流接口，不依赖TRTC UI组件
  */
 class AudioCallActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
+    
+    companion object {
+        private const val TAG = "AudioCallActivity"
+    }
     
     private lateinit var trtcManager: TRTCManager
     private lateinit var tvStatus: TextView

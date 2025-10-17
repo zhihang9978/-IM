@@ -73,6 +73,27 @@ class ChatViewModel(
             // 收到通话邀请
             // TODO: 显示通话邀请UI
         }
+        
+        override fun onReadReceipt(receipt: com.lanxin.im.data.remote.ReadReceipt) {
+            // 收到已读回执
+            if (receipt.conversation_id == conversationId) {
+                // 更新该会话中发送给对方的所有消息为已读状态
+                val currentList = _messages.value.orEmpty().toMutableList()
+                var updated = false
+                for (i in currentList.indices) {
+                    val message = currentList[i]
+                    if (message.senderId != receipt.reader_id && message.receiverId == receipt.reader_id) {
+                        if (message.status != "read") {
+                            currentList[i] = message.copy(status = "read")
+                            updated = true
+                        }
+                    }
+                }
+                if (updated) {
+                    _messages.postValue(currentList)
+                }
+            }
+        }
     }
     
     init {
