@@ -43,8 +43,8 @@ storage:
     base_url: http://localhost:9000  # 自建COS服务地址（例如MinIO）
   
 trtc:
-  sdk_app_id: 0  # 腾讯云TRTC应用ID
-  secret_key: ""  # 腾讯云TRTC密钥
+  sdk_app_id: 1600109367  # 腾讯云TRTC应用ID
+  secret_key: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgZeevqkdnxJKQyLbnjUm3YX8dNTPdzTp6gCCGl1B5V7OhRANCAATaOYqPzlXTTVBk+O4o/AQYMuBi3quZuGNAazQuICmGIzwET508Dvw09RTQFZwPiJ8VGInKDnzUotHo5sJ+FfmC"  # 腾讯云TRTC密钥（私钥）
   expire_time: 86400
 
 websocket:

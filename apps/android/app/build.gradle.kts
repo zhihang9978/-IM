@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lanxin.im"
-        minSdk = 24
+        minSdk = 26  // 提高到26以支持MinIO SDK的依赖
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
@@ -101,7 +101,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
     // 腾讯云 TRTC SDK（音视频通话）- 必须保留
-    implementation("com.tencent.liteav:LiteAVSDK_TRTC:11.5.0")
+    // 使用Maven Central最新版本
+    implementation("com.tencent.liteav:LiteAVSDK_TRTC:12.5.0.17575")
     
     // MinIO S3客户端（自建对象存储，不使用腾讯云COS）
     implementation("io.minio:minio:8.5.7")
