@@ -23,6 +23,7 @@
     <string name="message_recalled">你撤回了一条消息</string>
     <string name="message_recalled_other">对方撤回了一条消息</string>
     <string name="voice_message">语音消息</string>
+    <string name="image_message">图片消息</string>
     
     <!-- 通讯录相关 -->
     <string name="contacts_new_friends">新的朋友</string>

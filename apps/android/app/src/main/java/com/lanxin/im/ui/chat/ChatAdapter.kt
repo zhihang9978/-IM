@@ -83,12 +83,12 @@ class ChatAdapter(
             }
             VIEW_TYPE_IMAGE_SENT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_image_sent, parent, false)
+                    .inflate(R.layout.item_message_image_sent_wildfire, parent, false)
                 ImageSentViewHolder(view)
             }
             VIEW_TYPE_IMAGE_RECEIVED -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_image_sent, parent, false)
+                    .inflate(R.layout.item_message_image_received_wildfire, parent, false)
                 ImageReceivedViewHolder(view)
             }
             VIEW_TYPE_VIDEO_SENT -> {
@@ -368,64 +368,62 @@ class ChatAdapter(
         }
     }
     
-    // 发送图片消息ViewHolder
+    // 发送图片消息ViewHolder (WildFire IM style)
     class ImageSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivImage: ImageView = itemView.findViewById(R.id.iv_image)
-        private val imageCard: View = itemView.findViewById(R.id.image_card)
+        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        private val imageCardView: View = itemView.findViewById(R.id.imageCardView)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onImageClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
-            
+            // 使用Glide加载图片，自适应尺寸
             Glide.with(itemView.context)
                 .load(message.content)
                 .centerCrop()
-                .into(ivImage)
+                .placeholder(R.drawable.ic_image)
+                .error(R.drawable.ic_image)
+                .into(imageView)
             
-            imageCard.setOnClickListener {
+            // 点击预览图片
+            imageCardView.setOnClickListener {
                 onImageClick?.invoke(message)
             }
             
-            imageCard.setOnLongClickListener {
+            // 长按菜单
+            imageCardView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
         }
     }
     
-    // 接收图片消息ViewHolder
+    // 接收图片消息ViewHolder (WildFire IM style)
     class ImageReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val ivImage: ImageView = itemView.findViewById(R.id.iv_image)
-        private val imageCard: View = itemView.findViewById(R.id.image_card)
+        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        private val imageCardView: View = itemView.findViewById(R.id.imageCardView)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onImageClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
-            
+            // 使用Glide加载图片，自适应尺寸
             Glide.with(itemView.context)
                 .load(message.content)
                 .centerCrop()
-                .into(ivImage)
+                .placeholder(R.drawable.ic_image)
+                .error(R.drawable.ic_image)
+                .into(imageView)
             
-            imageCard.setOnClickListener {
+            // 点击预览图片
+            imageCardView.setOnClickListener {
                 onImageClick?.invoke(message)
             }
             
-            imageCard.setOnLongClickListener {
+            // 长按菜单
+            imageCardView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }

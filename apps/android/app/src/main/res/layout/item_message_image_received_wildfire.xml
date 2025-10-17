@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Received image message item layout (WildFire IM style)
+  Source: WildFireChat android-chat-master/uikit/res/layout/conversation_item_image_receive.xml (Apache 2.0)
+  Adapted for LanXin IM - using CardView instead of custom BubbleImageView
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="start"
+    android:padding="8dp">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/imageCardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/white">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:maxWidth="240dp"
+            android:maxHeight="320dp"
+            android:minWidth="80dp"
+            android:minHeight="80dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/image_message" />
+
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>
+
