@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sent file message item layout (WildFire IM style)
+  Source: WildFireChat android-chat-master/uikit/res/layout/conversation_item_file_send.xml (Apache 2.0)
+  Adapted for LanXin IM
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="end"
+    android:padding="8dp">
+
+    <RelativeLayout
+        android:id="@+id/fileMessageContentView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="220dp"
+        android:minHeight="80dp"
+        android:background="@drawable/img_bubble_send"
+        android:backgroundTint="@color/lightColorPrimary"
+        android:padding="12dp">
+
+        <!-- 文件图标 -->
+        <ImageView
+            android:id="@+id/fileIconImageView"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:src="@mipmap/ic_file_type_unknown"
+            android:contentDescription="@string/file_message" />
+
+        <!-- 文件名 -->
+        <TextView
+            android:id="@+id/fileNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/fileIconImageView"
+            android:layout_alignTop="@id/fileIconImageView"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxWidth="180dp"
+            android:maxLines="2"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            tools:text="important_document_v2.pdf" />
+
+        <!-- 文件大小 -->
+        <TextView
+            android:id="@+id/fileSizeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/fileIconImageView"
+            android:layout_alignBottom="@id/fileIconImageView"
+            android:layout_marginStart="12dp"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:alpha="0.8"
+            tools:text="2.5 MB" />
+
+        <!-- 下载进度条（可选） -->
+        <ProgressBar
+            android:id="@+id/downloadProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_below="@id/fileIconImageView"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:progress="50" />
+
+    </RelativeLayout>
+
+</FrameLayout>
+

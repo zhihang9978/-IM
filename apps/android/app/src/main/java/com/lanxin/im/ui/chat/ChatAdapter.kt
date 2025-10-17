@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.model.Message
 import com.lanxin.im.utils.BurnAfterReadHelper
+import com.lanxin.im.utils.FileTypeHelper
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -103,12 +104,12 @@ class ChatAdapter(
             }
             VIEW_TYPE_FILE_SENT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_file_sent, parent, false)
+                    .inflate(R.layout.item_message_file_sent_wildfire, parent, false)
                 FileSentViewHolder(view)
             }
             VIEW_TYPE_FILE_RECEIVED -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_message_file_sent, parent, false)
+                    .inflate(R.layout.item_message_file_received_wildfire, parent, false)
                 FileReceivedViewHolder(view)
             }
             else -> throw IllegalArgumentException("Invalid view type")
@@ -532,97 +533,91 @@ class ChatAdapter(
         }
     }
     
-    // 发送文件消息ViewHolder
+    // 发送文件消息ViewHolder (WildFire IM style)
     class FileSentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val tvFileName: TextView = itemView.findViewById(R.id.tv_file_name)
-        private val tvFileSize: TextView = itemView.findViewById(R.id.tv_file_size)
-        private val fileCard: View = itemView.findViewById(R.id.file_card)
+        private val fileIconImageView: ImageView = itemView.findViewById(R.id.fileIconImageView)
+        private val fileNameTextView: TextView = itemView.findViewById(R.id.fileNameTextView)
+        private val fileSizeTextView: TextView = itemView.findViewById(R.id.fileSizeTextView)
+        private val fileMessageContentView: View = itemView.findViewById(R.id.fileMessageContentView)
+        private val downloadProgressBar: View = itemView.findViewById(R.id.downloadProgressBar)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onFileClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
-            
+            // 解析文件消息内容：格式为 "fileName|fileSize|fileUrl"
             val parts = message.content.split("|")
-            if (parts.size >= 2) {
-                tvFileName.text = parts[0]
-                val size = parts[1].toLongOrNull() ?: 0L
-                tvFileSize.text = formatFileSize(size)
-            } else {
-                tvFileName.text = "未知文件"
-                tvFileSize.text = "0 B"
-            }
+            val fileName = if (parts.isNotEmpty()) parts[0] else "未知文件"
+            val fileSize = if (parts.size >= 2) parts[1].toLongOrNull() ?: 0L else 0L
             
-            fileCard.setOnClickListener {
+            // 设置文件名
+            fileNameTextView.text = fileName
+            
+            // 设置文件大小
+            fileSizeTextView.text = FileTypeHelper.formatFileSize(fileSize)
+            
+            // 根据文件名设置文件类型图标
+            val iconResId = FileTypeHelper.getFileTypeIcon(fileName)
+            fileIconImageView.setImageResource(iconResId)
+            
+            // 点击打开文件
+            fileMessageContentView.setOnClickListener {
                 onFileClick?.invoke(message)
             }
             
-            fileCard.setOnLongClickListener {
+            // 长按菜单
+            fileMessageContentView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
-        }
-        
-        private fun formatFileSize(size: Long): String {
-            return when {
-                size < 1024 -> "$size B"
-                size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
-                size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024))
-                else -> String.format("%.1f GB", size / (1024.0 * 1024 * 1024))
-            }
+            
+            // 隐藏下载进度条
+            downloadProgressBar.visibility = View.GONE
         }
     }
     
-    // 接收文件消息ViewHolder
+    // 接收文件消息ViewHolder (WildFire IM style)
     class FileReceivedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val tvFileName: TextView = itemView.findViewById(R.id.tv_file_name)
-        private val tvFileSize: TextView = itemView.findViewById(R.id.tv_file_size)
-        private val fileCard: View = itemView.findViewById(R.id.file_card)
+        private val fileIconImageView: ImageView = itemView.findViewById(R.id.fileIconImageView)
+        private val fileNameTextView: TextView = itemView.findViewById(R.id.fileNameTextView)
+        private val fileSizeTextView: TextView = itemView.findViewById(R.id.fileSizeTextView)
+        private val fileMessageContentView: View = itemView.findViewById(R.id.fileMessageContentView)
+        private val downloadProgressBar: View = itemView.findViewById(R.id.downloadProgressBar)
         
         fun bind(
             message: Message,
             onLongClick: (Message) -> Unit,
             onFileClick: ((Message) -> Unit)?
         ) {
-            Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
-                .circleCrop()
-                .into(ivAvatar)
-            
+            // 解析文件消息内容：格式为 "fileName|fileSize|fileUrl"
             val parts = message.content.split("|")
-            if (parts.size >= 2) {
-                tvFileName.text = parts[0]
-                val size = parts[1].toLongOrNull() ?: 0L
-                tvFileSize.text = formatFileSize(size)
-            } else {
-                tvFileName.text = "未知文件"
-                tvFileSize.text = "0 B"
-            }
+            val fileName = if (parts.isNotEmpty()) parts[0] else "未知文件"
+            val fileSize = if (parts.size >= 2) parts[1].toLongOrNull() ?: 0L else 0L
             
-            fileCard.setOnClickListener {
+            // 设置文件名
+            fileNameTextView.text = fileName
+            
+            // 设置文件大小
+            fileSizeTextView.text = FileTypeHelper.formatFileSize(fileSize)
+            
+            // 根据文件名设置文件类型图标
+            val iconResId = FileTypeHelper.getFileTypeIcon(fileName)
+            fileIconImageView.setImageResource(iconResId)
+            
+            // 点击打开文件
+            fileMessageContentView.setOnClickListener {
                 onFileClick?.invoke(message)
             }
             
-            fileCard.setOnLongClickListener {
+            // 长按菜单
+            fileMessageContentView.setOnLongClickListener {
                 onLongClick(message)
                 true
             }
-        }
-        
-        private fun formatFileSize(size: Long): String {
-            return when {
-                size < 1024 -> "$size B"
-                size < 1024 * 1024 -> String.format("%.1f KB", size / 1024.0)
-                size < 1024 * 1024 * 1024 -> String.format("%.1f MB", size / (1024.0 * 1024))
-                else -> String.format("%.1f GB", size / (1024.0 * 1024 * 1024))
-            }
+            
+            // 隐藏下载进度条
+            downloadProgressBar.visibility = View.GONE
         }
     }
 }

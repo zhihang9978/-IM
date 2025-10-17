@@ -26,6 +26,7 @@
     <string name="image_message">图片消息</string>
     <string name="video_message">视频消息</string>
     <string name="play_video">播放视频</string>
+    <string name="file_message">文件消息</string>
     
     <!-- 通讯录相关 -->
     <string name="contacts_new_friends">新的朋友</string>
