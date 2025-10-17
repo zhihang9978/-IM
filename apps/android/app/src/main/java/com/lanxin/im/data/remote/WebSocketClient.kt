@@ -119,6 +119,14 @@ class WebSocketClient(private val token: String) {
                     )
                     listeners.forEach { it.onCallInvite(callInvite) }
                 }
+                "read_receipt" -> {
+                    // 已读回执
+                    val readReceipt = gson.fromJson(
+                        gson.toJson(wsMessage.data),
+                        ReadReceipt::class.java
+                    )
+                    listeners.forEach { it.onReadReceipt(readReceipt) }
+                }
                 else -> {
                     Log.w(TAG, "Unknown message type: ${wsMessage.type}")
                 }
@@ -157,6 +165,7 @@ class WebSocketClient(private val token: String) {
         fun onNewMessage(message: Message)
         fun onMessageStatusUpdate(update: MessageStatusUpdate)
         fun onCallInvite(invite: CallInvite)
+        fun onReadReceipt(receipt: ReadReceipt)
     }
 }
 
@@ -178,5 +187,11 @@ data class CallInvite(
     val caller_username: String,
     val room_id: String,
     val call_type: String // audio, video
+)
+
+data class ReadReceipt(
+    val conversation_id: Long,
+    val reader_id: Long,
+    val read_at: String
 )
 

@@ -100,11 +100,11 @@ dependencies {
     // WebSocket (OkHttp)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
-    // 腾讯云 TRTC SDK（音视频通话）- 暂时注释，需要配置Maven仓库
-    // implementation("com.tencent.liteav:LiteAVSDK_TRTC:11.5.0")
+    // 腾讯云 TRTC SDK（音视频通话）- 必须保留
+    implementation("com.tencent.liteav:LiteAVSDK_TRTC:11.5.0")
     
-    // 自建COS SDK（S3兼容对象存储，可用MinIO）- 暂时注释，需要配置Maven仓库  
-    // implementation("com.tencent.qcloud:cosxml:5.9.8")
+    // MinIO S3客户端（自建对象存储，不使用腾讯云COS）
+    implementation("io.minio:minio:8.5.7")
     
     // Glide 图片加载
     implementation("com.github.bumptech.glide:glide:4.16.0")

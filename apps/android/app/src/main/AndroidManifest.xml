@@ -48,17 +48,15 @@
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".MainActivity" />
         
-        <!-- 音频通话Activity -->
+        <!-- 音视频通话Activity（使用腾讯云TRTC） -->
         <activity
             android:name=".trtc.AudioCallActivity"
             android:screenOrientation="portrait" />
         
-        <!-- 视频通话Activity -->
         <activity
             android:name=".trtc.VideoCallActivity"
             android:screenOrientation="portrait" />
         
-        <!-- 屏幕共享Activity -->
         <activity
             android:name=".trtc.ScreenShareActivity"
             android:screenOrientation="portrait" />

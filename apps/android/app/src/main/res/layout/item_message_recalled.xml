@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 撤回消息提示（按设计文档：居中、圆角、灰色） -->
+<FrameLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/spacing_small"
+    android:paddingBottom="@dimen/spacing_small">
+
+    <TextView
+        android:id="@+id/tv_recalled_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:background="@drawable/bg_recalled_message"
+        android:text="你撤回了一条消息"
+        android:textSize="13sp"
+        android:textColor="#999999"
+        android:fontFamily="sans-serif"
+        android:textStyle="italic"
+        android:drawableStart="@drawable/ic_undo"
+        android:drawablePadding="4dp" />
+
+</FrameLayout>
+

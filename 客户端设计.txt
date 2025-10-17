@@ -1,0 +1,260 @@
+蓝信通讯项目客户端开发计划书
+目录
+
+项目概述
+
+系统架构
+
+Android 客户端开发
+
+3.1 UI设计与适配
+
+3.2 登录模块
+
+3.3 消息与网络通信
+
+3.4 音视频与屏幕共享
+
+Web 客户端开发
+
+4.1 技术栈与环境
+
+4.2 UI设计与兼容性
+
+4.3 登录与消息通信
+
+4.4 音视频与屏幕共享
+
+通用功能与要求
+
+5.1 WebRTC/TRTC 集成
+
+5.2 文件/图片上传存储
+
+5.3 多端同步与离线消息
+
+屏幕共享功能实现说明
+
+登录架构
+
+开发分工
+
+构建与发布
+
+项目概述
+
+“蓝信通讯”项目要求开发 Android 客户端和 PC 端 Web 客户端，支持即时消息和实时音视频通话。系统采用自研后端，包括 WebSocket 实时通信服务和腾讯云 TRTC 音视频服务（只使用 TRTC SDK，无 UI 组件）。所有功能需按照提供的设计原型实现，采用响应式布局适配各种设备。客户端侧仅支持账号+密码登录（含记住密码、自动登录、修改密码功能），并保证消息的多端同步、已读回执和离线消息机制。计划按照上线标准开发，最终产出可运行的 Android APK 和 Web 构建包。
+
+系统架构
+
+系统采用前后端分离架构，客户端通过 WebSocket 与后端通信，后端提供认证、消息路由、存储等功能。架构示意图见下图：
+
+Android 客户端和 Web 客户端通过 WebSocket 长连接与 消息服务 通信；
+
+消息服务 负责接收发送端消息、生成消息 ID、持久化并转发给接收端（若接收端离线则缓存消息，待上线后投递）
+medium.com
+；
+
+音视频通话和屏幕共享使用腾讯云 TRTC SDK（Android 和 Web）进行点对点实时传输；客户端自定义 UI 调用 TRTC API，无需使用 TRTC 提供的 UI 组件
+github.com
+；
+
+文件/图片等大文件通过自建 COS（对象存储）上传下载，不使用腾讯云 COS 服务；
+
+整体数据流见图：客户端 → WebSocket 连接 → Gateway → 后端各服务（消息服务、存储服务、管理后台等）。
+
+（注：详细系统架构图需按照需求绘制，包含客户端、网关、消息服务、存储服务等模块的数据流，供后续开发和部署参考。）
+
+Android 客户端开发
+UI设计与适配
+
+响应式布局：界面使用 ConstraintLayout 等现代布局容器，配合 Android 指南建议的弹性网格，实现不同屏幕和分辨率自适应布局
+developer.android.com
+developer.android.com
+。所有尺寸单位均使用 dp (布局) 和 sp (文字) 以适应不同屏幕密度
+developer.android.com
+developer.android.com
+。在开发过程中需测试国内主流品牌设备（如华为、小米、OPPO、Vivo、OnePlus 等）和常见分辨率，保证界面完整显示且无遮挡。
+
+UI 风格与原型对齐：界面设计严格参照用户提供的墨刀原型（安卓前端 UI 原型）。开发时参考原型中的图标、配色、交互布局等要素，缺失部分由 Cursor 补全并保持风格一致。例如，登录页、聊天页、设置页等主要界面按照原型来设计元素和布局。Cursor 应在文档中说明如何使用原型参考（如注释链接至原型截图），便于后续维护。
+
+主题与资源管理：采用 Material Design 规范或自定义主题，统一设置颜色和字体风格；图标、图片资源应提供多种分辨率版本（mdpi、hdpi、xhdpi、xxhdpi 等）或使用矢量图，以适配不同设备
+developer.android.com
+developer.android.com
+。
+
+登录模块
+
+账号+密码登录：实现标准登录界面，用户输入账号和密码并点击登录。前端将登录请求通过安全通道提交给后端进行验证。登录成功后后端返回认证凭证（如 JWT Token），客户端保存凭证以建立后续连接。
+
+记住密码与自动登录：在登录页提供“记住密码”和“自动登录”选项。若用户勾选，应用可将账号凭证（如 Token 或加密后的密码）保存在安全存储中。推荐使用 Android Keystore 系统（安全密钥库）存储加密密钥或加密后的敏感数据
+developer.android.com
+，避免直接明文存储。应用启动时检查存储凭证并自动登录/重连。
+
+密码修改：提供修改密码界面，允许已登录用户更新密码。更新请求通过加密通道提交服务器，服务器验证身份后修改密码。修改成功后，客户端应更新本地保存的密码或清除自动登录状态，并要求用户重新登录。
+
+消息与网络通信
+
+WebSocket 长连接：应用启动登录后，通过 WebSocket 与服务器建立持久连接。WebSocket 适合双向实时通信，能够降低延迟并支持服务器主动推送
+medium.com
+ably.com
+。建议使用成熟库（如 OkHttp 的 WebSocket 或 Android 版 Socket.IO 客户端）实现连接，关注断线重连逻辑。服务器需为每个在线用户维护会话，客户端登录时告知服务器自己的用户 ID，以便服务器推送相应消息
+medium.com
+。
+
+消息发送与接收：发送消息时，将消息内容通过 WebSocket 发送给服务器，并在发送时本地缓存消息状态；服务器接收后生成消息 ID 并持久化，再转发给目标用户所有在线设备（包括其他登录的本端设备）。接收方收到消息后需发送 ACK 确认，客户端收到服务器推送的确认后更新本地消息状态为“已送达
+medium.com
+”。当用户阅读消息时，客户端通过 WebSocket 通知服务器发送“已读”回执，服务器将回执推送给发送方（包括其所有设备）
+ably.com
+。
+
+多端同步：同一账号在多个设备（如手机与 Web）同时在线时，应保持消息历史和状态一致。服务器向每个登录设备推送消息和已读回执，客户端需正确处理消息去重，避免同一消息多次显示。新消息到达时所有设备同步通知。
+
+离线消息：当用户离线时，服务器应在数据库中缓存未读消息
+medium.com
+。用户上线后，服务器需主动将离线消息推送给客户端（通过 WebSocket 或推送服务），客户端收到后显示并请求确认。客户端也可以在登录成功后主动请求未读历史。
+
+消息存储与滚动：本地可采用 SQLite 或内存缓存存储消息历史，支持聊天记录滚动加载。必要时定期清理缓存。
+
+音视频与屏幕共享
+
+TRTC 音视频通话：集成腾讯云 TRTC Android SDK，实现一对一音视频通话功能。建立通话时，客户端调用服务端生成的 UserSig（用户签名）加入房间，然后开始本地音视频流采集和远端流播放。开发者需自定义通话界面（摄像头预览、对方视频画面、挂断按钮等），不使用 TRTC 的 UI Kit，以满足品牌一致性要求。音视频采集和渲染使用 TRTC 提供的 API（如 startLocalVideo、startLocalAudio、startRemoteView 等
+github.com
+）。
+
+屏幕共享：Android 端利用 Android 5.0+ 的 MediaProjection API 捕获屏幕内容，然后通过 WebRTC 数据流传输给另一端
+stackoverflow.com
+forasoft.com
+。具体实现参考 Android WebRTC 屏幕共享示例：使用 ScreenCapturerAndroid 或 ScreenCaptureMediaSource 将屏幕帧作为视频源，创建 VideoTrack 并添加到本地流中
+stackoverflow.com
+stackoverflow.com
+。注意获取用户授权（调用 MediaProjectionManager 请求权限）并处理生命周期。屏幕共享时同样需要开启麦克风录音以传输声音。显示控制方面需提供开始/结束共享按钮，并在通话双方界面上显示共享的屏幕内容。
+
+适配与兼容性：确保音视频功能在常见机型上正常工作。考虑权限问题（录音、相机、屏幕录制）、兼容性（安卓 5.0 以上）等。采用异步线程处理音视频数据，避免阻塞 UI。
+
+Web 客户端开发
+技术栈与环境
+
+技术选型：使用 React + TypeScript 开发单页 Web 应用，与已知项目保持一致。利用现代前端工具链（如 Webpack 或 Vite）进行模块打包。后端通信使用 WebSocket 与后端消息服务对接，HTTP 用于登录、文件下载等场景。
+
+开发环境：Node.js + npm/yarn，建议 Chrome 90+ 作为主要测试浏览器，同时兼容 Edge、Firefox、Safari 等现代浏览器
+github.com
+。可使用 React 17+ 或更高版本，搭配 UI 组件库（如 Ant Design）实现管理后台界面。
+
+UI设计与兼容性
+
+界面设计：Web 界面需参照提供的墨刀原型（后台管理系统 UI 原型）实现，如登录页、控制台页面等。样式与颜色与 Android 端保持视觉一致性。页面采用响应式布局，适配常见桌面分辨率，同时在小屏幕下（例如 1024px 以下）兼容基本操作。
+
+浏览器兼容性：TRTC Web SDK 支持 Chrome、Edge、Firefox、Safari 等主流浏览器
+github.com
+。需确保应用在这些环境下能够访问摄像头、麦克风、屏幕共享（部分浏览器对屏幕共享调用 getDisplayMedia API）。支持 HTTPS 上运行（屏幕共享和摄像头需 HTTPS 上下文）。
+
+登录与消息通信
+
+登录方式：与 Android 保持一致，只支持账号+密码登录。前端登录表单通过 HTTPS 将账号密码发送给后端验证（或通过 WebSocket 首次握手）。成功后获取 Token 以维持会话。
+
+记住密码/自动登录：可在浏览器本地存储（LocalStorage 或 Cookie）中安全保存登录状态，如保存 Token。注意 Token 存储的安全策略，防止 XSS 攻击泄露。
+
+WebSocket 通信：使用 Tencent-RTC 提供的 TRTC Web SDK 进行音视频部分连接，但消息功能通过另一路 WebSocket 连接。建立 WebSocket 后，订阅消息事件并更新界面。消息发送与接收逻辑与 Android 类似，通过 WebSocket 发送文本/文件链接等，接收消息时更新聊天记录。
+
+Web端音视频与屏幕共享
+
+TRTC Web SDK：集成 TRTC Web SDK 实现音视频通话（创建 TRTC 实例、进房、开启本地音视频、订阅远端流等）。需自行设计通话页面元素。
+
+屏幕共享：调用浏览器的 navigator.mediaDevices.getDisplayMedia() 获取屏幕流，然后将其作为视频轨道添加到 TRTC 的本地音视频流中实现屏幕共享。调用时需要 HTTPS 和用户授权。共享开始/结束需通知对方界面。
+
+通用功能与要求
+WebRTC/TRTC 集成
+
+WebRTC 原理：TRTC 基于 WebRTC 技术，为 Web 和移动端提供高质量音视频能力
+github.com
+。本项目要求自定义 UI 调用 TRTC API，即不用 TRTC UI 组件。Cursor 需参考腾讯云文档和示例代码正确接入 TRTC
+github.com
+。
+
+SDK 使用：仅使用腾讯云 TRTC 音视频 SDK（已提供 AppID 和密钥），不得使用其他第三方音视频服务。Android 使用 trtc-lite 库，Web 使用 trtc-sdk-v5。确保在客户端不泄露密钥，UserSig 在后端生成（客户端仅使用签名）。
+
+文件图片上传存储
+
+COS 存储：所有文件（头像、图片、文档等）上传使用自建 COS 方案，不能使用腾讯云 COS。Cursor 需实现文件上传接口调用，获取文件 ID/URL 后通过消息通知发送给对方。Storage 服务负责保存文件到存储后端并返回访问 URL。客户端对大文件（如图片）应支持分块上传和进度显示，必要时可使用现有库（如安卓的 OkHttp 分片上传）。
+
+多端同步与离线消息
+
+多端同步：用户在多个设备登录时，消息状态（已送达、已读等）需要实时同步。服务器对每个设备独立推送消息和回执
+medium.com
+，客户端不使用本地互相通信方式进行同步。
+
+离线消息：若用户不在线，服务器将消息存储在数据库或消息队列中
+medium.com
+，待用户上线时推送。客户端上线后可主动拉取离线消息或等待服务器推送。离线消息推送完成后，服务器可选择删除或存档旧消息。
+
+已读回执：发送方发送消息后，根据客户端 ACK 和阅读事件得到“已送达”“已读”回执，通过 WebSocket 通知相关设备
+medium.com
+ably.com
+。
+
+屏幕共享功能实现说明
+
+屏幕共享主要依赖 WebRTC 技术实现跨端屏幕流传输。实现步骤：
+
+获取屏幕流：
+
+在 Android 端，通过 MediaProjection API 启动屏幕录制，使用 ScreenCapturerAndroid 等类获取视频源
+stackoverflow.com
+forasoft.com
+；
+
+在 Web 端，调用 getDisplayMedia() 请求用户授权获取屏幕媒体流。
+
+编码与传输：将捕获的视频流与音频流一起通过 TRTC/RTC PeerConnection 发送。采用合适的分辨率和帧率（如720p 30fps）以保证质量与性能平衡。
+
+UI 切换：屏幕共享开始后，替换远端或本地视频预览为共享内容。提供专门的结束共享按钮。
+
+兼容性：确保目标浏览器或安卓版本对屏幕共享 API 的支持（Android 5.0+，现代浏览器 HTTPS 环境）。
+
+登录架构
+
+账号+密码：客户端不使用第三方登录（如社交账号），仅支持自有账号体系。登录流程通过调用后端接口验证账号密码（可使用安全通信协议，如 HTTPS 或通过 WebSocket 私有消息）。
+
+本地存储：记住密码可通过 Android Keystore 或浏览器安全存储保存登录凭证（Token）
+developer.android.com
+。自动登录时使用存储的 Token 验证。
+
+修改密码：提供修改密码界面，用户输入旧密码和新密码，提交给后端。后端验证后更新密码，客户端需清除本地凭证，要求重新登录。
+
+安全性：密码在传输时采用加密（HTTPS/WSS），客户端不应明文存储密码。建议使用一次性令牌或双因素登录流程可选方案（超出当前需求）。
+
+开发分工
+
+Cursor 负责：Android 和 Web 客户端的全部功能开发与 UI 实现。包括设计界面、编写业务逻辑、与后端接口对接、集成 TRTC SDK、实现屏幕共享、自定义消息同步逻辑等。Cursor 还需撰写技术文档（接口说明、部署说明、使用指南等）。开发过程中可参考提供的原型文件，使用 Windows 11 等开发环境完成编码和测试。
+
+Devin 负责：部署与构建工作。在三台服务器上准备环境，搭建后端服务并进行负载均衡配置。具体任务包括部署数据库、启动消息服务，配置 WebSocket 端口（通常 443）、部署 SSL 证书、构建客户端产物并签名打包 Android APK（例如使用 ./gradlew assembleRelease）。Devin 还需根据 Cursor 提供的文档调整服务器配置，进行系统集成测试（消息收发、音视频通话、文件上传等）。
+
+构建与发布
+
+Android：使用 Gradle 构建系统。可通过命令 ./gradlew assembleDebug 生成调试 APK，./gradlew assembleRelease 生成正式签名 APK。确保在签名配置文件中设置应用签名。测试通过后由 Devin 提供的签名文件签名 APK 并准备发布版本。
+
+Web：在 React 项目中使用 npm run build（或 yarn build）生成生产环境静态资源。构建结果为压缩后的 HTML/JS/CSS 文件，由 Devin 部署到 Web 服务器（可选 Nginx）上。部署时需开启 HTTPS 并代理 WebSocket 服务。
+
+环境一致性：编写 CI/CD 脚本（如 GitLab CI）自动化构建流程。Cursor 可提供 Dockerfile 或脚本帮助构建，Devin 配置持续集成管道，确保每次提交后自动编译、测试并部署。
+
+参考文献
+
+Android 官方文档（ConstraintLayout 布局和密度无关像素单位）
+developer.android.com
+developer.android.com
+
+StackOverflow 及技术博客（Android 屏幕共享实现）
+stackoverflow.com
+forasoft.com
+
+腾讯云 TRTC SDK 文档和 GitHub（WebRTC/TRTC SDK 概述，浏览器支持列表）
+github.com
+github.com
+
+实时通信文章（WebSocket 应用案例、消息同步机制）
+medium.com
+medium.com
+ably.com
+
+项目提供文档（原型参考及任务分工）
