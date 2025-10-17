@@ -19,11 +19,13 @@
 - Git状态：master分支，34 commits ahead of origin/master
 - 工作区：clean（所有更改已提交）
 
-野火IM参考路径：
-- 源码：android-chat-master/
-- 布局：android-chat-master/uikit/src/main/res/layout/
-- 图标：android-chat-master/uikit/src/main/res/mipmap-*/
-- 代码：android-chat-master/uikit/src/main/java/cn/wildfire/chat/kit/
+⚠️ 野火IM参考路径（只读！仅作参考，不做任何修改）：
+- 源码：android-chat-master/（⚠️ 只读参考）
+- 布局：android-chat-master/uikit/src/main/res/layout/（⚠️ 只读参考）
+- 图标：android-chat-master/uikit/src/main/res/mipmap-*/（⚠️ 只读参考）
+- 代码：android-chat-master/uikit/src/main/java/cn/wildfire/chat/kit/（⚠️ 只读参考）
+
+⚠️⚠️⚠️ 重要原则：android-chat-master文件夹只作为文件提取和逻辑参考，不做任何修复和修改！⚠️⚠️⚠️
 
 蓝信目标路径：
 - 源码：apps/android/
