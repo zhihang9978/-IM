@@ -57,8 +57,8 @@ class ContactsFragment : Fragment() {
                 // 调用API获取联系人列表
                 val response = RetrofitClient.apiService.getContacts()
                 if (response.code == 0 && response.data != null) {
-                    // 显示联系人列表
-                    adapter.submitList(response.data.contacts.map { item ->
+                    // 转换为Contact列表
+                    val contacts = response.data.contacts.map { item ->
                         Contact(
                             id = item.id,
                             userId = item.user_id,
@@ -67,9 +67,14 @@ class ContactsFragment : Fragment() {
                             tags = item.tags,
                             status = item.status,
                             createdAt = item.created_at,
-                            updatedAt = System.currentTimeMillis()
+                            updatedAt = System.currentTimeMillis(),
+                            username = item.user?.username ?: "用户${item.contact_id}"
                         )
-                    })
+                    }
+                    
+                    // 使用ContactListHelper转换为显示项（带字母分组）
+                    val displayItems = ContactListHelper.toDisplayItems(contacts)
+                    adapter.submitList(displayItems)
                 }
             } catch (e: Exception) {
                 // 加载失败，显示空列表

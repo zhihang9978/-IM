@@ -9,6 +9,7 @@ data class Contact(
     val id: Long = 0,
     val userId: Long,
     val contactId: Long,
+    val username: String = "",  // 联系人用户名（用于字母分组）
     val remark: String?,
     val tags: String?,
     val status: String, // normal, blocked

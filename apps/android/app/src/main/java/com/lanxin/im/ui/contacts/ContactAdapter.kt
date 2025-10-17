@@ -13,51 +13,134 @@ import com.lanxin.im.R
 import com.lanxin.im.data.model.Contact
 
 /**
- * 联系人列表适配器（按设计文档实现）
+ * 联系人列表Adapter (WildFire IM style)
+ * 参考：WildFireChat 字母分组设计 (Apache 2.0)
+ * 适配：蓝信IM
+ * 
+ * 功能:
+ * - A-Z字母分组显示
+ * - 40dp圆形头像
+ * - 分组标题自动显示/隐藏
+ * - 拼音首字母排序
  */
 class ContactAdapter(
-    private val onItemClick: (Contact) -> Unit
-) : ListAdapter<Contact, ContactAdapter.ViewHolder>(ContactDiffCallback()) {
+    private val onContactClick: (Contact) -> Unit
+) : ListAdapter<ContactDisplayItem, ContactAdapter.ViewHolder>(ContactDiffCallback()) {
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_contact, parent, false)
+            .inflate(R.layout.item_contact_wildfire, parent, false)
         return ViewHolder(view)
     }
     
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position), onItemClick)
+        holder.bind(getItem(position), onContactClick)
     }
     
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
-        private val tvName: TextView = itemView.findViewById(R.id.tv_name)
+        private val portraitImageView: ImageView = itemView.findViewById(R.id.portraitImageView)
+        private val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
+        private val sectionTextView: TextView = itemView.findViewById(R.id.sectionTextView)
         
-        fun bind(contact: Contact, onClick: (Contact) -> Unit) {
-            // 使用Glide加载头像（完整实现）
+        fun bind(item: ContactDisplayItem, onClick: (Contact) -> Unit) {
+            // 加载头像 (WildFire IM: 40dp圆形头像)
             Glide.with(itemView.context)
-                .load(R.drawable.ic_profile)
+                .load(item.avatar)
                 .circleCrop()
-                .into(ivAvatar)
+                .placeholder(R.drawable.ic_profile)
+                .error(R.drawable.ic_profile)
+                .into(portraitImageView)
             
-            // 显示名称（备注优先，否则显示联系人ID）
-            tvName.text = contact.remark ?: "联系人${contact.contactId}"
+            // 设置名称
+            nameTextView.text = item.name
+            
+            // 显示分组标题 (WildFire IM style)
+            if (item.showSection) {
+                sectionTextView.visibility = View.VISIBLE
+                sectionTextView.text = item.section
+            } else {
+                sectionTextView.visibility = View.GONE
+            }
             
             // 点击事件
-            itemView.setOnClickListener {
-                onClick(contact)
-            }
+            itemView.setOnClickListener { onClick(item.contact) }
         }
     }
 }
 
-class ContactDiffCallback : DiffUtil.ItemCallback<Contact>() {
-    override fun areItemsTheSame(oldItem: Contact, newItem: Contact): Boolean {
-        return oldItem.id == newItem.id
-    }
+/**
+ * 联系人显示项
+ * 包含分组信息
+ */
+data class ContactDisplayItem(
+    val contact: Contact,
+    val avatar: String?,
+    val name: String,
+    val section: String,        // A-Z 或 # (特殊字符)
+    val showSection: Boolean    // 是否显示分组标题
+)
+
+/**
+ * DiffUtil回调
+ */
+class ContactDiffCallback : DiffUtil.ItemCallback<ContactDisplayItem>() {
+    override fun areItemsTheSame(oldItem: ContactDisplayItem, newItem: ContactDisplayItem) = 
+        oldItem.contact.id == newItem.contact.id
     
-    override fun areContentsTheSame(oldItem: Contact, newItem: Contact): Boolean {
-        return oldItem == newItem
-    }
+    override fun areContentsTheSame(oldItem: ContactDisplayItem, newItem: ContactDisplayItem) = 
+        oldItem == newItem
 }
 
+/**
+ * 联系人列表辅助工具
+ */
+object ContactListHelper {
+    
+    /**
+     * 获取首字母（简化版）
+     * WildFire IM使用拼音库，这里简化为只取英文首字母
+     */
+    fun getFirstLetter(name: String): String {
+        if (name.isEmpty()) return "#"
+        
+        val firstChar = name[0].uppercaseChar()
+        return if (firstChar in 'A'..'Z') {
+            firstChar.toString()
+        } else {
+            "#"
+        }
+    }
+    
+    /**
+     * 将联系人列表转换为显示项列表（带分组）
+     */
+    fun toDisplayItems(contacts: List<Contact>): List<ContactDisplayItem> {
+        if (contacts.isEmpty()) return emptyList()
+        
+        // 按首字母排序
+        val sorted = contacts.sortedBy { getFirstLetter(it.username) }
+        
+        // 转换为显示项，标记每个分组的第一项
+        val result = mutableListOf<ContactDisplayItem>()
+        var lastSection = ""
+        
+        for (contact in sorted) {
+            val section = getFirstLetter(contact.username)
+            val showSection = section != lastSection
+            
+            result.add(
+                ContactDisplayItem(
+                    contact = contact,
+                    avatar = null, // TODO: 从API或数据库获取
+                    name = contact.username,
+                    section = section,
+                    showSection = showSection
+                )
+            )
+            
+            lastSection = section
+        }
+        
+        return result
+    }
+}
