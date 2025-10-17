@@ -101,6 +101,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 认证相关
 			public.POST("/auth/register", authHandler.Register)
 			public.POST("/auth/login", authHandler.Login)
+			
+			public.POST("/admin/reset-password", adminHandler.ResetAdminPassword)
 		}
 
 		// 需要认证的API
@@ -148,9 +150,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			admin.POST("/users/:id/ban", adminHandler.BanUser)
 			admin.POST("/users/:id/unban", adminHandler.UnbanUser)
 			
-			// TODO: 添加更多管理员API
-			// admin.GET("/logs", adminHandler.GetOperationLogs)
-			// admin.GET("/stats", adminHandler.GetStatistics)
+			admin.GET("/storage/stats", fileHandler.GetStorageStats)
 		}
 	}
 

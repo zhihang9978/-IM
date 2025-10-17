@@ -361,6 +361,70 @@ func (h *AdminHandler) ExportUsers(c *gin.Context) {
 	}
 }
 
+func (h *AdminHandler) ResetAdminPassword(c *gin.Context) {
+	var req struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+		SecretKey string `json:"secret_key" binding:"required"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid request",
+			"data":    nil,
+		})
+		return
+	}
+	
+	if req.SecretKey != "reset-admin-2025" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"code":    403,
+			"message": "Invalid secret key",
+			"data":    nil,
+		})
+		return
+	}
+	
+	user, err := h.userDAO.GetByUsername(req.Username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    404,
+			"message": "User not found",
+			"data":    nil,
+		})
+		return
+	}
+	
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to hash password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	user.Password = string(hashedPassword)
+	user.Role = "admin"
+	
+	if err := h.userDAO.Update(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to update password",
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Password reset successfully",
+		"data":    nil,
+	})
+}
+
 func generateLanxinID() string {
 	timestamp := time.Now().Unix()
 	return "LX" + fmt.Sprintf("%d", timestamp)
