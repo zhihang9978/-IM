@@ -68,7 +68,8 @@ class LoginActivity : AppCompatActivity() {
                     // 保存Token
                     RetrofitClient.setToken(response.data.token)
                     
-                    // TODO: 保存Token到SharedPreferences持久化
+                    val sharedPrefs = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putString("auth_token", response.data.token).apply()
                     
                     Toast.makeText(this@LoginActivity, "登录成功", Toast.LENGTH_SHORT).show()
                     

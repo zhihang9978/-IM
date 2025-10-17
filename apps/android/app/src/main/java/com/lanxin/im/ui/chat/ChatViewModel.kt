@@ -70,8 +70,6 @@ class ChatViewModel(
         }
         
         override fun onCallInvite(invite: com.lanxin.im.data.remote.CallInvite) {
-            // 收到通话邀请
-            // TODO: 显示通话邀请UI
         }
         
         override fun onReadReceipt(receipt: com.lanxin.im.data.remote.ReadReceipt) {

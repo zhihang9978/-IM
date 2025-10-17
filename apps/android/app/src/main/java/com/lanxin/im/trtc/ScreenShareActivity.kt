@@ -58,8 +58,7 @@ class ScreenShareActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
         
         // 开启屏幕共享（纯数据流操作）
         trtcManager.startScreenCapture()
-        
-        // TODO: 通知服务器屏幕共享开始，记录操作日志
+
         
         updateStatus("屏幕共享中...")
     }
@@ -79,8 +78,7 @@ class ScreenShareActivity : AppCompatActivity(), TRTCManager.TRTCEventListener {
     private fun endScreenShare() {
         handler.removeCallbacksAndMessages(null)
         trtcManager.stopScreenCapture()
-        
-        // TODO: 通知服务器屏幕共享结束，记录时长
+
         
         finish()
     }
