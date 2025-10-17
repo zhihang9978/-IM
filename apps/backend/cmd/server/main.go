@@ -72,6 +72,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	messageHandler := api.NewMessageHandler(hub, producer)
 	fileHandler, _ := api.NewFileHandler(cfg)
 	trtcHandler := api.NewTRTCHandler(cfg, hub)
+	conversationHandler := api.NewConversationHandler()
+	contactHandler := api.NewContactHandler()
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -114,6 +116,12 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.GET("/users/me", userHandler.GetCurrentUser)
 			authorized.PUT("/users/me", userHandler.UpdateProfile)
 			authorized.GET("/users/search", userHandler.SearchUsers)
+			
+			// 会话相关（Android客户端需要）
+			authorized.GET("/conversations", conversationHandler.GetConversations)
+			
+			// 联系人相关（Android客户端需要）
+			authorized.GET("/contacts", contactHandler.GetContacts)
 			
 			// 消息相关
 			authorized.POST("/messages", messageHandler.SendMessage)
