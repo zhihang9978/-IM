@@ -65,6 +65,7 @@ class ChatAdapter(
         private val tvContent: TextView = itemView.findViewById(R.id.tv_content)
         private val tvTime: TextView = itemView.findViewById(R.id.tv_time)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.iv_avatar)
+        private val messageBubble: View = itemView.findViewById(R.id.message_bubble)
         
         fun bind(message: Message, onLongClick: (Message) -> Unit) {
             // 根据消息状态显示内容
@@ -81,9 +82,11 @@ class ChatAdapter(
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             tvTime.text = timeFormat.format(time)
             
-            // 长按事件
-            itemView.setOnLongClickListener {
-                onLongClick(message)
+            // 长按消息气泡弹出菜单（按设计文档要求）
+            messageBubble.setOnLongClickListener {
+                if (message.status != "recalled") {
+                    onLongClick(message)
+                }
                 true
             }
         }
