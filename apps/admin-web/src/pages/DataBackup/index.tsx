@@ -90,7 +90,7 @@ function DataBackup() {
       key: 'actions',
       fixed: 'right',
       width: 200,
-      render: (_, record) => (
+      render: (_) => (
         <Space size="small">
           <Button
             type="link"

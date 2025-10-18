@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lanxin/im-backend/config"
@@ -127,8 +128,8 @@ func (s *AuthService) RefreshToken(oldToken string) (string, error) {
 
 // generateLanxinID 生成蓝信号
 func generateLanxinID() string {
-	// 使用时间戳作为基础
-	timestamp := time.Now().Unix()
-	return "lx" + string(timestamp%1000000000)
+	// 使用时间戳作为基础（微秒级保证唯一性）
+	timestamp := time.Now().UnixNano() / 1000 // 微秒
+	return "lx" + fmt.Sprintf("%d", timestamp%10000000000) // 10位数字
 }
 
