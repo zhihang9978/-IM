@@ -11,8 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lanxin.im.R
+import com.lanxin.im.data.model.Contact
 import com.lanxin.im.data.remote.RetrofitClient
-import com.lanxin.im.ui.profile.UserInfoActivity
 import kotlinx.coroutines.launch
 
 /**
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class ContactsFragment : Fragment() {
     
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: ContactsAdapter
+    private lateinit var adapter: ContactAdapter
     private lateinit var searchBarLayout: LinearLayout
     
     override fun onCreateView(
@@ -35,17 +35,18 @@ class ContactsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        setupRecyclerView(view)
+        setupRecyclerView()
         setupSearchBar(view)
         loadContacts()
     }
     
-    private fun setupRecyclerView(view: View) {
-        recyclerView = view.findViewById(R.id.recycler_view)
+    private fun setupRecyclerView() {
+        recyclerView = view?.findViewById(R.id.recycler_view) ?: return
         
-        adapter = ContactsAdapter { contact ->
-            val intent = Intent(requireContext(), UserInfoActivity::class.java)
-            intent.putExtra("user_id", contact.userId)
+        adapter = ContactAdapter { contact ->
+            val intent = Intent(requireContext(), com.lanxin.im.ui.chat.ChatActivity::class.java)
+            intent.putExtra("conversation_id", 0L)
+            intent.putExtra("peer_id", contact.contactId)
             startActivity(intent)
         }
         
@@ -66,7 +67,27 @@ class ContactsFragment : Fragment() {
             try {
                 val response = RetrofitClient.apiService.getContacts()
                 if (response.code == 0 && response.data != null) {
-                    adapter.submitList(response.data.contacts)
+                    val contacts = response.data.contacts.mapNotNull { item ->
+                        if (item.user == null) {
+                            android.util.Log.w("ContactsFragment", "Contact ${item.id} has no user info")
+                            return@mapNotNull null
+                        }
+                        
+                        Contact(
+                            id = item.id,
+                            userId = item.user_id,
+                            contactId = item.contact_id,
+                            username = item.user.username,
+                            remark = item.remark,
+                            tags = item.tags,
+                            status = item.status,
+                            createdAt = item.created_at,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    }
+                    
+                    val displayItems = ContactListHelper.toDisplayItems(contacts, response.data.contacts)
+                    adapter.submitList(displayItems)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

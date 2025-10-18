@@ -35,7 +35,7 @@
                 app:title="扫一扫" />
 
             <com.lanxin.im.widget.OptionItemView
-                android:id="@+id:searchOptionItemView"
+                android:id="@+id/searchOptionItemView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:show_arrow_indicator="true"
