@@ -87,7 +87,8 @@ func (h *SystemMonitorHandler) GetServiceStatus(c *gin.Context) {
 	dbStatus := "healthy"
 	db := mysql.GetDB()
 	if db != nil {
-		if err := db.DB().Ping(); err != nil {
+		sqlDB, err := db.DB()
+		if err != nil || sqlDB.Ping() != nil {
 			dbStatus = "error"
 		}
 	} else {
@@ -306,7 +307,8 @@ func (h *SystemMonitorHandler) GetOnlineDeviceDistribution(c *gin.Context) {
 func (h *SystemMonitorHandler) HealthCheck(c *gin.Context) {
 	db := mysql.GetDB()
 	if db != nil {
-		if err := db.DB().Ping(); err != nil {
+		sqlDB, err := db.DB()
+		if err != nil || sqlDB.Ping() != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{
 				"code":    500,
 				"message": "database unavailable",

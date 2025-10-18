@@ -457,12 +457,12 @@ func (h *AdminHandler) GetAllMessages(c *gin.Context) {
 	for i := range messages {
 		var sender model.User
 		db.First(&sender, messages[i].SenderID)
-		messages[i].Sender = &sender
+		messages[i].Sender = sender
 
 		if messages[i].ReceiverID > 0 {
 			var receiver model.User
 			db.First(&receiver, messages[i].ReceiverID)
-			messages[i].Receiver = &receiver
+			messages[i].Receiver = receiver
 		}
 	}
 
@@ -571,7 +571,7 @@ func (h *AdminHandler) GetAllFiles(c *gin.Context) {
 	for i := range files {
 		var uploader model.User
 		db.First(&uploader, files[i].SenderID)
-		files[i].Sender = &uploader
+		files[i].Sender = uploader
 	}
 
 	c.JSON(http.StatusOK, gin.H{
