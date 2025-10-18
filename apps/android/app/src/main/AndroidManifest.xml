@@ -78,7 +78,7 @@
         <activity
             android:name=".ui.social.ScanQRCodeActivity"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         
         <!-- 收藏Activity -->
         <activity

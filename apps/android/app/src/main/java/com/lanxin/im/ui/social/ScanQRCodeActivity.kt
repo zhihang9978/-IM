@@ -28,19 +28,13 @@ class ScanQRCodeActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_scan_qrcode)
         
-        try {
-            setContentView(R.layout.activity_scan_qrcode)
-            
-            findViewById<View>(R.id.btn_close)?.setOnClickListener {
-                finish()
-            }
-            
-            checkCameraPermission()
-        } catch (e: Exception) {
-            Toast.makeText(this, "扫一扫功能初始化失败", Toast.LENGTH_SHORT).show()
+        findViewById<View>(R.id.btn_close)?.setOnClickListener {
             finish()
         }
+        
+        checkCameraPermission()
     }
     
     private fun checkCameraPermission() {

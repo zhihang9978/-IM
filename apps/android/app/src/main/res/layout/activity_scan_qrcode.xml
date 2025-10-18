@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout 
+<androidx.constraintlayout.widget.ConstraintLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#000000"
+    android:fitsSystemWindows="true">
 
     <!-- 扫码框提示 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:text="将二维码放入框内\n即可自动扫描"
         android:textSize="16sp"
-        android:textColor="@color/white"
+        android:textColor="#FFFFFF"
         android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="100dp" />
 
     <!-- 关闭按钮 -->
@@ -21,12 +26,13 @@
         android:id="@+id/btn_close"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_gravity="top|end"
         android:layout_margin="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_back"
-        android:tint="@color/white"
-        android:contentDescription="关闭" />
+        android:tint="#FFFFFF"
+        android:contentDescription="关闭"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 
