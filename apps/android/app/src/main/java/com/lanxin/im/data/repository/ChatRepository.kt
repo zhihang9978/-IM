@@ -32,10 +32,24 @@ class ChatRepository(
                     val conversation = Conversation(
                         id = item.id,
                         type = item.type,
-                        peerId = item.user?.id ?: 0,
-                        lastMessage = item.last_message?.content ?: "",
+                        user1Id = if (item.type == "single") item.user?.id else null,
+                        user2Id = null,
+                        groupId = null,
+                        lastMessageId = item.last_message?.id,
+                        lastMessageAt = item.updated_at,
                         unreadCount = item.unread_count,
-                        updatedAt = item.updated_at
+                        createdAt = item.updated_at,
+                        updatedAt = item.updated_at,
+                        // UI字段
+                        avatar = item.user?.avatar,
+                        name = item.user?.username ?: "未知",
+                        lastMessage = item.last_message?.content,
+                        lastMessageTime = item.updated_at,
+                        lastMessageType = item.last_message?.type ?: "text",
+                        lastMessageContent = item.last_message?.content ?: "",
+                        isMuted = false,
+                        isTop = false,
+                        draft = null
                     )
                     conversationDao.insertConversation(conversation)
                 }

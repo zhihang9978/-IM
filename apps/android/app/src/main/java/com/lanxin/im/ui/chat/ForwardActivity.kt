@@ -108,7 +108,7 @@ class ForwardActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this, "加载联系人失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ForwardActivity, "加载联系人失败", Toast.LENGTH_SHORT).show()
             }
         }
     }
