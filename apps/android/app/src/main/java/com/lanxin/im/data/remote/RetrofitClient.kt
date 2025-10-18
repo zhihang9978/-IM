@@ -2,6 +2,7 @@ package com.lanxin.im.data.remote
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.lanxin.im.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,10 +12,11 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Retrofit客户端配置
+ * 使用BuildConfig进行多环境配置
  */
 object RetrofitClient {
     
-    private const val BASE_URL = "https://api.lanxin168.com/api/v1/"
+    private val BASE_URL = BuildConfig.API_BASE_URL
     private const val CONNECT_TIMEOUT = 15L
     private const val READ_TIMEOUT = 30L
     private const val WRITE_TIMEOUT = 30L

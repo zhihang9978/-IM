@@ -24,8 +24,19 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Development server (154.40.45.121)
+            buildConfigField("String", "API_BASE_URL", "\"http://154.40.45.121:8080/api/v1/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"ws://154.40.45.121:8080/ws\"")
+            buildConfigField("String", "MINIO_ENDPOINT", "\"http://154.40.45.121:9000\"")
+            buildConfigField("String", "MINIO_BUCKET", "\"lanxin-files\"")
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            buildConfigField("String", "API_BASE_URL", "\"https://api.lanxin168.com/api/v1/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://api.lanxin168.com/ws\"")
+            buildConfigField("String", "MINIO_ENDPOINT", "\"https://files.lanxin168.com\"")
+            buildConfigField("String", "MINIO_BUCKET", "\"lanxin-files\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -44,6 +55,7 @@ android {
     
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

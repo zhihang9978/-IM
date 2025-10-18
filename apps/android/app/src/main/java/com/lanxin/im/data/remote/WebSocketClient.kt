@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.google.gson.Gson
+import com.lanxin.im.BuildConfig
 import com.lanxin.im.data.model.Message
 import com.lanxin.im.data.local.MessageDao
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit
  * - 支持广播Intent通知UI更新
  * - 处理多种WebSocket消息类型
  * - 自动重连机制
+ * - 使用BuildConfig进行多环境配置
  */
 class WebSocketClient(
     private val context: Context,
@@ -33,7 +35,7 @@ class WebSocketClient(
     
     companion object {
         private const val TAG = "WebSocketClient"
-        private const val WS_URL = "wss://api.lanxin168.com/ws"
+        private val WS_URL = BuildConfig.WS_BASE_URL
         private const val HEARTBEAT_INTERVAL = 30000L // 30秒心跳
     }
     
