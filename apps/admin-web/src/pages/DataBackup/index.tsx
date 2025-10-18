@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, Table, Button, Space, Tag, message, Alert } from 'antd'
-import { DatabaseOutlined, DownloadOutlined, ReloadOutlined, PlayCircleOutlined } from '@ant-design/icons'
+import { DownloadOutlined, ReloadOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -14,8 +14,8 @@ interface BackupRecord {
 }
 
 function DataBackup() {
-  const [backups, setBackups] = useState<BackupRecord[]>([])
-  const [loading, setLoading] = useState(false)
+  const [backups] = useState<BackupRecord[]>([])
+  const [loading] = useState(false)
 
   // 格式化文件大小
   const formatFileSize = (bytes: number) => {
