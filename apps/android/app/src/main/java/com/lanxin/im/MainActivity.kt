@@ -57,24 +57,29 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.more -> {
-                showMoreMenu()
+                showMoreMenu(item)
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
     
-    private fun showMoreMenu() {
-        val popup = PopupMenu(this, toolbar)
+    private fun showMoreMenu(menuItem: MenuItem) {
+        val anchorView = toolbar.findViewById<android.view.View>(R.id.more)
+        val popup = PopupMenu(this, anchorView ?: toolbar)
         popup.menuInflater.inflate(R.menu.main_more_menu, popup.menu)
-        popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
                 R.id.add_friend -> {
                     startActivity(Intent(this, AddFriendActivity::class.java))
                     true
                 }
                 R.id.scan_qrcode -> {
-                    startActivity(Intent(this, ScanQRCodeActivity::class.java))
+                    try {
+                        startActivity(Intent(this, ScanQRCodeActivity::class.java))
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "扫一扫功能暂时不可用", Toast.LENGTH_SHORT).show()
+                    }
                     true
                 }
                 R.id.create_group -> {
