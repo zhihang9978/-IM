@@ -7,6 +7,10 @@ import android.os.Looper
 import android.util.Log
 import com.google.gson.Gson
 import com.lanxin.im.data.model.Message
+import com.lanxin.im.data.local.MessageDao
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okio.ByteString
 import java.util.concurrent.TimeUnit
@@ -22,7 +26,9 @@ import java.util.concurrent.TimeUnit
  */
 class WebSocketClient(
     private val context: Context,
-    private val token: String
+    private val token: String,
+    private val apiService: ApiService? = null,
+    private val messageDao: MessageDao? = null
 ) {
     
     companion object {
@@ -47,6 +53,9 @@ class WebSocketClient(
             isConnected = true
             listeners.forEach { it.onConnected() }
             startHeartbeat()
+            
+            // 上线后立即拉取离线消息
+            fetchOfflineMessages()
         }
         
         override fun onMessage(webSocket: WebSocket, text: String) {
@@ -231,6 +240,43 @@ class WebSocketClient(
             webSocket?.send(json)
         } else {
             Log.w(TAG, "WebSocket not connected, cannot send message")
+        }
+    }
+    
+    /**
+     * 拉取离线消息
+     * 在WebSocket连接成功后自动调用
+     */
+    private fun fetchOfflineMessages() {
+        // 检查依赖是否存在
+        if (apiService == null || messageDao == null) {
+            Log.w(TAG, "ApiService or MessageDao not injected, skipping offline messages fetch")
+            return
+        }
+        
+        // 使用协程拉取离线消息
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.getOfflineMessages()
+                if (response.code == 0 && response.data != null) {
+                    val offlineMessages = response.data.messages
+                    Log.d(TAG, "Fetched ${offlineMessages.size} offline messages")
+                    
+                    // 保存到本地数据库
+                    offlineMessages.forEach { message ->
+                        messageDao.insertMessage(message)
+                    }
+                    
+                    // 通知UI更新
+                    offlineMessages.forEach { message ->
+                        listeners.forEach { listener ->
+                            listener.onNewMessage(message)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch offline messages", e)
+            }
         }
     }
     

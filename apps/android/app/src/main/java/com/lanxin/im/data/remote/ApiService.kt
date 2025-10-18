@@ -155,6 +155,49 @@ interface ApiService {
         @Query("page") page: Int = 1,
         @Query("page_size") pageSize: Int = 20
     ): ApiResponse<ReportListResponse>
+    
+    // ==================== 群组模块 ====================
+    
+    @POST("groups")
+    suspend fun createGroup(@Body request: CreateGroupRequest): ApiResponse<GroupResponse>
+    
+    @GET("groups/{id}")
+    suspend fun getGroupInfo(@Path("id") groupId: Long): ApiResponse<GroupResponse>
+    
+    @GET("groups/{id}/members")
+    suspend fun getGroupMembers(@Path("id") groupId: Long): ApiResponse<GroupMembersResponse>
+    
+    @POST("groups/{id}/members")
+    suspend fun addGroupMembers(
+        @Path("id") groupId: Long,
+        @Body request: Map<String, List<Long>>
+    ): ApiResponse<Any?>
+    
+    @DELETE("groups/{id}/members/{user_id}")
+    suspend fun removeGroupMember(
+        @Path("id") groupId: Long,
+        @Path("user_id") userId: Long
+    ): ApiResponse<Any?>
+    
+    @POST("groups/{id}/messages")
+    suspend fun sendGroupMessage(
+        @Path("id") groupId: Long,
+        @Body request: SendMessageRequest
+    ): ApiResponse<MessageResponse>
+    
+    @PUT("groups/{id}")
+    suspend fun updateGroup(
+        @Path("id") groupId: Long,
+        @Body request: UpdateGroupRequest
+    ): ApiResponse<Any?>
+    
+    @DELETE("groups/{id}")
+    suspend fun disbandGroup(@Path("id") groupId: Long): ApiResponse<Any?>
+    
+    // ==================== 离线消息 ====================
+    
+    @GET("messages/offline")
+    suspend fun getOfflineMessages(): ApiResponse<OfflineMessagesResponse>
 }
 
 // ==================== 请求数据类 ====================
@@ -338,5 +381,54 @@ data class ConversationSettings(
     val is_top: Boolean,
     val is_starred: Boolean,
     val is_blocked: Boolean
+)
+
+// ==================== 群组请求数据类 ====================
+
+data class CreateGroupRequest(
+    val name: String,
+    val avatar: String?,
+    val member_ids: List<Long>
+)
+
+data class UpdateGroupRequest(
+    val name: String?,
+    val avatar: String?
+)
+
+// ==================== 群组响应数据类 ====================
+
+data class GroupResponse(
+    val group: Group
+)
+
+data class Group(
+    val id: Long,
+    val name: String,
+    val avatar: String?,
+    val owner_id: Long,
+    val type: String,
+    val member_count: Int,
+    val status: String,
+    val created_at: Long
+)
+
+data class GroupMembersResponse(
+    val members: List<GroupMemberItem>
+)
+
+data class GroupMemberItem(
+    val id: Long,
+    val group_id: Long,
+    val user_id: Long,
+    val role: String,
+    val nickname: String?,
+    val joined_at: Long,
+    val user: User?
+)
+
+data class OfflineMessagesResponse(
+    val messages: List<Message>,
+    val count: Int
 )
 

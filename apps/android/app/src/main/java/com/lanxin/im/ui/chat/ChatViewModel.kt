@@ -44,6 +44,14 @@ class ChatViewModel(
             // 收到新消息，更新UI
             if (message.conversationId == conversationId) {
                 val currentList = _messages.value.orEmpty().toMutableList()
+                
+                // 检查消息是否已存在(去重)
+                val exists = currentList.any { it.id == message.id }
+                if (exists) {
+                    android.util.Log.d("ChatViewModel", "Message ${message.id} already exists, skipping")
+                    return
+                }
+                
                 currentList.add(message)
                 _messages.postValue(currentList)
                 
