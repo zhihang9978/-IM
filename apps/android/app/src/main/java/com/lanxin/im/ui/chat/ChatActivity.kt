@@ -395,10 +395,10 @@ class ChatActivity : AppCompatActivity() {
             }
         }
         
-        // 更多选项
-        btnMoreOptions.setOnClickListener {
-            showMoreOptions()
-        }
+        // 更多选项 - 暂时注释掉，因为布局中没有定义btnMoreOptions
+        // btnMoreOptions.setOnClickListener {
+        //     showMoreOptions()
+        // }
         
         // 音频通话（完整实现）
         btnVoiceCall.setOnClickListener {
@@ -1419,10 +1419,7 @@ class ChatActivity : AppCompatActivity() {
         Toast.makeText(this, "阅后即焚消息已销毁", Toast.LENGTH_SHORT).show()
     }
     
-    override fun onDestroy() {
-        super.onDestroy()
-        BurnAfterReadHelper.cancelAllCountdowns()
-    }
+    // 移除重复的onDestroy方法
     
     /**
      * 显示成员选择器（@提醒）
@@ -1715,6 +1712,7 @@ class ChatActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        BurnAfterReadHelper.cancelAllCountdowns()
         // 注销广播接收器
         try {
             unregisterReceiver(messageReceiver)
