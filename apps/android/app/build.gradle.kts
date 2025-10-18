@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -110,6 +111,13 @@ dependencies {
     
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
+    
+    // Hilt Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
+    
+    // EncryptedSharedPreferences (安全存储)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

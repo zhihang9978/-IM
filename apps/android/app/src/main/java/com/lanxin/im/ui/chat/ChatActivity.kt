@@ -1702,7 +1702,12 @@ class ChatActivity : AppCompatActivity() {
             addAction("com.lanxin.im.MESSAGE_RECALLED")
             addAction("com.lanxin.im.USER_STATUS")
         }
-        registerReceiver(messageReceiver, filter)
+        // Android 13+ requires explicit export flag
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(messageReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(messageReceiver, filter)
+        }
     }
     
     /**
