@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -687,8 +688,19 @@ func (h *AdminHandler) GetStorageStats(c *gin.Context) {
 	var totalFiles int64
 	db.Model(&model.Message{}).Where("type IN ?", []string{"image", "video", "voice", "file"}).Count(&totalFiles)
 
-	totalStorage := int64(100 * 1024 * 1024 * 1024) // 100GB
-	usedStorage := int64(45 * 1024 * 1024 * 1024)   // 45GB
+	var stat syscall.Statfs_t
+	err := syscall.Statfs("/", &stat)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to get disk stats: " + err.Error(),
+		})
+		return
+	}
+
+	totalStorage := int64(stat.Blocks * uint64(stat.Bsize))
+	freeStorage := int64(stat.Bfree * uint64(stat.Bsize))
+	usedStorage := totalStorage - freeStorage
 	usagePercent := float64(usedStorage) / float64(totalStorage) * 100
 
 	c.JSON(http.StatusOK, gin.H{
@@ -698,7 +710,7 @@ func (h *AdminHandler) GetStorageStats(c *gin.Context) {
 			"total_files":    totalFiles,
 			"total_storage":  totalStorage,
 			"used_storage":   usedStorage,
-			"free_storage":   totalStorage - usedStorage,
+			"free_storage":   freeStorage,
 			"usage_percent":  usagePercent,
 		},
 	})
