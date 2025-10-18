@@ -24,6 +24,8 @@ func Init(cfg config.MySQLConfig) {
 		cfg.Charset,
 	)
 
+	log.Printf("[DEBUG] MySQL DSN: %s:***@tcp(%s:%d)/%s", cfg.Username, cfg.Host, cfg.Port, cfg.Database)
+
 	var gormLogger logger.Interface
 	if cfg.LogMode {
 		gormLogger = logger.Default.LogMode(logger.Info)
@@ -50,7 +52,7 @@ func Init(cfg config.MySQLConfig) {
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	log.Println("MySQL connected successfully")
+	log.Printf("MySQL connected successfully to database: %s", cfg.Database)
 }
 
 // Close closes the MySQL connection

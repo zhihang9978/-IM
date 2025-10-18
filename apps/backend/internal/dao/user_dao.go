@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"log"
+	
 	"github.com/lanxin/im-backend/internal/model"
 	"github.com/lanxin/im-backend/internal/pkg/mysql"
 	"gorm.io/gorm"
@@ -34,10 +36,19 @@ func (d *UserDAO) GetByID(id uint) (*model.User, error) {
 // GetByUsername 根据用户名获取用户
 func (d *UserDAO) GetByUsername(username string) (*model.User, error) {
 	var user model.User
+	log.Printf("[DEBUG] GetByUsername - searching for: %s", username)
+	log.Printf("[DEBUG] GetByUsername - DB instance: %v", d.db != nil)
+	
+	var count int64
+	d.db.Table("users").Count(&count)
+	log.Printf("[DEBUG] GetByUsername - Total users in table: %d", count)
+	
 	err := d.db.Where("username = ?", username).First(&user).Error
 	if err != nil {
+		log.Printf("[DEBUG] GetByUsername - Query failed: %v", err)
 		return nil, err
 	}
+	log.Printf("[DEBUG] GetByUsername - Found user: %s (ID: %d)", user.Username, user.ID)
 	return &user, nil
 }
 
@@ -147,3 +158,4 @@ func (d *UserDAO) UpdatePassword(userID uint, hashedPassword string) error {
 		Where("id = ?", userID).
 		Update("password", hashedPassword).Error
 }
+
