@@ -91,6 +91,16 @@
             android:windowSoftInputMode="stateAlwaysVisible"
             android:parentActivityName=".MainActivity" />
         
+        <!-- 新的朋友Activity -->
+        <activity
+            android:name=".ui.contacts.NewFriendsActivity"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- 群聊列表Activity -->
+        <activity
+            android:name=".ui.group.GroupListActivity"
+            android:parentActivityName=".MainActivity" />
+        
         <!-- 图片预览Activity -->
         <activity
             android:name=".ui.media.ImagePreviewActivity"

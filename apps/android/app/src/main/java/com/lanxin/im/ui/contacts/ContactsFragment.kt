@@ -36,7 +36,7 @@ class ContactsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         setupRecyclerView()
-        setupSearchBar(view)
+        setupClickListeners(view)
         loadContacts()
     }
     
@@ -54,10 +54,16 @@ class ContactsFragment : Fragment() {
         recyclerView.adapter = adapter
     }
     
-    private fun setupSearchBar(view: View) {
-        searchBarLayout = view.findViewById(R.id.searchBarLayout)
-        searchBarLayout.setOnClickListener {
-            val intent = Intent(requireContext(), com.lanxin.im.ui.search.SearchActivity::class.java)
+    private fun setupClickListeners(view: View) {
+        // 新的朋友
+        view.findViewById<View>(R.id.btn_new_friends)?.setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.contacts.NewFriendsActivity::class.java)
+            startActivity(intent)
+        }
+        
+        // 群聊
+        view.findViewById<View>(R.id.btn_groups)?.setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.group.GroupListActivity::class.java)
             startActivity(intent)
         }
     }
@@ -95,3 +101,4 @@ class ContactsFragment : Fragment() {
         }
     }
 }
+
