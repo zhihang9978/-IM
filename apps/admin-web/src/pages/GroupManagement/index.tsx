@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Card, Table, Button, Input, Space, Tag, message } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Card, Table, Button, Input, Space, Tag, message, Modal } from 'antd'
+import { SearchOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import api from '../../services/api'
+
+const { confirm } = Modal
 
 interface Group {
   id: number
@@ -58,6 +60,27 @@ function GroupManagement() {
     loadGroups()
   }
 
+  const handleDelete = (group: Group) => {
+    confirm({
+      title: '确认删除群组',
+      icon: <ExclamationCircleOutlined />,
+      content: `确定要删除群组"${group.name}"吗？此操作将删除群组的所有成员和消息记录，且无法恢复。`,
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      async onOk() {
+        try {
+          await api.delete(`/admin/groups/${group.id}`)
+          message.success('群组删除成功')
+          loadGroups()
+        } catch (error) {
+          console.error('Failed to delete group:', error)
+          message.error('删除群组失败')
+        }
+      },
+    })
+  }
+
   const columns: ColumnsType<Group> = [
     {
       title: '群组ID',
@@ -91,6 +114,21 @@ function GroupManagement() {
       key: 'created_at',
       width: 180,
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (_: any, record: Group) => (
+        <Button
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDelete(record)}
+        >
+          删除
+        </Button>
+      ),
     },
   ]
 

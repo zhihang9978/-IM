@@ -35,7 +35,12 @@ function MessageManagement() {
     setLoading(true)
     try {
       const data = await api.get('/admin/messages')
-      setMessages(data || [])
+      const messageList = (data?.list || data || []).map((msg: any) => ({
+        ...msg,
+        sender_name: msg.sender?.username || `用户${msg.sender_id}`,
+        receiver_name: msg.receiver?.username || `用户${msg.receiver_id}`,
+      }))
+      setMessages(messageList)
     } catch (error) {
       console.error('Failed to load messages:', error)
       antdMessage.error('加载消息列表失败')

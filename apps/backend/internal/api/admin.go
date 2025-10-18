@@ -675,6 +675,86 @@ func (h *AdminHandler) GetAllGroups(c *gin.Context) {
 	})
 }
 
+func (h *AdminHandler) DeleteGroup(c *gin.Context) {
+	db := mysql.GetDB()
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Database unavailable",
+		})
+		return
+	}
+
+	groupID := c.Param("id")
+	if groupID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Group ID is required",
+		})
+		return
+	}
+
+	var group model.Group
+	if err := db.First(&group, groupID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"code":    404,
+			"message": "Group not found",
+		})
+		return
+	}
+
+	tx := db.Begin()
+
+	if err := tx.Where("group_id = ?", groupID).Delete(&model.GroupMember{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to delete group members: " + err.Error(),
+		})
+		return
+	}
+
+	var conversation model.Conversation
+	if err := tx.Where("group_id = ?", groupID).First(&conversation).Error; err == nil {
+		if err := tx.Where("conversation_id = ?", conversation.ID).Delete(&model.Message{}).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code":    500,
+				"message": "Failed to delete group messages: " + err.Error(),
+			})
+			return
+		}
+
+		if err := tx.Delete(&conversation).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code":    500,
+				"message": "Failed to delete group conversation: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	if err := tx.Delete(&group).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Failed to delete group: " + err.Error(),
+		})
+		return
+	}
+
+	tx.Commit()
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "Group deleted successfully",
+		"data": gin.H{
+			"group_id": groupID,
+		},
+	})
+}
+
 func (h *AdminHandler) GetStorageStats(c *gin.Context) {
 	db := mysql.GetDB()
 	if db == nil {

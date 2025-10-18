@@ -194,6 +194,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		admin.GET("/messages/export", adminHandler.ExportMessages)
 
 		admin.GET("/groups", adminHandler.GetAllGroups)
+		admin.DELETE("/groups/:id", adminHandler.DeleteGroup)
 
 		admin.GET("/files", adminHandler.GetAllFiles)
 		admin.DELETE("/files/:id", adminHandler.DeleteFile)
