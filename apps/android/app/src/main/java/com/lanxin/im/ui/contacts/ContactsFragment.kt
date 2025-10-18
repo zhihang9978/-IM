@@ -22,22 +22,35 @@ class ContactsFragment : Fragment() {
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactAdapter
-    private lateinit var searchBarLayout: LinearLayout
+    private lateinit var emptyState: View
     
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_contacts_new, container, false)
+        return inflater.inflate(R.layout.fragment_contacts, container, false)
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        setupSearchBar(view)
         setupRecyclerView()
+        setupEmptyState(view)
         setupClickListeners(view)
         loadContacts()
+    }
+    
+    private fun setupSearchBar(view: View) {
+        view.findViewById<View>(R.id.et_search)?.setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.search.SearchActivity::class.java)
+            startActivity(intent)
+        }
+    }
+    
+    private fun setupEmptyState(view: View) {
+        emptyState = view.findViewById(R.id.empty_state)
     }
     
     private fun setupRecyclerView() {
@@ -92,11 +105,23 @@ class ContactsFragment : Fragment() {
                         )
                     }
                     
+                    // 显示/隐藏空状态
+                    if (contacts.isEmpty()) {
+                        recyclerView.visibility = View.GONE
+                        emptyState.visibility = View.VISIBLE
+                    } else {
+                        recyclerView.visibility = View.VISIBLE
+                        emptyState.visibility = View.GONE
+                    }
+                    
                     val displayItems = ContactListHelper.toDisplayItems(contacts, response.data.contacts)
                     adapter.submitList(displayItems)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                // 显示空状态
+                recyclerView.visibility = View.GONE
+                emptyState.visibility = View.VISIBLE
             }
         }
     }

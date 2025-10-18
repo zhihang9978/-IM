@@ -28,6 +28,7 @@ class ChatListFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ConversationAdapter
     private lateinit var messageReceiver: BroadcastReceiver
+    private lateinit var emptyState: View
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,9 +41,22 @@ class ChatListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        setupSearchBar(view)
         setupRecyclerView()
+        setupEmptyState(view)
         loadConversations()
         registerMessageReceiver()
+    }
+    
+    private fun setupSearchBar(view: View) {
+        view.findViewById<View>(R.id.search_bar)?.setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.search.SearchActivity::class.java)
+            startActivity(intent)
+        }
+    }
+    
+    private fun setupEmptyState(view: View) {
+        emptyState = view.findViewById(R.id.empty_state)
     }
     
     private fun setupRecyclerView() {
@@ -70,6 +84,15 @@ class ChatListFragment : Fragment() {
     private fun loadConversations() {
         // 使用ViewModel观察数据变化，自动更新UI
         viewModel.conversations.observe(viewLifecycleOwner) { conversations ->
+            // 显示/隐藏空状态
+            if (conversations.isEmpty()) {
+                recyclerView.visibility = View.GONE
+                emptyState.visibility = View.VISIBLE
+            } else {
+                recyclerView.visibility = View.VISIBLE
+                emptyState.visibility = View.GONE
+            }
+            
             // 转换为ConversationDisplayItem
             val displayItems = conversations.map { conversation ->
                 ConversationDisplayItem(
