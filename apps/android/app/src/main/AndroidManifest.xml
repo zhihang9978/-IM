@@ -104,9 +104,6 @@
             android:parentActivityName=".ui.chat.ChatActivity" />
         
         <!-- 音视频通话Activity（使用腾讯云TRTC） -->
-        <!-- ⚠️ 暂时禁用：TRTC SDK未配置，待后续添加 -->
-        <!-- TODO: 配置TRTC SDK后取消注释 -->
-        <!--
         <activity
             android:name=".trtc.AudioCallActivity"
             android:screenOrientation="portrait" />
@@ -118,7 +115,6 @@
         <activity
             android:name=".trtc.ScreenShareActivity"
             android:screenOrientation="portrait" />
-        -->
         
         <!-- FileProvider for camera and file operations -->
         <provider
