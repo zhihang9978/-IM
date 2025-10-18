@@ -23,18 +23,18 @@ object MinIOUploader {
     
     private const val TAG = "MinIOUploader"
     
-    // MinIO配置（从环境变量或配置文件读取）
-    private const val MINIO_ENDPOINT = "http://154.40.45.121:9000"
-    private const val MINIO_ACCESS_KEY = "minioadmin"
-    private const val MINIO_SECRET_KEY = "minioadmin"
-    private const val BUCKET_NAME = "lanxin-im"
-    
+    // MinIO配置（从BuildConfig读取，支持多环境）
     private val minioClient by lazy {
         MinioClient.builder()
-            .endpoint(MINIO_ENDPOINT)
-            .credentials(MINIO_ACCESS_KEY, MINIO_SECRET_KEY)
+            .endpoint(com.lanxin.im.BuildConfig.MINIO_ENDPOINT)
+            .credentials(
+                com.lanxin.im.BuildConfig.MINIO_ACCESS_KEY,
+                com.lanxin.im.BuildConfig.MINIO_SECRET_KEY
+            )
             .build()
     }
+    
+    private val BUCKET_NAME get() = com.lanxin.im.BuildConfig.MINIO_BUCKET
     
     /**
      * 上传文件到MinIO
