@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/lanxin/im-backend/config"
@@ -84,29 +83,15 @@ func (s *AuthService) Login(identifier, password string) (string, *model.User, e
 	var user *model.User
 	var err error
 
-	log.Printf("[DEBUG] Login attempt for identifier: %s", identifier)
-	
 	// 支持用户名/手机号/邮箱/蓝信号登录
 	if user, err = s.userDAO.GetByUsername(identifier); err != nil {
-		log.Printf("[DEBUG] GetByUsername failed: %v", err)
 		if user, err = s.userDAO.GetByPhone(identifier); err != nil {
-			log.Printf("[DEBUG] GetByPhone failed: %v", err)
 			if user, err = s.userDAO.GetByEmail(identifier); err != nil {
-				log.Printf("[DEBUG] GetByEmail failed: %v", err)
 				if user, err = s.userDAO.GetByLanxinID(identifier); err != nil {
-					log.Printf("[DEBUG] GetByLanxinID failed: %v", err)
 					return "", nil, errors.New("user not found")
-				} else {
-					log.Printf("[DEBUG] User found by LanxinID: %s (ID: %d)", user.Username, user.ID)
 				}
-			} else {
-				log.Printf("[DEBUG] User found by Email: %s (ID: %d)", user.Username, user.ID)
 			}
-		} else {
-			log.Printf("[DEBUG] User found by Phone: %s (ID: %d)", user.Username, user.ID)
 		}
-	} else {
-		log.Printf("[DEBUG] User found by Username: %s (ID: %d)", user.Username, user.ID)
 	}
 
 	// 检查账号状态
