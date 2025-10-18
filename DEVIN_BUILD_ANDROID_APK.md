@@ -72,17 +72,21 @@ git pull origin master
 # 验证版本
 git log --oneline -3
 
-# 应该看到最新的commit:
-# a115463 docs: add final project status and structure clarification
-# 026752b docs: final project status report - production ready!
-# 8a1e602 fix: add group conversation auto-creation for group messages
+# 应该看到最新的commit包含:
+# fix: add Tencent Cloud Maven repository for TRTC SDK
+# 或更新的commit
 ```
 
 **验证**:
 - [ ] Git拉取成功
-- [ ] 最新commit是 a115463 或更新
+- [ ] settings.gradle.kts 包含腾讯云Maven仓库
 - [ ] apps/android/ 目录存在
 - [ ] apps/android/app/src/main/java/com/lanxin/im/ 目录存在
+
+**✅ TRTC SDK依赖问题已修复**:
+- 已在settings.gradle.kts中添加腾讯云Maven仓库
+- TRTC SDK会自动下载（首次约50MB）
+- 音视频功能完整可用
 
 ---
 
