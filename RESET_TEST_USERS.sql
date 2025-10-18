@@ -12,22 +12,24 @@ USE lanxin_im;
 
 -- 创建/更新测试用户
 -- 密码: password123 (bcrypt hash)
-INSERT INTO users (username, password, lanxin_id, role, status, created_at, updated_at) VALUES
-('testuser1', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000001', 'user', 'active', NOW(), NOW()),
-('testuser2', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000002', 'user', 'active', NOW(), NOW()),
-('testuser3', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000003', 'user', 'active', NOW(), NOW()),
-('testuser4', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000004', 'user', 'active', NOW(), NOW())
+INSERT INTO users (username, password, lanxin_id, role, status, created_at, updated_at, deleted_at) VALUES
+('testuser1', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000001', 'user', 'active', NOW(), NOW(), NULL),
+('testuser2', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000002', 'user', 'active', NOW(), NOW(), NULL),
+('testuser3', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000003', 'user', 'active', NOW(), NOW(), NULL),
+('testuser4', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx000004', 'user', 'active', NOW(), NOW(), NULL)
 ON DUPLICATE KEY UPDATE 
     password = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe',
     status = 'active',
+    deleted_at = NULL,
     updated_at = NOW();
 
 -- 创建管理员账号
-INSERT INTO users (username, password, lanxin_id, role, status, created_at, updated_at) VALUES
-('admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx999999', 'admin', 'active', NOW(), NOW())
+INSERT INTO users (username, password, lanxin_id, role, status, created_at, updated_at, deleted_at) VALUES
+('admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe', 'lx999999', 'admin', 'active', NOW(), NOW(), NULL)
 ON DUPLICATE KEY UPDATE 
     password = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5koSb3SXW1FKe',
     status = 'active',
+    deleted_at = NULL,
     updated_at = NOW();
 
 -- 验证结果
