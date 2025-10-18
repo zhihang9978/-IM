@@ -10,6 +10,7 @@ import (
 type GroupService struct {
 	groupDAO       *dao.GroupDAO
 	groupMemberDAO *dao.GroupMemberDAO
+	conversationDAO *dao.ConversationDAO
 	userDAO        *dao.UserDAO
 	messageDAO     *dao.MessageDAO
 	logDAO         *dao.OperationLogDAO
@@ -18,12 +19,13 @@ type GroupService struct {
 
 func NewGroupService(hub *websocket.Hub) *GroupService {
 	return &GroupService{
-		groupDAO:       dao.NewGroupDAO(),
-		groupMemberDAO: dao.NewGroupMemberDAO(),
-		userDAO:        dao.NewUserDAO(),
-		messageDAO:     dao.NewMessageDAO(),
-		logDAO:         dao.NewOperationLogDAO(),
-		hub:            hub,
+		groupDAO:        dao.NewGroupDAO(),
+		groupMemberDAO:  dao.NewGroupMemberDAO(),
+		conversationDAO: dao.NewConversationDAO(),
+		userDAO:         dao.NewUserDAO(),
+		messageDAO:      dao.NewMessageDAO(),
+		logDAO:          dao.NewOperationLogDAO(),
+		hub:             hub,
 	}
 }
 
@@ -236,14 +238,21 @@ func (s *GroupService) SendGroupMessage(groupID, senderID uint, content, msgType
 		return nil, errors.New("not a group member")
 	}
 
+	// 获取或创建群会话
+	conversationID, err := s.conversationDAO.GetOrCreateGroupConversation(groupID)
+	if err != nil {
+		return nil, errors.New("failed to get or create group conversation")
+	}
+
 	// 创建消息
 	groupIDPtr := &groupID
 	message := &model.Message{
-		SenderID: senderID,
-		GroupID:  groupIDPtr,
-		Content:  content,
-		Type:     msgType,
-		Status:   model.MessageStatusSent,
+		ConversationID: conversationID,
+		SenderID:       senderID,
+		GroupID:        groupIDPtr,
+		Content:        content,
+		Type:           msgType,
+		Status:         model.MessageStatusSent,
 	}
 
 	if fileURL != nil {

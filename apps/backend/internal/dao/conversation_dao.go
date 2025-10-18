@@ -158,3 +158,39 @@ func (d *ConversationDAO) UpdateLastMessage(conversationID, messageID uint, time
 			"last_message_at": timestamp,
 		}).Error
 }
+
+// GetOrCreateGroupConversation 获取或创建群聊会话
+// 
+// 功能说明:
+//   - 如果群组已有会话,返回现有会话ID
+//   - 如果没有会话,创建新会话并返回ID
+// 
+// 参数:
+//   - groupID: 群组ID
+// 
+// 返回:
+//   - conversationID: 会话ID
+//   - error: 错误信息
+func (d *ConversationDAO) GetOrCreateGroupConversation(groupID uint) (uint, error) {
+	// 查询是否已存在群会话
+	var conv model.Conversation
+	err := d.db.Where("type = ? AND group_id = ?", model.ConversationTypeGroup, groupID).
+		First(&conv).Error
+	
+	if err == nil {
+		// 会话已存在,返回ID
+		return conv.ID, nil
+	}
+	
+	// 会话不存在,创建新会话
+	newConv := &model.Conversation{
+		Type:    model.ConversationTypeGroup,
+		GroupID: &groupID,
+	}
+	
+	if err := d.db.Create(newConv).Error; err != nil {
+		return 0, err
+	}
+	
+	return newConv.ID, nil
+}
