@@ -1,292 +1,58 @@
 ═══════════════════════════════════════════════════════════════
-  给Devin的部署检查清单
+  ⚠️ 文档更新通知
 ═══════════════════════════════════════════════════════════════
 
-部署时间: ____________
-部署人员: Devin
-代码版本: commit 8622e32
+本文档已过时！
 
-⚠️ 本清单必须严格执行，确保部署后功能和开发环境完全一致
+最新部署文档已更新，请使用：
 
-═══════════════════════════════════════════════════════════════
-📋 部署前检查
-═══════════════════════════════════════════════════════════════
-
-[ ] 1. 检查Git提交是否最新（应该是8622e32或更新）
-[ ] 2. 确认所有代码文件已同步到服务器
-[ ] 3. 确认config.yaml配置正确
-[ ] 4. 确认MySQL数据库已启动
-[ ] 5. 确认Redis已启动
-[ ] 6. 确认Kafka已启动
+📖 主文档: DEVIN_DEPLOYMENT_GUIDE.md
+📖 快速开始: DEVIN_START_HERE.txt
+📖 简要说明: 给Devin的简要说明.txt
 
 ═══════════════════════════════════════════════════════════════
-📋 后端部署步骤
+  最新代码版本信息
 ═══════════════════════════════════════════════════════════════
 
-步骤1: 进入后端目录
-```bash
-cd apps/backend
-```
+最新Commit: 6c963cc
+更新时间: 2025-10-18
 
-步骤2: 安装/更新依赖
-```bash
-go mod tidy
-go mod download
-```
+包含修复:
+✅ 阶段1: 会话创建Bug修复
+✅ 阶段2: 群聊功能实现（完整）
+✅ 阶段3: 数据库外键约束
+✅ 阶段4: 离线消息队列
+✅ 阶段5: Android客户端集成
 
-验证: 确保golang.org/x/crypto存在于go.mod
-
-步骤3: 编译检查
-```bash
-go build -o server cmd/server/main.go
-```
-
-期望: 编译成功，无错误
-
-步骤4: 启动服务
-```bash
-go run cmd/server/main.go
-```
-
-期望输出:
-```
-Server starting on :8080
-Server mode: development
-Domain: localhost
-WebSocket Hub started
-```
-
-步骤5: 验证服务健康
-```bash
-# 新终端执行
-curl http://localhost:8080/health
-```
-
-期望返回:
-```json
-{
-  "status": "ok",
-  "message": "LanXin IM Server is running",
-  "online_users": 0
-}
-```
+数据库迁移:
+✅ 012_add_group_type.up.sql
+✅ 013_add_conversation_fk_to_messages.up.sql
+✅ 014_add_group_id_to_messages.up.sql
+✅ 015_modify_receiver_id_nullable.up.sql
 
 ═══════════════════════════════════════════════════════════════
-📋 API路由验证（5个新API必须存在）
+  开始部署
 ═══════════════════════════════════════════════════════════════
 
-新增API验证:
+第1步：在服务器执行
+cd /path/to/im-lanxin
+git pull origin master
 
-[ ] API 1: GET /api/v1/conversations/:id/messages/history
-测试命令:
-```bash
-curl "http://localhost:8080/api/v1/conversations/1/messages/history?limit=20" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-期望: 返回历史消息列表
+第2步：查看最新文档
+cat DEVIN_START_HERE.txt
 
-[ ] API 2: POST /api/v1/contacts
-测试命令:
-```bash
-curl -X POST "http://localhost:8080/api/v1/contacts" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"contact_id": 2, "remark": "测试", "tags": "朋友"}'
-```
-期望: 返回添加成功
-
-[ ] API 3: DELETE /api/v1/contacts/:id
-测试命令:
-```bash
-curl -X DELETE "http://localhost:8080/api/v1/contacts/1" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-期望: 返回删除成功
-
-[ ] API 4: PUT /api/v1/contacts/:id/remark
-测试命令:
-```bash
-curl -X PUT "http://localhost:8080/api/v1/contacts/1/remark" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"remark": "新备注", "tags": "同事"}'
-```
-期望: 返回更新成功
-
-[ ] API 5: PUT /api/v1/users/me/password
-测试命令:
-```bash
-curl -X PUT "http://localhost:8080/api/v1/users/me/password" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"old_password": "old123", "new_password": "new123"}'
-```
-期望: 返回修改成功
+第3步：按照文档执行
+详见 DEVIN_DEPLOYMENT_GUIDE.md
 
 ═══════════════════════════════════════════════════════════════
-📋 数据完整性验证
+  重要提醒
 ═══════════════════════════════════════════════════════════════
 
-[ ] 验证1: GET /api/v1/conversations返回last_message字段
-```bash
-curl "http://localhost:8080/api/v1/conversations" \
-  -H "Authorization: Bearer YOUR_TOKEN" | jq '.data.conversations[0].last_message'
-```
-期望: 不是null，包含消息内容
+1. 必须 git pull 获取最新代码
+2. 必须备份数据库（步骤3）
+3. 必须按顺序执行4个数据库迁移（步骤6）
+4. 必须运行所有测试验证修复（步骤9）
 
-[ ] 验证2: GET /api/v1/conversations返回真实unread_count
-```bash
-curl "http://localhost:8080/api/v1/conversations" \
-  -H "Authorization: Bearer YOUR_TOKEN" | jq '.data.conversations[0].unread_count'
-```
-期望: 不是0（如果有未读消息）
-
-[ ] 验证3: GET /api/v1/contacts返回user字段
-```bash
-curl "http://localhost:8080/api/v1/contacts" \
-  -H "Authorization: Bearer YOUR_TOKEN" | jq '.data.contacts[0].user'
-```
-期望: 包含完整用户信息
+预计时间：30-45分钟
 
 ═══════════════════════════════════════════════════════════════
-📋 WebSocket连接验证
-═══════════════════════════════════════════════════════════════
-
-[ ] WebSocket连接测试
-使用工具: wscat或浏览器Console
-```javascript
-const ws = new WebSocket('ws://localhost:8080/ws?token=YOUR_TOKEN');
-ws.onopen = () => console.log('Connected');
-ws.onmessage = (e) => console.log('Message:', e.data);
-```
-
-期望:
-- 连接成功
-- 收到pong心跳响应
-- 收到消息通知时有new_message类型
-
-═══════════════════════════════════════════════════════════════
-📋 Android客户端连接验证
-═══════════════════════════════════════════════════════════════
-
-[ ] 步骤1: 修改Android app配置
-文件: apps/android/app/src/main/java/com/lanxin/im/data/remote/RetrofitClient.kt
-将BASE_URL改为服务器地址
-
-[ ] 步骤2: 修改WebSocket地址
-文件: apps/android/app/src/main/java/com/lanxin/im/data/remote/WebSocketClient.kt
-将WS_URL改为服务器WebSocket地址
-
-[ ] 步骤3: 编译Android App
-```bash
-cd apps/android
-./gradlew assembleDebug
-```
-
-[ ] 步骤4: 安装并运行App
-[ ] 步骤5: 登录账号
-[ ] 步骤6: 测试核心功能
-
-═══════════════════════════════════════════════════════════════
-📋 功能测试清单（部署后执行）
-═══════════════════════════════════════════════════════════════
-
-核心功能测试:
-[ ] 发送文本消息
-[ ] 发送图片消息  
-[ ] 发送语音消息
-[ ] 发送视频消息
-[ ] 发送文件消息
-[ ] 下拉加载历史消息 ⬅️ 新功能
-[ ] 会话列表显示消息预览 ⬅️ 新功能
-[ ] 会话列表显示未读数 ⬅️ 新功能
-[ ] 添加联系人 ⬅️ 新功能
-[ ] 删除联系人 ⬅️ 新功能
-[ ] 设置备注和标签 ⬅️ 新功能
-[ ] 修改密码 ⬅️ 新功能
-
-实时功能测试:
-[ ] 实时接收消息
-[ ] 会话列表自动刷新
-[ ] 未读数自动更新
-[ ] 用户在线状态更新
-[ ] 消息已读回执
-[ ] 消息撤回通知
-
-═══════════════════════════════════════════════════════════════
-📋 问题排查指南
-═══════════════════════════════════════════════════════════════
-
-如果历史消息API返回404:
-→ 检查main.go line 130是否有历史消息路由注册
-→ 检查路径是否正确: /conversations/:id/messages/history
-
-如果会话列表last_message为null:
-→ 检查conversation_dao.go是否有Preload("LastMessage")
-→ 检查数据库conversations表的last_message_id是否有值
-
-如果unread_count仍为0:
-→ 检查conversation_dao.go是否有GetUnreadCount方法
-→ 检查conversation.go是否调用了GetUnreadCount
-
-如果联系人API返回404:
-→ 检查main.go line 125-127是否有3个联系人路由
-→ 检查路径是否正确
-
-如果密码修改失败:
-→ 检查golang.org/x/crypto是否安装
-→ 检查user.go是否import了bcrypt
-→ 检查user_dao.go是否有UpdatePassword方法
-
-如果WebSocket无法连接:
-→ 检查WebSocket Hub是否启动
-→ 检查Token是否有效
-→ 检查防火墙端口是否开放
-
-═══════════════════════════════════════════════════════════════
-📊 部署验收标准
-═══════════════════════════════════════════════════════════════
-
-必须通过的测试:
-✅ 所有5个新API可调用
-✅ 历史消息可加载
-✅ 会话列表显示完整（有消息预览、有未读数）
-✅ 联系人可添加/删除/设置备注
-✅ 密码可修改
-✅ WebSocket可连接
-✅ 实时消息可接收
-
-验收通过标准:
-- 所有测试通过
-- 0 API错误
-- 0 崩溃
-- 功能正常
-
-验收人: ____________
-验收日期: ____________
-验收结果: [ ] PASS [ ] FAIL
-
-═══════════════════════════════════════════════════════════════
-📞 支持联系
-═══════════════════════════════════════════════════════════════
-
-如遇到问题:
-1. 查看后端日志输出
-2. 查看Android Logcat
-3. 参考CRITICAL_DEFECTS_AND_FIX_PLAN.txt
-4. 参考P0_TESTING_GUIDE.txt
-
-代码文档:
-- 完整实现计划: FULLSTACK_FIX_EXECUTION_PLAN.txt
-- 审计报告: FRONTEND_BACKEND_INTEGRATION_AUDIT.txt
-- 修复代码: BACKEND_FIX_CODE_P0_DEFECTS.txt
-
-═══════════════════════════════════════════════════════════════
-
-部署完成签字:
-部署人: Devin
-日期: ____________
-签名: ____________
-
-═══════════════════════════════════════════════════════════════
-
