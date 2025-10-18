@@ -10,6 +10,7 @@ import (
 	"github.com/lanxin/im-backend/internal/middleware"
 	"github.com/lanxin/im-backend/internal/pkg/mysql"
 	"github.com/lanxin/im-backend/internal/pkg/redis"
+	"github.com/lanxin/im-backend/internal/service"
 	"github.com/lanxin/im-backend/internal/websocket"
 	"github.com/lanxin/im-backend/pkg/kafka"
 )
@@ -67,6 +68,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	}
 
 	// 创建Handler
+	authService := service.NewAuthService(cfg)
 	authHandler := api.NewAuthHandler(cfg)
 	userHandler := api.NewUserHandler()
 	messageHandler := api.NewMessageHandler(hub, producer)
@@ -77,6 +79,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	favoriteHandler := api.NewFavoriteHandler()
 	reportHandler := api.NewReportHandler()
 	groupHandler := api.NewGroupHandler(hub)
+	adminHandler := api.NewAdminHandler(authService)
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -178,7 +181,21 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	admin.Use(middleware.AdminAuth())
 	{
 		// 用户管理
-		admin.GET("/users", userHandler.SearchUsers)
+		admin.GET("/users", adminHandler.GetAllUsers)
+		admin.GET("/users/:id", adminHandler.GetUserDetail)
+		admin.POST("/users", adminHandler.CreateUser)
+		admin.PUT("/users/:id", adminHandler.UpdateUser)
+		admin.DELETE("/users/:id", adminHandler.DeleteUser)
+		admin.POST("/users/:id/reset-password", adminHandler.ResetUserPassword)
+		admin.GET("/users/export", adminHandler.ExportUsers)
+
+		admin.GET("/messages", adminHandler.GetAllMessages)
+		admin.DELETE("/messages/:id", adminHandler.DeleteMessage)
+		admin.GET("/messages/export", adminHandler.ExportMessages)
+
+		admin.GET("/files", adminHandler.GetAllFiles)
+		admin.DELETE("/files/:id", adminHandler.DeleteFile)
+		admin.GET("/storage/stats", adminHandler.GetStorageStats)
 
 		// 举报管理
 		admin.GET("/reports", reportHandler.GetAllReports)
@@ -193,6 +210,14 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		admin.GET("/dashboard/message-stats", systemMonitorHandler.GetMessageTypeStats)
 		admin.GET("/dashboard/device-distribution", systemMonitorHandler.GetOnlineDeviceDistribution)
 		admin.GET("/health-check", systemMonitorHandler.HealthCheck)
+
+		admin.GET("/settings", adminHandler.GetSystemSettings)
+		admin.PUT("/settings", adminHandler.UpdateSystemSettings)
+
+		admin.GET("/backups", adminHandler.GetBackupList)
+		admin.POST("/backups", adminHandler.CreateBackup)
+		admin.GET("/backups/:id/download", adminHandler.DownloadBackup)
+		admin.DELETE("/backups/:id", adminHandler.DeleteBackup)
 	}
 	}
 

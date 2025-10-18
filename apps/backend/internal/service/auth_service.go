@@ -126,6 +126,10 @@ func (s *AuthService) RefreshToken(oldToken string) (string, error) {
 	return jwt.RefreshToken(oldToken, s.cfg.JWT.Secret, s.cfg.JWT.ExpireHours)
 }
 
+func (s *AuthService) GenerateLanxinID() string {
+	return generateLanxinID()
+}
+
 // generateLanxinID 生成蓝信号
 func generateLanxinID() string {
 	// 使用时间戳作为基础（微秒级保证唯一性）
