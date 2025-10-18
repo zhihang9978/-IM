@@ -43,7 +43,13 @@ func (d *UserDAO) GetByUsername(username string) (*model.User, error) {
 	d.db.Table("users").Count(&count)
 	log.Printf("[DEBUG] GetByUsername - Total users in table: %d", count)
 	
-	err := d.db.Where("username = ?", username).First(&user).Error
+	tx := d.db.Where("username = ?", username)
+	sql := tx.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		return tx.First(&model.User{})
+	})
+	log.Printf("[DEBUG] GetByUsername - Generated SQL: %s", sql)
+	
+	err := tx.First(&user).Error
 	if err != nil {
 		log.Printf("[DEBUG] GetByUsername - Query failed: %v", err)
 		return nil, err
