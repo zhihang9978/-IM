@@ -65,6 +65,24 @@ interface ApiService {
         @Body request: Map<String, String>
     ): ApiResponse<Any?>
     
+    // ==================== 好友申请模块 ====================
+    
+    @POST("friend-requests")
+    suspend fun sendFriendRequest(@Body request: SendFriendRequestReq): Response<ApiResponse<FriendRequestResponse>>
+    
+    @GET("friend-requests")
+    suspend fun getFriendRequests(
+        @Query("type") type: String = "received",
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 20
+    ): Response<ApiResponse<FriendRequestListResponse>>
+    
+    @POST("friend-requests/{id}/accept")
+    suspend fun acceptFriendRequest(@Path("id") id: Long): Response<ApiResponse<Any?>>
+    
+    @POST("friend-requests/{id}/reject")
+    suspend fun rejectFriendRequest(@Path("id") id: Long): Response<ApiResponse<Any?>>
+    
     // ==================== 消息模块 ====================
     
     @GET("conversations")
@@ -430,5 +448,37 @@ data class GroupMemberItem(
 data class OfflineMessagesResponse(
     val messages: List<Message>,
     val count: Int
+)
+
+// ==================== 好友申请请求数据类 ====================
+
+data class SendFriendRequestReq(
+    val receiver_id: Long,
+    val message: String? = null
+)
+
+// ==================== 好友申请响应数据类 ====================
+
+data class FriendRequestResponse(
+    val friend_request: FriendRequestItem
+)
+
+data class FriendRequestListResponse(
+    val total: Long,
+    val page: Int,
+    val page_size: Int,
+    val requests: List<FriendRequestItem>
+)
+
+data class FriendRequestItem(
+    val id: Long,
+    val sender_id: Long,
+    val receiver_id: Long,
+    val message: String?,
+    val status: String,
+    val created_at: Long,
+    val updated_at: Long,
+    val sender: User?,
+    val receiver: User?
 )
 
