@@ -8,8 +8,8 @@ import (
 type User struct {
 	ID          uint           `gorm:"primarykey" json:"id"`
 	Username    string         `gorm:"uniqueIndex;not null;size:50" json:"username"`
-	Phone       string         `gorm:"uniqueIndex;size:20" json:"phone"`
-	Email       string         `gorm:"uniqueIndex;size:100" json:"email"`
+	Phone       *string        `gorm:"uniqueIndex;size:20" json:"phone"`
+	Email       *string        `gorm:"uniqueIndex;size:100" json:"email"`
 	Password    string         `gorm:"not null;size:255" json:"-"` // 不在JSON中显示密码
 	Avatar      string         `gorm:"size:500" json:"avatar"`
 	LanxinID    string         `gorm:"uniqueIndex;not null;size:50;column:lanxin_id" json:"lanxin_id"`
@@ -29,8 +29,8 @@ func (User) TableName() string {
 type UserResponse struct {
 	ID          uint       `json:"id"`
 	Username    string     `json:"username"`
-	Phone       string     `json:"phone"`
-	Email       string     `json:"email"`
+	Phone       *string    `json:"phone"`
+	Email       *string    `json:"email"`
 	Avatar      string     `json:"avatar"`
 	LanxinID    string     `json:"lanxin_id"`
 	Role        string     `json:"role"`

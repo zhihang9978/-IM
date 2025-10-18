@@ -196,11 +196,20 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 		req.Status = "active"
 	}
 
+	var phone *string
+	if req.Phone != "" {
+		phone = &req.Phone
+	}
+	var email *string
+	if req.Email != "" {
+		email = &req.Email
+	}
+
 	user := model.User{
 		Username: req.Username,
 		Password: string(hashedPassword),
-		Phone:    req.Phone,
-		Email:    req.Email,
+		Phone:    phone,
+		Email:    email,
 		LanxinID: lanxinID,
 		Role:     req.Role,
 		Status:   req.Status,
@@ -265,10 +274,10 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 		updates["username"] = req.Username
 	}
 	if req.Phone != "" {
-		updates["phone"] = req.Phone
+		updates["phone"] = &req.Phone
 	}
 	if req.Email != "" {
-		updates["email"] = req.Email
+		updates["email"] = &req.Email
 	}
 	if req.Role != "" {
 		updates["role"] = req.Role
