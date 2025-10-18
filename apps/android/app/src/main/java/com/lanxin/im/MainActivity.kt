@@ -1,5 +1,6 @@
 package com.lanxin.im
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -13,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.lanxin.im.data.remote.RetrofitClient
 import com.lanxin.im.ui.chat.ChatListFragment
 import com.lanxin.im.ui.contacts.ContactsFragment
 import com.lanxin.im.ui.discover.DiscoverFragment
@@ -34,10 +36,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
+        // 加载保存的Token
+        loadSavedToken()
+        
         AnalyticsHelper.trackUserActive(this)
         
         setupToolbar()
         setupViewPager()
+    }
+    
+    private fun loadSavedToken() {
+        val sharedPrefs = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val token = sharedPrefs.getString("auth_token", null)
+        if (token != null) {
+            RetrofitClient.setToken(token)
+        }
     }
     
     private fun setupToolbar() {
