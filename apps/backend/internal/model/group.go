@@ -9,6 +9,7 @@ type Group struct {
 	Name        string    `gorm:"not null;size:100" json:"name"`
 	Avatar      string    `gorm:"size:500" json:"avatar"`
 	OwnerID     uint      `gorm:"not null;index" json:"owner_id"`
+	Type        string    `gorm:"type:enum('normal','department');default:'normal'" json:"type"`
 	Description string    `gorm:"type:text" json:"description"`
 	MemberCount int       `gorm:"default:0" json:"member_count"`
 	MaxMembers  int       `gorm:"default:500" json:"max_members"`
@@ -43,13 +44,26 @@ func (GroupMember) TableName() string {
 	return "group_members"
 }
 
+// GroupType 常量
+const (
+	GroupTypeNormal     = "normal"
+	GroupTypeDepartment = "department"
+)
+
 // GroupStatus 常量
 const (
 	GroupStatusActive    = "active"
 	GroupStatusDisbanded = "disbanded"
 )
 
-// GroupMemberRole 常量
+// GroupRole 常量
+const (
+	GroupRoleOwner  = "owner"
+	GroupRoleAdmin  = "admin"
+	GroupRoleMember = "member"
+)
+
+// GroupMemberRole 常量（向后兼容）
 const (
 	GroupMemberRoleOwner  = "owner"
 	GroupMemberRoleAdmin  = "admin"

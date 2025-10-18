@@ -29,12 +29,12 @@ func NewReportHandler() *ReportHandler {
 // Body: {"message_id": 123, "reason": "垃圾营销"}
 func (h *ReportHandler) ReportMessage(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	
+
 	var req struct {
 		MessageID uint   `json:"message_id" binding:"required"`
 		Reason    string `json:"reason" binding:"required"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -43,7 +43,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 验证举报原因
 	validReasons := map[string]bool{
 		"垃圾营销": true,
@@ -52,7 +52,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		"欺诈骗钱": true,
 		"其他":   true,
 	}
-	
+
 	if !validReasons[req.Reason] {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -61,9 +61,9 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 检查消息是否存在
-	message, err := h.messageDAO.GetByID(req.MessageID)
+	_, err := h.messageDAO.GetByID(req.MessageID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"code":    404,
@@ -72,7 +72,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 检查是否已举报过
 	if h.reportDAO.CheckExists(userID, req.MessageID) {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -82,7 +82,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 创建举报记录
 	report := &model.Report{
 		ReporterID: userID,
@@ -90,7 +90,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		Reason:     req.Reason,
 		Status:     model.ReportStatusPending,
 	}
-	
+
 	if err := h.reportDAO.Create(report); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
@@ -99,12 +99,12 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// ✅ 记录操作日志
 	h.logDAO.CreateLog(dao.LogRequest{
-		Action: "message_report",
-		UserID: &userID,
-		IP:     c.ClientIP(),
+		Action:    "message_report",
+		UserID:    &userID,
+		IP:        c.ClientIP(),
 		UserAgent: c.GetHeader("User-Agent"),
 		Details: map[string]interface{}{
 			"message_id": req.MessageID,
@@ -112,7 +112,7 @@ func (h *ReportHandler) ReportMessage(c *gin.Context) {
 		},
 		Result: model.ResultSuccess,
 	})
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Report submitted successfully",
@@ -128,7 +128,7 @@ func (h *ReportHandler) GetReports(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
-	
+
 	reports, total, err := h.reportDAO.GetUserReports(userID, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -138,7 +138,7 @@ func (h *ReportHandler) GetReports(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
@@ -157,7 +157,7 @@ func (h *ReportHandler) GetAllReports(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	status := c.Query("status")
-	
+
 	reports, total, err := h.reportDAO.GetAllReports(page, pageSize, status)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -167,7 +167,7 @@ func (h *ReportHandler) GetAllReports(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "success",
@@ -192,12 +192,12 @@ func (h *ReportHandler) UpdateReportStatus(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	var req struct {
 		Status    string `json:"status" binding:"required"`
 		AdminNote string `json:"admin_note"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -206,7 +206,7 @@ func (h *ReportHandler) UpdateReportStatus(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	if err := h.reportDAO.UpdateStatus(uint(reportID), req.Status, req.AdminNote); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
@@ -215,11 +215,10 @@ func (h *ReportHandler) UpdateReportStatus(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
 		"message": "Report status updated successfully",
 		"data":    nil,
 	})
 }
-

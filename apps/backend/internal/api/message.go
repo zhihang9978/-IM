@@ -241,3 +241,28 @@ func (h *MessageHandler) SearchMessages(c *gin.Context) {
 	})
 }
 
+// GetOfflineMessages 获取离线消息
+// GET /api/v1/messages/offline
+func (h *MessageHandler) GetOfflineMessages(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	
+	messages, err := h.messageService.GetOfflineMessages(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"messages": messages,
+			"count":    len(messages),
+		},
+	})
+}
+

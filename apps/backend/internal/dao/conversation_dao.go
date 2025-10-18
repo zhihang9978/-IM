@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"time"
+
 	"github.com/lanxin/im-backend/internal/model"
 	"github.com/lanxin/im-backend/internal/pkg/mysql"
 	"gorm.io/gorm"
@@ -89,4 +91,70 @@ func (d *ConversationDAO) GetConversationSettings(conversationID, userID uint) (
 		Select("is_muted", "is_top", "is_starred", "is_blocked").
 		First(&conv).Error
 	return &conv, err
+}
+
+// GetOrCreateSingleConversation 获取或创建单聊会话
+//
+// 功能说明:
+//   - 如果user1和user2之间已有会话,返回现有会话ID
+//   - 如果没有会话,创建新会话并返回ID
+//   - 自动处理user1ID和user2ID的顺序(小的在前)
+//
+// 参数:
+//   - user1ID: 用户1的ID
+//   - user2ID: 用户2的ID
+//
+// 返回:
+//   - conversationID: 会话ID
+//   - error: 错误信息
+func (d *ConversationDAO) GetOrCreateSingleConversation(user1ID, user2ID uint) (uint, error) {
+	// 确保user1ID < user2ID (避免user1↔user2和user2↔user1两个会话)
+	if user1ID > user2ID {
+		user1ID, user2ID = user2ID, user1ID
+	}
+
+	// 查询是否已存在会话
+	var conv model.Conversation
+	err := d.db.Where(
+		"type = ? AND ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))",
+		model.ConversationTypeSingle,
+		user1ID, user2ID, user2ID, user1ID,
+	).First(&conv).Error
+
+	if err == nil {
+		// 会话已存在,返回ID
+		return conv.ID, nil
+	}
+
+	// 会话不存在,创建新会话
+	newConv := &model.Conversation{
+		Type:    model.ConversationTypeSingle,
+		User1ID: &user1ID,
+		User2ID: &user2ID,
+	}
+
+	if err := d.db.Create(newConv).Error; err != nil {
+		return 0, err
+	}
+
+	return newConv.ID, nil
+}
+
+// UpdateLastMessage 更新会话的最后一条消息
+//
+// 功能说明:
+//   - 更新会话的last_message_id和last_message_at字段
+//   - 用于会话列表排序和显示最新消息
+//
+// 参数:
+//   - conversationID: 会话ID
+//   - messageID: 消息ID
+//   - timestamp: 消息时间
+func (d *ConversationDAO) UpdateLastMessage(conversationID, messageID uint, timestamp *time.Time) error {
+	return d.db.Model(&model.Conversation{}).
+		Where("id = ?", conversationID).
+		Updates(map[string]interface{}{
+			"last_message_id": messageID,
+			"last_message_at": timestamp,
+		}).Error
 }

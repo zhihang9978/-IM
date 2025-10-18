@@ -76,6 +76,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	contactHandler := api.NewContactHandler()
 	favoriteHandler := api.NewFavoriteHandler()
 	reportHandler := api.NewReportHandler()
+	groupHandler := api.NewGroupHandler(hub)
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
@@ -137,6 +138,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.GET("/conversations/:id/messages", messageHandler.GetMessages)
 			authorized.GET("/conversations/:id/messages/history", messageHandler.GetHistoryMessages)
 			authorized.GET("/messages/search", messageHandler.SearchMessages)
+			authorized.GET("/messages/offline", messageHandler.GetOfflineMessages)
 			authorized.POST("/conversations/:id/read", messageHandler.MarkAsRead)
 
 			// 文件相关
@@ -151,6 +153,16 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			// 举报相关
 			authorized.POST("/messages/report", reportHandler.ReportMessage)
 			authorized.GET("/reports", reportHandler.GetReports)
+
+			// 群组相关
+			authorized.POST("/groups", groupHandler.CreateGroup)
+			authorized.GET("/groups/:id", groupHandler.GetGroupInfo)
+			authorized.GET("/groups/:id/members", groupHandler.GetGroupMembers)
+			authorized.POST("/groups/:id/members", groupHandler.AddMembers)
+			authorized.DELETE("/groups/:id/members/:user_id", groupHandler.RemoveMember)
+			authorized.POST("/groups/:id/messages", groupHandler.SendGroupMessage)
+			authorized.PUT("/groups/:id", groupHandler.UpdateGroup)
+			authorized.DELETE("/groups/:id", groupHandler.DisbandGroup)
 
 			// TRTC相关（纯数据流接口）
 			authorized.POST("/trtc/user-sig", trtcHandler.GetUserSig)
