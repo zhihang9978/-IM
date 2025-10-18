@@ -156,9 +156,7 @@ class ChatMessageHandler(
         activity.lifecycleScope.launch {
             try {
                 val request = mapOf(
-                    "message_id" to message.id,
-                    "content" to message.content,
-                    "type" to message.type
+                    "message_id" to message.id
                 )
                 val response = RetrofitClient.apiService.collectMessage(request)
                 
@@ -238,10 +236,10 @@ class ChatMessageHandler(
                     messageContent = "$messageContent|QUOTE:${it.id}"
                 }
                 
-                val request = mapOf(
-                    "conversation_id" to conversationId,
-                    "content" to messageContent,
-                    "type" to "text"
+                val request = com.lanxin.im.data.remote.SendMessageRequest(
+                    receiver_id = conversationId,
+                    content = messageContent,
+                    type = "text"
                 )
                 
                 val response = RetrofitClient.apiService.sendMessage(request)
@@ -266,27 +264,31 @@ class ChatMessageHandler(
                 // 上传语音文件到MinIO
                 val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadVoice(filePath)
                 
-                if (uploadResult.isFailure) {
-                    Toast.makeText(activity, "语音上传失败", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-                
-                val voiceUrl = uploadResult.getOrNull() ?: return@launch
-                
-                val request = mapOf(
-                    "conversation_id" to conversationId,
-                    "content" to duration.toString(),
-                    "type" to "voice",
-                    "file_url" to voiceUrl,
-                    "duration" to duration
-                )
-                
-                val response = RetrofitClient.apiService.sendMessage(request)
-                
-                if (response.code == 0) {
-                    onLoadMessages()
-                } else {
-                    Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                when (uploadResult) {
+                    is com.lanxin.im.utils.Result.Error -> {
+                        Toast.makeText(activity, "语音上传失败", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    is com.lanxin.im.utils.Result.Success -> {
+                        val voiceUrl = uploadResult.data
+                        
+                        val request = com.lanxin.im.data.remote.SendMessageRequest(
+                            receiver_id = conversationId,
+                            content = duration.toString(),
+                            type = "voice",
+                            file_url = voiceUrl,
+                            duration = duration
+                        )
+                        
+                        val response = RetrofitClient.apiService.sendMessage(request)
+                        
+                        if (response.code == 0) {
+                            onLoadMessages()
+                        } else {
+                            Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    else -> {}
                 }
             } catch (e: Exception) {
                 Toast.makeText(activity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -303,26 +305,30 @@ class ChatMessageHandler(
                 // 上传图片到MinIO（自动压缩）
                 val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadImage(activity, imagePath)
                 
-                if (uploadResult.isFailure) {
-                    Toast.makeText(activity, "图片上传失败", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-                
-                val imageUrl = uploadResult.getOrNull() ?: return@launch
-                
-                val request = mapOf(
-                    "conversation_id" to conversationId,
-                    "content" to imageUrl,
-                    "type" to "image",
-                    "file_url" to imageUrl
-                )
-                
-                val response = RetrofitClient.apiService.sendMessage(request)
-                
-                if (response.code == 0) {
-                    onLoadMessages()
-                } else {
-                    Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                when (uploadResult) {
+                    is com.lanxin.im.utils.Result.Error -> {
+                        Toast.makeText(activity, "图片上传失败", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    is com.lanxin.im.utils.Result.Success -> {
+                        val imageUrl = uploadResult.data
+                        
+                        val request = com.lanxin.im.data.remote.SendMessageRequest(
+                            receiver_id = conversationId,
+                            content = imageUrl,
+                            type = "image",
+                            file_url = imageUrl
+                        )
+                        
+                        val response = RetrofitClient.apiService.sendMessage(request)
+                        
+                        if (response.code == 0) {
+                            onLoadMessages()
+                        } else {
+                            Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    else -> {}
                 }
             } catch (e: Exception) {
                 Toast.makeText(activity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -339,29 +345,33 @@ class ChatMessageHandler(
                 // 上传视频到MinIO
                 val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadVideo(videoPath)
                 
-                if (uploadResult.isFailure) {
-                    Toast.makeText(activity, "视频上传失败", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-                
-                val videoUrl = uploadResult.getOrNull() ?: return@launch
-                
-                // 获取视频时长
-                val duration = com.lanxin.im.utils.VideoUtils.getVideoDuration(videoPath)
-                
-                val request = mapOf(
-                    "conversation_id" to conversationId,
-                    "content" to "$videoUrl|$duration",
-                    "type" to "video",
-                    "file_url" to videoUrl
-                )
-                
-                val response = RetrofitClient.apiService.sendMessage(request)
-                
-                if (response.code == 0) {
-                    onLoadMessages()
-                } else {
-                    Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                when (uploadResult) {
+                    is com.lanxin.im.utils.Result.Error -> {
+                        Toast.makeText(activity, "视频上传失败", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    is com.lanxin.im.utils.Result.Success -> {
+                        val videoUrl = uploadResult.data
+                        
+                        // 获取视频时长
+                        val duration = com.lanxin.im.utils.VideoUtils.getVideoDuration(videoPath)
+                        
+                        val request = com.lanxin.im.data.remote.SendMessageRequest(
+                            receiver_id = conversationId,
+                            content = "$videoUrl|$duration",
+                            type = "video",
+                            file_url = videoUrl
+                        )
+                        
+                        val response = RetrofitClient.apiService.sendMessage(request)
+                        
+                        if (response.code == 0) {
+                            onLoadMessages()
+                        } else {
+                            Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    else -> {}
                 }
             } catch (e: Exception) {
                 Toast.makeText(activity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -378,27 +388,31 @@ class ChatMessageHandler(
                 // 上传文件到MinIO
                 val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadDocument(filePath)
                 
-                if (uploadResult.isFailure) {
-                    Toast.makeText(activity, "文件上传失败", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-                
-                val fileUrl = uploadResult.getOrNull() ?: return@launch
-                
-                val request = mapOf(
-                    "conversation_id" to conversationId,
-                    "content" to fileName,
-                    "type" to "file",
-                    "file_url" to fileUrl,
-                    "file_size" to fileSize
-                )
-                
-                val response = RetrofitClient.apiService.sendMessage(request)
-                
-                if (response.code == 0) {
-                    onLoadMessages()
-                } else {
-                    Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                when (uploadResult) {
+                    is com.lanxin.im.utils.Result.Error -> {
+                        Toast.makeText(activity, "文件上传失败", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    is com.lanxin.im.utils.Result.Success -> {
+                        val fileUrl = uploadResult.data
+                        
+                        val request = com.lanxin.im.data.remote.SendMessageRequest(
+                            receiver_id = conversationId,
+                            content = fileName,
+                            type = "file",
+                            file_url = fileUrl,
+                            file_size = fileSize
+                        )
+                        
+                        val response = RetrofitClient.apiService.sendMessage(request)
+                        
+                        if (response.code == 0) {
+                            onLoadMessages()
+                        } else {
+                            Toast.makeText(activity, "发送失败: ${response.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    else -> {}
                 }
             } catch (e: Exception) {
                 Toast.makeText(activity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()

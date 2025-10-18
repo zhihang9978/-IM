@@ -42,5 +42,21 @@ interface MessageDao {
     
     @Query("DELETE FROM messages")
     suspend fun deleteAllMessages()
+    
+    // Additional methods for OfflineMessageCache
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC")
+    suspend fun getMessagesForConversation(conversationId: Long): List<Message>
+    
+    @Query("SELECT * FROM messages ORDER BY createdAt ASC")
+    suspend fun getAll(): List<Message>
+    
+    @Update
+    suspend fun update(message: Message)
+    
+    @Delete
+    suspend fun delete(message: Message)
+    
+    @Query("DELETE FROM messages")
+    suspend fun deleteAll()
 }
 

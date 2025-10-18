@@ -79,5 +79,14 @@ object BurnAfterReadHelper {
     fun isCountingDown(messageId: Long): Boolean {
         return burnTimers.containsKey(messageId)
     }
+    
+    /**
+     * 标记消息为已读（触发阅后即焚）
+     */
+    fun markAsRead(messageId: Long) {
+        Log.d(TAG, "Message $messageId marked as read for burn after read")
+        // 这里可以调用API标记消息已读
+        // 实际的删除逻辑由startBurnCountdown处理
+    }
 }
 

@@ -124,7 +124,7 @@ class ChatMediaHandler(
     
     fun playVoiceMessage(message: Message) {
         message.fileUrl?.let { url ->
-            voicePlayer.playVoice(url)
+            voicePlayer.play(url)
         } ?: run {
             Toast.makeText(activity, "语音文件不存在", Toast.LENGTH_SHORT).show()
         }
@@ -240,27 +240,15 @@ class ChatMediaHandler(
     }
     
     private suspend fun compressAndSendVideo(uri: Uri) = withContext(Dispatchers.IO) {
-        // Get original file path
-        val inputPath = getRealPathFromUri(uri) ?: return@withContext
-        
-        // Create output file
-        val outputFile = File(
-            activity.cacheDir,
-            "compressed_video_${System.currentTimeMillis()}.mp4"
-        )
-        
-        // Compress video
-        val success = VideoCompressor.compressVideo(
-            inputPath = inputPath,
-            outputPath = outputFile.absolutePath,
-            quality = VideoCompressor.Quality.MEDIUM
-        )
-        
-        if (success) {
+        try {
+            // Compress video using VideoCompressor instance
+            val compressor = VideoCompressor(activity)
+            val compressedFile = compressor.compress(uri)
+            
             withContext(Dispatchers.Main) {
-                onVideoSelected(outputFile.absolutePath)
+                onVideoSelected(compressedFile.absolutePath)
             }
-        } else {
+        } catch (e: Exception) {
             withContext(Dispatchers.Main) {
                 Toast.makeText(activity, "视频压缩失败", Toast.LENGTH_SHORT).show()
             }

@@ -17,7 +17,7 @@ sealed class Result<out T> {
  * 便于针对不同类型的错误提供不同的处理策略
  */
 sealed class AppException(
-    open val message: String,
+    override val message: String,
     open val code: Int = -1,
     cause: Throwable? = null
 ) : Exception(message, cause) {

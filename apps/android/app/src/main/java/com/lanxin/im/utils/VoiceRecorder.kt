@@ -93,5 +93,17 @@ class VoiceRecorder(private val context: Context) {
     fun getDuration(): Int {
         return ((System.currentTimeMillis() - startTime) / 1000).toInt()
     }
+    
+    /**
+     * 释放资源
+     */
+    fun release() {
+        try {
+            mediaRecorder?.release()
+            mediaRecorder = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }
 

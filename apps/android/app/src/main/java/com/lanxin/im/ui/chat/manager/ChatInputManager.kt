@@ -297,14 +297,13 @@ class ChatInputManager(
     }
     
     private fun stopRecording() {
-        val duration = ((System.currentTimeMillis() - recordingStartTime) / 1000).toInt()
-        val filePath = voiceRecorder.stopRecording()
+        val (filePath, actualDuration) = voiceRecorder.stopRecording()
         
         recordingOverlay.visibility = View.GONE
         recordingHandler.removeCallbacksAndMessages(null)
         
-        if (filePath != null && duration >= 1) {
-            onSendVoice(filePath, duration)
+        if (filePath != null && actualDuration >= 1) {
+            onSendVoice(filePath, actualDuration)
         }
     }
     

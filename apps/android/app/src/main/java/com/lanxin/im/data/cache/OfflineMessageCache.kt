@@ -28,7 +28,7 @@ class OfflineMessageCache(private val context: Context) {
         private const val SYNC_BATCH_SIZE = 50        // 同步批次大小
     }
     
-    private val database = AppDatabase.getDatabase(context)
+    private val database = AppDatabase.getInstance(context)
     private val messageDao = database.messageDao()
     
     // 内存缓存 (LRU)
@@ -74,7 +74,7 @@ class OfflineMessageCache(private val context: Context) {
     suspend fun cacheToDisk(message: Message) {
         withContext(Dispatchers.IO) {
             try {
-                messageDao.insert(message)
+                messageDao.insertMessage(message)
                 Log.d(TAG, "Cached message ${message.id} to disk")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to cache message to disk", e)
@@ -88,7 +88,7 @@ class OfflineMessageCache(private val context: Context) {
     suspend fun batchCacheToDisk(messages: List<Message>) {
         withContext(Dispatchers.IO) {
             try {
-                messageDao.insertAll(messages)
+                messageDao.insertMessages(messages)
                 Log.d(TAG, "Batch cached ${messages.size} messages to disk")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to batch cache messages", e)
@@ -117,7 +117,7 @@ class OfflineMessageCache(private val context: Context) {
         return withContext(Dispatchers.IO) {
             try {
                 // 假设有status字段标记同步状态
-                messageDao.getAll().filter { it.status == "pending" || it.status == "failed" }
+                messageDao.getAll().filter { msg -> msg.status == "pending" || msg.status == "failed" }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to get unsynced messages", e)
                 emptyList()
@@ -144,42 +144,45 @@ class OfflineMessageCache(private val context: Context) {
         onSuccess: (Message) -> Unit,
         onFailure: (Message, Exception) -> Unit
     ) {
+        val messagesToSync = synchronized(pendingSyncQueue) {
+            val messages = pendingSyncQueue.toList()
+            pendingSyncQueue.clear()
+            messages
+        }
+        
         withContext(Dispatchers.IO) {
-            synchronized(pendingSyncQueue) {
-                val messagesToSync = pendingSyncQueue.toList()
-                pendingSyncQueue.clear()
-                
-                messagesToSync.forEach { message ->
-                    try {
-                        // 这里应该调用实际的API发送
-                        // RetrofitClient.apiService.sendMessage(...)
-                        
-                        // 模拟成功
-                        withContext(Dispatchers.Main) {
-                            onSuccess(message)
-                        }
-                        
-                        // 更新数据库状态
-                        val updatedMessage = message.copy(status = "sent")
-                        messageDao.update(updatedMessage)
-                        
-                        Log.d(TAG, "Synced message ${message.id}")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to sync message ${message.id}", e)
-                        
-                        withContext(Dispatchers.Main) {
-                            onFailure(message, e)
-                        }
-                        
-                        // 重新加入队列（最多重试3次）
-                        if (message.status != "failed_3") {
-                            val retryMessage = message.copy(
-                                status = when (message.status) {
-                                    "failed" -> "failed_2"
-                                    "failed_2" -> "failed_3"
-                                    else -> "failed"
-                                }
-                            )
+            messagesToSync.forEach { message ->
+                try {
+                    // 这里应该调用实际的API发送
+                    // RetrofitClient.apiService.sendMessage(...)
+                    
+                    // 模拟成功
+                    withContext(Dispatchers.Main) {
+                        onSuccess(message)
+                    }
+                    
+                    // 更新数据库状态
+                    val updatedMessage = message.copy(status = "sent")
+                    messageDao.update(updatedMessage)
+                    
+                    Log.d(TAG, "Synced message ${message.id}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to sync message ${message.id}", e)
+                    
+                    withContext(Dispatchers.Main) {
+                        onFailure(message, e)
+                    }
+                    
+                    // 重新加入队列（最多重试3次）
+                    if (message.status != "failed_3") {
+                        val retryMessage = message.copy(
+                            status = when (message.status) {
+                                "failed" -> "failed_2"
+                                "failed_2" -> "failed_3"
+                                else -> "failed"
+                            }
+                        )
+                        synchronized(pendingSyncQueue) {
                             pendingSyncQueue.add(retryMessage)
                         }
                     }
@@ -197,7 +200,7 @@ class OfflineMessageCache(private val context: Context) {
                 val expireTime = System.currentTimeMillis() - (MAX_DISK_CACHE_DAYS * 24 * 60 * 60 * 1000)
                 
                 val allMessages = messageDao.getAll()
-                val expiredMessages = allMessages.filter { it.createdAt < expireTime }
+                val expiredMessages = allMessages.filter { msg -> msg.createdAt < expireTime }
                 
                 expiredMessages.forEach { message ->
                     messageDao.delete(message)

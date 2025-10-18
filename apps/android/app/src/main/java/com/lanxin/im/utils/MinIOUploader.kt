@@ -46,7 +46,7 @@ object MinIOUploader {
         try {
             val file = File(filePath)
             if (!file.exists()) {
-                return@withContext Result.failure(Exception("文件不存在: $filePath"))
+                return@withContext Result.Error(AppException.FileException("文件不存在: $filePath"))
             }
             
             // 生成唯一文件名
@@ -69,17 +69,17 @@ object MinIOUploader {
             }
             
             // 构建公开访问URL
-            val fileUrl = "${MINIO_ENDPOINT}/${BUCKET_NAME}/${uniqueFileName}"
+            val fileUrl = "${com.lanxin.im.BuildConfig.MINIO_ENDPOINT}/${BUCKET_NAME}/${uniqueFileName}"
             
             Log.d(TAG, "File uploaded successfully: $fileUrl")
-            Result.success(fileUrl)
+            Result.Success(fileUrl)
             
         } catch (e: MinioException) {
             Log.e(TAG, "MinIO upload failed", e)
-            Result.failure(Exception("上传失败: ${e.message}"))
+            Result.Error(AppException.ServerException("上传失败: ${e.message}"))
         } catch (e: Exception) {
             Log.e(TAG, "Upload failed", e)
-            Result.failure(e)
+            Result.Error(e.toAppException())
         }
     }
     
@@ -97,7 +97,7 @@ object MinIOUploader {
             )
             
             if (compressedBitmap == null) {
-                return Result.failure(Exception("图片压缩失败"))
+                return Result.Error(AppException.FileException("图片压缩失败"))
             }
             
             // 保存压缩后的图片
@@ -112,7 +112,7 @@ object MinIOUploader {
             
         } catch (e: Exception) {
             Log.e(TAG, "Image upload failed", e)
-            Result.failure(e)
+            Result.Error(e.toAppException())
         }
     }
     
@@ -196,11 +196,11 @@ object MinIOUploader {
             )
             
             Log.d(TAG, "File deleted successfully: $objectName")
-            Result.success(Unit)
+            Result.Success(Unit)
             
         } catch (e: Exception) {
             Log.e(TAG, "Delete failed", e)
-            Result.failure(e)
+            Result.Error(e.toAppException())
         }
     }
 }

@@ -121,7 +121,7 @@ class ChatListFragment : Fragment() {
         }
         // Android 13+ requires explicit export flag
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requireContext().registerReceiver(messageReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+            requireContext().registerReceiver(messageReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             requireContext().registerReceiver(messageReceiver, filter)
         }

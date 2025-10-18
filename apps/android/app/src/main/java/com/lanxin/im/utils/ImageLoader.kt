@@ -82,7 +82,7 @@ object ImageLoader {
             override fun onLoadFailed(
                 e: GlideException?,
                 model: Any?,
-                target: Target<Drawable>?,
+                target: Target<Drawable>,
                 isFirstResource: Boolean
             ): Boolean {
                 Log.e(TAG, "Failed to load image: $url", e)
@@ -90,13 +90,13 @@ object ImageLoader {
             }
             
             override fun onResourceReady(
-                resource: Drawable?,
-                model: Any?,
+                resource: Drawable,
+                model: Any,
                 target: Target<Drawable>?,
-                dataSource: DataSource?,
+                dataSource: DataSource,
                 isFirstResource: Boolean
             ): Boolean {
-                Log.d(TAG, "Image loaded successfully: $url (source: ${dataSource?.name})")
+                Log.d(TAG, "Image loaded successfully: $url (source: ${dataSource.name})")
                 return false
             }
         }).into(imageView)

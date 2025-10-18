@@ -103,15 +103,9 @@ class ChatUIManager(
         
         activity.lifecycleScope.launch {
             try {
-                val params = mutableMapOf<String, Any>(
-                    "limit" to 20
-                )
+                val beforeMessageId = oldestMessageId ?: 0L
                 
-                oldestMessageId?.let {
-                    params["before_message_id"] = it
-                }
-                
-                val response = RetrofitClient.apiService.getHistoryMessages(conversationId, params)
+                val response = RetrofitClient.apiService.getHistoryMessages(conversationId, beforeMessageId)
                 
                 if (response.code == 0 && response.data != null) {
                     val historyMessages = response.data.messages
