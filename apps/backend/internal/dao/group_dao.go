@@ -45,6 +45,24 @@ func (d *GroupDAO) Delete(id uint) error {
 	return d.db.Delete(&model.Group{}, id).Error
 }
 
+// GetByIDs 根据ID列表获取群组（带分页）
+func (d *GroupDAO) GetByIDs(groupIDs []uint, page, pageSize int) ([]model.Group, int64, error) {
+	var groups []model.Group
+	var total int64
+
+	query := d.db.Where("id IN (?) AND status = ?", groupIDs, model.GroupStatusActive).
+		Preload("Owner")
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	err := query.Offset(offset).Limit(pageSize).Find(&groups).Error
+
+	return groups, total, err
+}
+
 // GetUserGroups 获取用户加入的所有群组
 func (d *GroupDAO) GetUserGroups(userID uint) ([]model.Group, error) {
 	var groups []model.Group
@@ -122,5 +140,12 @@ func (d *GroupMemberDAO) GetMemberCount(groupID uint) (int64, error) {
 		Where("group_id = ?", groupID).
 		Count(&count).Error
 	return count, err
+}
+
+// GetUserGroups 获取用户加入的所有群组成员关系
+func (d *GroupMemberDAO) GetUserGroups(userID uint) ([]model.GroupMember, error) {
+	var members []model.GroupMember
+	err := d.db.Where("user_id = ?", userID).Find(&members).Error
+	return members, err
 }
 

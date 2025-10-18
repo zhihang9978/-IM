@@ -20,6 +20,34 @@ func NewGroupHandler(hub *websocket.Hub) *GroupHandler {
 	}
 }
 
+// GET /api/v1/groups
+func (h *GroupHandler) GetUserGroups(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	groups, total, err := h.groupService.GetUserGroups(userID, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"total":  total,
+			"page":   page,
+			"page_size": pageSize,
+			"groups": groups,
+		},
+	})
+}
+
 // CreateGroup 创建群组
 // POST /api/v1/groups
 func (h *GroupHandler) CreateGroup(c *gin.Context) {

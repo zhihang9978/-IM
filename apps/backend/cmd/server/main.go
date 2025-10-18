@@ -79,6 +79,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 	favoriteHandler := api.NewFavoriteHandler()
 	reportHandler := api.NewReportHandler()
 	groupHandler := api.NewGroupHandler(hub)
+	friendRequestHandler := api.NewFriendRequestHandler()
 	adminHandler := api.NewAdminHandler(authService)
 
 	// 健康检查
@@ -135,6 +136,11 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.DELETE("/contacts/:id", contactHandler.DeleteContact)
 			authorized.PUT("/contacts/:id/remark", contactHandler.UpdateRemark)
 
+			authorized.POST("/friend-requests", friendRequestHandler.SendFriendRequest)
+			authorized.GET("/friend-requests", friendRequestHandler.GetFriendRequests)
+			authorized.POST("/friend-requests/:id/accept", friendRequestHandler.AcceptFriendRequest)
+			authorized.POST("/friend-requests/:id/reject", friendRequestHandler.RejectFriendRequest)
+
 			// 消息相关
 			authorized.POST("/messages", messageHandler.SendMessage)
 			authorized.POST("/messages/:id/recall", messageHandler.RecallMessage)
@@ -158,6 +164,7 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.GET("/reports", reportHandler.GetReports)
 
 			// 群组相关
+			authorized.GET("/groups", groupHandler.GetUserGroups)
 			authorized.POST("/groups", groupHandler.CreateGroup)
 			authorized.GET("/groups/:id", groupHandler.GetGroupInfo)
 			authorized.GET("/groups/:id/members", groupHandler.GetGroupMembers)

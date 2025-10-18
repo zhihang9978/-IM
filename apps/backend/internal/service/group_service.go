@@ -103,6 +103,29 @@ func (s *GroupService) CreateGroup(ownerID uint, name, avatar string, memberIDs 
 	return group, nil
 }
 
+func (s *GroupService) GetUserGroups(userID uint, page, pageSize int) ([]model.Group, int64, error) {
+	members, err := s.groupMemberDAO.GetUserGroups(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(members) == 0 {
+		return []model.Group{}, 0, nil
+	}
+
+	groupIDs := make([]uint, len(members))
+	for i, member := range members {
+		groupIDs[i] = member.GroupID
+	}
+
+	groups, total, err := s.groupDAO.GetByIDs(groupIDs, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return groups, total, nil
+}
+
 // GetGroupInfo 获取群组信息
 func (s *GroupService) GetGroupInfo(groupID uint) (*model.Group, error) {
 	return s.groupDAO.GetByID(groupID)

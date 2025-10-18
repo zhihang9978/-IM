@@ -45,7 +45,16 @@ class ChatListFragment : Fragment() {
         setupRecyclerView()
         setupEmptyState(view)
         loadConversations()
+    }
+    
+    override fun onResume() {
+        super.onResume()
         registerMessageReceiver()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        unregisterMessageReceiver()
     }
     
     private fun setupSearchBar(view: View) {
@@ -150,14 +159,18 @@ class ChatListFragment : Fragment() {
         }
     }
     
+    private fun unregisterMessageReceiver() {
+        try {
+            if (::messageReceiver.isInitialized) {
+                requireContext().unregisterReceiver(messageReceiver)
+            }
+        } catch (e: Exception) {
+        }
+    }
+    
     override fun onDestroyView() {
         super.onDestroyView()
-        // 注销广播接收器
-        try {
-            requireContext().unregisterReceiver(messageReceiver)
-        } catch (e: Exception) {
-            // 忽略未注册的异常
-        }
+        unregisterMessageReceiver()
     }
 }
 
