@@ -123,11 +123,6 @@ func (h *SystemMonitorHandler) GetServiceStatus(c *gin.Context) {
 	})
 
 	wsStatus := "healthy"
-	wsInfo := "No active connections"
-	activeConns := h.hub.GetActiveConnectionCount()
-	if activeConns > 0 {
-		wsInfo = ""
-	}
 	services = append(services, ServiceStatus{
 		Name:         "WebSocket Server",
 		Status:       wsStatus,
