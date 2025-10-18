@@ -15,7 +15,17 @@ data class Conversation(
     val lastMessageAt: Long?,
     val unreadCount: Int = 0,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    // UI展示字段
+    val avatar: String? = null,
+    val name: String? = null,
+    val lastMessage: String? = null,
+    val lastMessageTime: Long = updatedAt,
+    val lastMessageType: String = "text",
+    val lastMessageContent: String = lastMessage ?: "",
+    val isMuted: Boolean = false,
+    val isTop: Boolean = false,
+    val draft: String? = null
 )
 
 object ConversationType {

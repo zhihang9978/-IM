@@ -24,6 +24,7 @@
             android:contentDescription="返回" />
         
         <TextView
+            android:id="@+id/tv_step_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -37,15 +38,99 @@
             android:layout_height="48dp" />
     </LinearLayout>
 
-    <!-- 内容区域 -->
-    <TextView
+    <!-- Step 1: 选择类型 -->
+    <LinearLayout
+        android:id="@+id/step1_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center"
-        android:text="投诉举报功能\n请选择问题类型"
-        android:textSize="16sp"
-        android:textColor="@color/text_primary" />
+        android:orientation="vertical"
+        android:padding="16dp">
+        
+        <RadioGroup
+            android:id="@+id/radio_group_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            
+            <RadioButton
+                android:id="@+id/radio_spam"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="垃圾信息"
+                android:padding="12dp" />
+            
+            <RadioButton
+                android:id="@+id/radio_harassment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="骚扰"
+                android:padding="12dp" />
+            
+            <RadioButton
+                android:id="@+id/radio_fraud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="诈骗"
+                android:padding="12dp" />
+        </RadioGroup>
+    </LinearLayout>
+
+    <!-- Step 2: 选择原因 -->
+    <LinearLayout
+        android:id="@+id/step2_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+        
+        <RadioGroup
+            android:id="@+id/radio_group_reason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            
+            <RadioButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="不当内容"
+                android:padding="12dp" />
+            
+            <RadioButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="虚假信息"
+                android:padding="12dp" />
+        </RadioGroup>
+    </LinearLayout>
+
+    <!-- Step 3: 填写详情 -->
+    <LinearLayout
+        android:id="@+id/step3_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+        
+        <EditText
+            android:id="@+id/et_detail"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:gravity="top"
+            android:hint="请详细描述问题"
+            android:padding="12dp" />
+    </LinearLayout>
+
+    <!-- 底部按钮 -->
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:text="下一步"
+        android:textSize="16sp" />
 
 </LinearLayout>
 

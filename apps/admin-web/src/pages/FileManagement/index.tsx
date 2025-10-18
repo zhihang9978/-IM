@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card, Table, Button, Input, Select, Space, Tag, Progress } from 'antd'
-import { FileOutlined, SearchOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
+import { SearchOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -17,8 +17,8 @@ interface FileItem {
 }
 
 function FileManagement() {
-  const [files, setFiles] = useState<FileItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [files] = useState<FileItem[]>([])
+  const [loading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [fileType, setFileType] = useState<string>()
 

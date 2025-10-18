@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -23,8 +24,24 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Development server (154.40.45.121)
+            buildConfigField("String", "API_BASE_URL", "\"http://154.40.45.121:8080/api/v1/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"ws://154.40.45.121:8080/ws\"")
+            buildConfigField("String", "MINIO_ENDPOINT", "\"http://154.40.45.121:9000\"")
+            buildConfigField("String", "MINIO_BUCKET", "\"lanxin-im\"")
+            buildConfigField("String", "MINIO_ACCESS_KEY", "\"minioadmin\"")
+            buildConfigField("String", "MINIO_SECRET_KEY", "\"minioadmin\"")
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            buildConfigField("String", "API_BASE_URL", "\"https://api.lanxin168.com/api/v1/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://api.lanxin168.com/ws\"")
+            buildConfigField("String", "MINIO_ENDPOINT", "\"https://files.lanxin168.com\"")
+            buildConfigField("String", "MINIO_BUCKET", "\"lanxin-im\"")
+            // TODO: Replace with secure credentials from environment variables or keystore
+            buildConfigField("String", "MINIO_ACCESS_KEY", "\"REPLACE_WITH_PRODUCTION_KEY\"")
+            buildConfigField("String", "MINIO_SECRET_KEY", "\"REPLACE_WITH_PRODUCTION_SECRET\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -43,6 +60,7 @@ android {
     
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -111,8 +129,18 @@ dependencies {
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
     
+    // Hilt Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
+    
+    // EncryptedSharedPreferences (安全存储)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    
     // Testing
     testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

@@ -9,6 +9,7 @@ import DataAnalysis from './pages/DataAnalysis'
 import SystemSettings from './pages/SystemSettings'
 import DataBackup from './pages/DataBackup'
 import Profile from './pages/Profile'
+import SystemMonitor from './pages/SystemMonitor'
 import MainLayout from './components/Layout/MainLayout'
 import authService from './services/authService'
 
@@ -32,6 +33,7 @@ function Router() {
         <Route path="groups" element={<GroupManagement />} />
         <Route path="files" element={<FileManagement />} />
         <Route path="analytics" element={<DataAnalysis />} />
+        <Route path="monitor" element={<SystemMonitor />} />
         <Route path="settings" element={<SystemSettings />} />
         <Route path="backup" element={<DataBackup />} />
         <Route path="profile" element={<Profile />} />

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 用户信息卡片 -->
+        <LinearLayout
+            android:id="@+id/meLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingTop="20dp"
+            android:paddingRight="16dp">
+
+            <ImageView
+                android:id="@+id/portraitImageView"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/nameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="3dp"
+                    android:singleLine="true"
+                    android:text="用户名"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/accountTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:singleLine="true"
+                    android:text="蓝信号: "
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginRight="4dp"
+                android:src="@drawable/ic_arrow_right" />
+
+        </LinearLayout>
+
+        <!-- 账号安全 -->
+        <com.lanxin.im.widget.OptionItemView
+            android:id="@+id/accountOptionItemView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:show_arrow_indicator="true"
+            app:show_divider="false"
+            app:title="账号安全" />
+
+        <!-- 消息通知组 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id/notificationOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:show_divider="false"
+                app:title="消息通知" />
+
+        </LinearLayout>
+
+        <!-- 文件和收藏组 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id/fileRecordOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:title="文件" />
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id/favOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:show_divider="false"
+                app:title="收藏" />
+        </LinearLayout>
+
+        <!-- 设置组 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id/settingOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:show_divider="false"
+                app:title="设置" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

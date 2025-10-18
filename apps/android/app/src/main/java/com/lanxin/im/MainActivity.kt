@@ -7,7 +7,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.lanxin.im.utils.AnalyticsHelper
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     
     private lateinit var navController: NavController
@@ -32,10 +34,10 @@ class MainActivity : AppCompatActivity() {
         
         bottomNav.setOnItemSelectedListener { item ->
             val feature = when (item.itemId) {
-                R.id.messagesFragment -> "tab_messages"
-                R.id.contactsFragment -> "tab_contacts"
-                R.id.discoverFragment -> "tab_discover"
-                R.id.profileFragment -> "tab_profile"
+                R.id.navigation_chat -> "tab_messages"
+                R.id.navigation_contacts -> "tab_contacts"
+                R.id.navigation_discover -> "tab_discover"
+                R.id.navigation_profile -> "tab_profile"
                 else -> "unknown"
             }
             AnalyticsHelper.trackFeatureUsage(this, feature)

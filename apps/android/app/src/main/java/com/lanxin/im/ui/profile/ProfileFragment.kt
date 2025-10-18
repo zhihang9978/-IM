@@ -1,34 +1,38 @@
 package com.lanxin.im.ui.profile
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.remote.RetrofitClient
+import com.lanxin.im.widget.OptionItemView
 import kotlinx.coroutines.launch
 
 /**
- * 我的Fragment - 个人中心（按设计文档实现）
+ * 我的Fragment - 野火IM风格UI
  */
 class ProfileFragment : Fragment() {
     
-    private lateinit var ivAvatar: ImageView
-    private lateinit var tvUsername: TextView
-    private lateinit var tvLanxinId: TextView
+    private lateinit var portraitImageView: ImageView
+    private lateinit var nameTextView: TextView
+    private lateinit var accountTextView: TextView
+    private lateinit var meLinearLayout: LinearLayout
     
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+        return inflater.inflate(R.layout.fragment_profile_new, container, false)
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -40,52 +44,65 @@ class ProfileFragment : Fragment() {
     }
     
     private fun initViews(view: View) {
-        ivAvatar = view.findViewById(R.id.iv_avatar)
-        tvUsername = view.findViewById(R.id.tv_username)
-        tvLanxinId = view.findViewById(R.id.tv_lanxin_id)
+        portraitImageView = view.findViewById(R.id.portraitImageView)
+        nameTextView = view.findViewById(R.id.nameTextView)
+        accountTextView = view.findViewById(R.id.accountTextView)
+        meLinearLayout = view.findViewById(R.id.meLinearLayout)
     }
     
     private fun loadUserInfo() {
         lifecycleScope.launch {
             try {
-                // 调用API获取当前用户信息
                 val response = RetrofitClient.apiService.getCurrentUser()
                 response.data?.let { user ->
-                    tvUsername.text = user.username ?: "用户"
-                    tvLanxinId.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
+                    nameTextView.text = user.username ?: "用户"
+                    accountTextView.text = "蓝信号: ${user.lanxinId ?: "未设置"}"
                     
-                    // 使用Glide加载头像（完整实现）
                     Glide.with(this@ProfileFragment)
-                        .load(user.avatar ?: R.drawable.ic_profile)
+                        .load(user.avatar ?: R.mipmap.ic_launcher)
                         .circleCrop()
-                        .placeholder(R.drawable.ic_profile)
-                        .into(ivAvatar)
+                        .placeholder(R.mipmap.ic_launcher)
+                        .into(portraitImageView)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // 加载失败，显示默认信息
-                tvUsername.text = "用户"
-                tvLanxinId.text = "蓝信号: 未登录"
+                nameTextView.text = "用户"
+                accountTextView.text = "蓝信号: 未登录"
             }
         }
     }
     
     private fun setupClickListeners(view: View) {
-        // 收藏（完整实现，跳转到收藏页面）
-        view.findViewById<View>(R.id.btn_favorites).setOnClickListener {
-            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.FavoritesActivity::class.java)
+        // 点击用户信息卡片
+        meLinearLayout.setOnClickListener {
+            val intent = Intent(requireContext(), UserInfoActivity::class.java)
             startActivity(intent)
         }
         
-        // 设置（完整实现，跳转到设置页面）
-        view.findViewById<View>(R.id.btn_settings).setOnClickListener {
-            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.settings.SettingsActivity::class.java)
+        // 账号安全
+        view.findViewById<OptionItemView>(R.id.accountOptionItemView).setOnClickListener {
+            // TODO: 跳转到账号安全页面
+        }
+        
+        // 消息通知
+        view.findViewById<OptionItemView>(R.id.notificationOptionItemView).setOnClickListener {
+            // TODO: 跳转到消息通知设置
+        }
+        
+        // 文件
+        view.findViewById<OptionItemView>(R.id.fileRecordOptionItemView).setOnClickListener {
+            // TODO: 跳转到文件管理
+        }
+        
+        // 收藏
+        view.findViewById<OptionItemView>(R.id.favOptionItemView).setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.social.FavoritesActivity::class.java)
             startActivity(intent)
         }
         
-        // 投诉举报（完整实现，跳转到投诉举报页面）
-        view.findViewById<View>(R.id.btn_report).setOnClickListener {
-            val intent = android.content.Intent(requireContext(), com.lanxin.im.ui.social.ReportActivity::class.java)
+        // 设置
+        view.findViewById<OptionItemView>(R.id.settingOptionItemView).setOnClickListener {
+            val intent = Intent(requireContext(), com.lanxin.im.ui.settings.SettingsActivity::class.java)
             startActivity(intent)
         }
     }

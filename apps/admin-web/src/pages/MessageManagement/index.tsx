@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Card, Table, Button, Input, DatePicker, Select, Space, Tag, message } from 'antd'
-import { MessageOutlined, SearchOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
+import { Card, Table, Button, Input, DatePicker, Select, Space, Tag } from 'antd'
+import { SearchOutlined, DownloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -18,8 +18,8 @@ interface Message {
 }
 
 function MessageManagement() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(false)
+  const [messages] = useState<Message[]>([])
+  const [loading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [messageType, setMessageType] = useState<string>()
   const [dateRange, setDateRange] = useState<any>()

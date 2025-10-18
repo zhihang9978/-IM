@@ -8,7 +8,7 @@ function Profile() {
   const user = authService.getCurrentUser()
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar || '')
 
-  const onSave = async (values: any) => {
+  const onSave = async () => {
     try {
       // TODO: 调用API更新个人信息
       message.success('个人信息已更新')

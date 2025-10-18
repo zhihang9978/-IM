@@ -1,13 +1,12 @@
-import { Card, Form, Input, Switch, Button, Select, InputNumber, message, Divider } from 'antd'
+import { Card, Form, Input, Switch, Button, InputNumber, message, Divider } from 'antd'
 import { SaveOutlined } from '@ant-design/icons'
 
-const { Option } = Select
 const { TextArea } = Input
 
 function SystemSettings() {
   const [form] = Form.useForm()
 
-  const onSave = async (values: any) => {
+  const onSave = async () => {
     try {
       // TODO: 调用API保存设置
       message.success('设置已保存')

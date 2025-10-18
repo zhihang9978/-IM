@@ -9,19 +9,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lanxin.im.R
-import com.lanxin.im.data.model.Conversation
-import com.lanxin.im.data.remote.RetrofitClient
-import kotlinx.coroutines.launch
+import com.lanxin.im.viewmodel.ConversationListViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * 聊天列表Fragment - 对应"蓝信"底部导航
- * 显示所有会话列表（按设计文档实现）
+ * 聊天列表Fragment - 使用MVVM架构
+ * 显示所有会话列表（使用ViewModel管理状态）
  */
+@AndroidEntryPoint
 class ChatListFragment : Fragment() {
+    
+    private val viewModel: ConversationListViewModel by viewModels()
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ConversationAdapter
@@ -50,6 +52,14 @@ class ChatListFragment : Fragment() {
             // 点击会话，进入聊天界面
             val intent = Intent(requireContext(), ChatActivity::class.java)
             intent.putExtra("conversation_id", conversation.id)
+            // 从SharedPreferences获取当前用户ID
+            val sharedPref = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            val currentUserId = sharedPref.getLong("user_id", 0)
+            intent.putExtra("current_user_id", currentUserId)
+            // 如果是单聊，传递对方ID
+            if (conversation.type == "single") {
+                intent.putExtra("peer_id", conversation.user1Id ?: conversation.user2Id ?: 0)
+            }
             startActivity(intent)
         }
         
@@ -58,46 +68,26 @@ class ChatListFragment : Fragment() {
     }
     
     private fun loadConversations() {
-        lifecycleScope.launch {
-            try {
-                // 调用API获取会话列表
-                val response = RetrofitClient.apiService.getConversations()
-                if (response.code == 0 && response.data != null) {
-                    // 转换为ConversationDisplayItem (WildFire IM style)
-                    // 使用API返回的完整数据
-                    val displayItems = response.data.conversations.map { item ->
-                        val conversation = Conversation(
-                            id = item.id,
-                            type = item.type,
-                            user1Id = null,
-                            user2Id = null,
-                            groupId = null,
-                            lastMessageId = item.last_message?.id,
-                            lastMessageAt = item.updated_at,
-                            unreadCount = item.unread_count,
-                            createdAt = System.currentTimeMillis(),
-                            updatedAt = System.currentTimeMillis()
-                        )
-                        
-                        ConversationDisplayItem(
-                            conversation = conversation,
-                            avatar = item.user?.avatar,
-                            name = item.user?.username ?: item.user?.displayName ?: "用户${item.id}",
-                            lastMessageContent = item.last_message?.content,
-                            lastMessageType = item.last_message?.type ?: "text",
-                            draft = null, // 草稿从本地数据库获取
-                            isMuted = false, // 免打扰从本地数据库获取
-                            isTop = false // 置顶从本地数据库获取
-                        )
-                    }
-                    
-                    adapter.submitList(displayItems)
-                }
-            } catch (e: Exception) {
-                // 加载失败，显示空列表
-                e.printStackTrace()
+        // 使用ViewModel观察数据变化，自动更新UI
+        viewModel.conversations.observe(viewLifecycleOwner) { conversations ->
+            // 转换为ConversationDisplayItem
+            val displayItems = conversations.map { conversation ->
+                ConversationDisplayItem(
+                    conversation = conversation,
+                    avatar = conversation.avatar,
+                    name = conversation.name ?: "用户${conversation.id}",
+                    lastMessageContent = conversation.lastMessage,
+                    lastMessageType = conversation.lastMessageType ?: "text",
+                    draft = conversation.draft,
+                    isMuted = conversation.isMuted,
+                    isTop = conversation.isTop
+                )
             }
+            adapter.submitList(displayItems)
         }
+        
+        // 触发刷新
+        viewModel.refreshConversations()
     }
     
     /**
@@ -129,7 +119,12 @@ class ChatListFragment : Fragment() {
             addAction("com.lanxin.im.MESSAGE_READ")
             addAction("com.lanxin.im.MESSAGE_RECALLED")
         }
-        requireContext().registerReceiver(messageReceiver, filter)
+        // Android 13+ requires explicit export flag
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(messageReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            requireContext().registerReceiver(messageReceiver, filter)
+        }
     }
     
     override fun onDestroyView() {
