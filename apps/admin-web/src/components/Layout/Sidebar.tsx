@@ -9,6 +9,7 @@ import {
   BarChartOutlined,
   SettingOutlined,
   DatabaseOutlined,
+  MonitorOutlined,
 } from '@ant-design/icons'
 
 const { Sider } = Layout
@@ -24,6 +25,7 @@ function Sidebar() {
     { key: '/groups', icon: <TeamOutlined />, label: '群聊管理' },
     { key: '/files', icon: <FileOutlined />, label: '文件管理' },
     { key: '/analytics', icon: <BarChartOutlined />, label: '数据分析' },
+    { key: '/monitor', icon: <MonitorOutlined />, label: '系统监控' },
     { key: '/settings', icon: <SettingOutlined />, label: '系统设置' },
     { key: '/backup', icon: <DatabaseOutlined />, label: '数据备份' },
   ]

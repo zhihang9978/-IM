@@ -2,22 +2,82 @@ import { useEffect, useState } from 'react'
 import { Card, Row, Col, Statistic, Tag } from 'antd'
 import { UserOutlined, MessageOutlined, TeamOutlined, FileOutlined } from '@ant-design/icons'
 import ReactECharts from 'echarts-for-react'
+import api from '../../services/api'
+
+interface DashboardStats {
+  total_users: number
+  total_messages: number
+  total_groups: number
+  total_files: number
+  online_users: number
+  today_users: number
+  today_messages: number
+}
+
+interface UserGrowth {
+  date: string
+  count: number
+}
+
+interface MessageStat {
+  type: string
+  count: number
+}
+
+interface DeviceDistribution {
+  name: string
+  value: number
+}
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 1128,
-    totalMessages: 93489,
-    totalGroups: 256,
-    totalFiles: 4532,
+  const [stats, setStats] = useState<DashboardStats>({
+    total_users: 0,
+    total_messages: 0,
+    total_groups: 0,
+    total_files: 0,
+    online_users: 0,
+    today_users: 0,
+    today_messages: 0,
   })
 
-  // 用户增长趋势图配置
+  const [userGrowth, setUserGrowth] = useState<UserGrowth[]>([])
+  const [messageStats, setMessageStats] = useState<MessageStat[]>([])
+  const [deviceDistribution, setDeviceDistribution] = useState<DeviceDistribution[]>([])
+
+  useEffect(() => {
+    fetchDashboardData()
+    
+    const interval = setInterval(() => {
+      fetchDashboardData()
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsData, growthData, msgStatsData, deviceData] = await Promise.all([
+        api.get<DashboardStats>('/admin/dashboard/stats'),
+        api.get<UserGrowth[]>('/admin/dashboard/user-growth'),
+        api.get<MessageStat[]>('/admin/dashboard/message-stats'),
+        api.get<DeviceDistribution[]>('/admin/dashboard/device-distribution'),
+      ])
+
+      setStats(statsData)
+      setUserGrowth(growthData)
+      setMessageStats(msgStatsData)
+      setDeviceDistribution(deviceData)
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    }
+  }
+
   const userTrendOption = {
-    title: { text: '用户增长趋势' },
+    title: { text: '用户增长趋势（最近7天）' },
     tooltip: { trigger: 'axis' },
     xAxis: {
       type: 'category',
-      data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+      data: userGrowth.map(item => item.date),
     },
     yAxis: { type: 'value' },
     series: [
@@ -25,45 +85,49 @@ function Dashboard() {
         name: '新增用户',
         type: 'line',
         smooth: true,
-        data: [120, 200, 150, 180, 220, 250, 300],
+        data: userGrowth.map(item => item.count),
         itemStyle: { color: '#3b82f6' },
+        areaStyle: { opacity: 0.3 },
       },
     ],
   }
 
-  // 消息统计柱状图配置
   const messageStatsOption = {
-    title: { text: '消息统计' },
+    title: { text: '消息类型统计' },
     tooltip: { trigger: 'axis' },
     xAxis: {
       type: 'category',
-      data: ['文本', '图片', '语音', '视频', '文件'],
+      data: messageStats.map(item => {
+        const typeNames: Record<string, string> = {
+          'text': '文本',
+          'image': '图片',
+          'voice': '语音',
+          'video': '视频',
+          'file': '文件',
+        }
+        return typeNames[item.type] || item.type
+      }),
     },
     yAxis: { type: 'value' },
     series: [
       {
         name: '消息数量',
         type: 'bar',
-        data: [45000, 25000, 12000, 8000, 3489],
+        data: messageStats.map(item => item.count),
         itemStyle: { color: '#10b981' },
       },
     ],
   }
 
-  // 在线用户分布饼图配置
   const onlineDistributionOption = {
-    title: { text: '在线用户分布' },
+    title: { text: '在线用户设备分布' },
     tooltip: { trigger: 'item' },
     series: [
       {
         name: '设备类型',
         type: 'pie',
         radius: '50%',
-        data: [
-          { value: 580, name: 'Android' },
-          { value: 420, name: 'iOS' },
-          { value: 128, name: 'Web' },
-        ],
+        data: deviceDistribution,
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
@@ -79,33 +143,38 @@ function Dashboard() {
     <div>
       <h1 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>仪表盘</h1>
       
-      {/* 统计卡片 */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic 
               title="总用户数" 
-              value={stats.totalUsers} 
+              value={stats.total_users} 
               prefix={<UserOutlined />}
               valueStyle={{ color: '#3b82f6' }}
             />
+            <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+              今日新增: {stats.today_users}
+            </p>
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic 
               title="消息总数" 
-              value={stats.totalMessages} 
+              value={stats.total_messages} 
               prefix={<MessageOutlined />}
               valueStyle={{ color: '#10b981' }}
             />
+            <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+              今日消息: {stats.today_messages}
+            </p>
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic 
               title="群组数" 
-              value={stats.totalGroups} 
+              value={stats.total_groups} 
               prefix={<TeamOutlined />}
               valueStyle={{ color: '#f59e0b' }}
             />
@@ -115,7 +184,7 @@ function Dashboard() {
           <Card>
             <Statistic 
               title="文件总数" 
-              value={stats.totalFiles} 
+              value={stats.total_files} 
               prefix={<FileOutlined />}
               valueStyle={{ color: '#ef4444' }}
             />
@@ -157,11 +226,12 @@ function Dashboard() {
             <h3>系统信息</h3>
             <div style={{ marginTop: '1rem' }}>
               <p><strong>服务器状态：</strong> <Tag color="success">运行中</Tag></p>
-              <p><strong>在线用户：</strong> 1,128 人</p>
-              <p><strong>服务器域名：</strong> lanxin168.com</p>
-              <p><strong>数据库：</strong> MySQL 8.0 (主从架构)</p>
+              <p><strong>在线用户：</strong> {stats.online_users} 人</p>
+              <p><strong>服务器IP：</strong> 154.40.45.121</p>
+              <p><strong>数据库：</strong> MySQL 8.0</p>
               <p><strong>缓存：</strong> Redis 7.0</p>
-              <p><strong>消息队列：</strong> Kafka 3.0</p>
+              <p><strong>对象存储：</strong> MinIO</p>
+              <p><strong>音视频：</strong> Tencent TRTC</p>
             </div>
           </Card>
         </Col>

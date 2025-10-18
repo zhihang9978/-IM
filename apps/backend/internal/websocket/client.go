@@ -78,6 +78,8 @@ type Client struct {
 
 	// 用户名
 	username string
+
+	deviceType string
 }
 
 // readPump 从WebSocket连接读取消息并发送到hub
@@ -193,6 +195,22 @@ func ServeWS(hub *Hub, c *gin.Context, secret string) {
 		return
 	}
 
+	deviceType := c.Query("device_type")
+	if deviceType == "" {
+		userAgent := c.Request.Header.Get("User-Agent")
+		if userAgent != "" {
+			if contains(userAgent, "Android") {
+				deviceType = "Android"
+			} else if contains(userAgent, "iPhone") || contains(userAgent, "iPad") {
+				deviceType = "iOS"
+			} else {
+				deviceType = "Web"
+			}
+		} else {
+			deviceType = "Unknown"
+		}
+	}
+
 	// 升级HTTP连接为WebSocket
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -201,11 +219,12 @@ func ServeWS(hub *Hub, c *gin.Context, secret string) {
 	}
 
 	client := &Client{
-		hub:      hub,
-		conn:     conn,
-		send:     make(chan []byte, 256),
-		userID:   claims.UserID,
-		username: claims.Username,
+		hub:        hub,
+		conn:       conn,
+		send:       make(chan []byte, 256),
+		userID:     claims.UserID,
+		username:   claims.Username,
+		deviceType: deviceType,
 	}
 
 	client.hub.register <- client
@@ -213,5 +232,18 @@ func ServeWS(hub *Hub, c *gin.Context, secret string) {
 	// 在新的goroutine中运行读写循环
 	go client.writePump()
 	go client.readPump()
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || indexContains(s, substr)))
+}
+
+func indexContains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 

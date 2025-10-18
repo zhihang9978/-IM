@@ -172,19 +172,30 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 			authorized.POST("/trtc/screen-share/end", trtcHandler.EndScreenShare)
 		}
 
-		// 管理员API
-		admin := apiV1.Group("/admin")
-		admin.Use(middleware.JWTAuth(cfg.JWT.Secret))
-		admin.Use(middleware.AdminAuth())
-		{
-			// 用户管理
-			admin.GET("/users", userHandler.SearchUsers)
+	// 管理员API
+	admin := apiV1.Group("/admin")
+	admin.Use(middleware.JWTAuth(cfg.JWT.Secret))
+	admin.Use(middleware.AdminAuth())
+	{
+		// 用户管理
+		admin.GET("/users", userHandler.SearchUsers)
 
-			// 举报管理
-			admin.GET("/reports", reportHandler.GetAllReports)
-			admin.PUT("/reports/:id", reportHandler.UpdateReportStatus)
-		}
+		// 举报管理
+		admin.GET("/reports", reportHandler.GetAllReports)
+		admin.PUT("/reports/:id", reportHandler.UpdateReportStatus)
+
+		systemMonitorHandler := api.NewSystemMonitorHandler(hub)
+		admin.GET("/system/metrics", systemMonitorHandler.GetSystemMetrics)
+		admin.GET("/system/services", systemMonitorHandler.GetServiceStatus)
+		admin.GET("/system/runtime", systemMonitorHandler.GetGoRuntimeMetrics)
+		admin.GET("/dashboard/stats", systemMonitorHandler.GetDashboardStats)
+		admin.GET("/dashboard/user-growth", systemMonitorHandler.GetUserGrowthTrend)
+		admin.GET("/dashboard/message-stats", systemMonitorHandler.GetMessageTypeStats)
+		admin.GET("/dashboard/device-distribution", systemMonitorHandler.GetOnlineDeviceDistribution)
+		admin.GET("/health-check", systemMonitorHandler.HealthCheck)
+	}
 	}
 
 	return r
 }
+

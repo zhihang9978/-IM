@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/segmentio/kafka-go v0.4.47
+	github.com/shirou/gopsutil/v3 v3.23.12
 	github.com/spf13/viper v1.18.2
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.45
 	golang.org/x/crypto v0.17.0

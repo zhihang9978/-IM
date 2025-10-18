@@ -189,3 +189,48 @@ func (h *Hub) SendCallInvite(userID uint, callData interface{}) error {
 	return h.SendToUser(userID, msg)
 }
 
+func (h *Hub) GetActiveConnectionCount() int {
+	return h.GetTotalClientCount()
+}
+
+func (h *Hub) GetDeviceDistribution() map[string]int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	distribution := make(map[string]int)
+	distribution["Android"] = 0
+	distribution["iOS"] = 0
+	distribution["Web"] = 0
+	distribution["Unknown"] = 0
+
+	for client := range h.clients {
+		if client.deviceType != "" {
+			distribution[client.deviceType]++
+		} else {
+			distribution["Unknown"]++
+		}
+	}
+
+	return distribution
+}
+
+func (h *Hub) GetConnectionStats() map[string]interface{} {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	stats := make(map[string]interface{})
+	stats["total_connections"] = len(h.clients)
+	stats["online_users"] = len(h.userClients)
+	stats["device_distribution"] = h.GetDeviceDistribution()
+
+	multiDeviceUsers := 0
+	for _, clients := range h.userClients {
+		if len(clients) > 1 {
+			multiDeviceUsers++
+		}
+	}
+	stats["multi_device_users"] = multiDeviceUsers
+
+	return stats
+}
+
