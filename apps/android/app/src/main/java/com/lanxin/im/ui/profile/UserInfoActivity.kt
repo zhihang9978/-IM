@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide
 import com.lanxin.im.R
 import com.lanxin.im.data.remote.RetrofitClient
 import com.lanxin.im.ui.chat.ChatActivity
-import com.lanxin.im.ui.video.VideoCallActivity
+import com.lanxin.im.trtc.VideoCallActivity
 import kotlinx.coroutines.launch
 
 /**

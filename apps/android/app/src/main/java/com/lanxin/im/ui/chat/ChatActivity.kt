@@ -291,13 +291,21 @@ class ChatActivity : AppCompatActivity() {
         
         // 视频通话
         extContainerContainerLayout.findViewById<View>(R.id.btn_video_call_ext)?.setOnClickListener {
-            startVideoCall()
+            // 启动视频通话Activity
+            val intent = android.content.Intent(this, com.lanxin.im.trtc.VideoCallActivity::class.java)
+            intent.putExtra("peer_id", peerId)
+            intent.putExtra("peer_name", tvTitle.text.toString())
+            startActivity(intent)
             toggleExtensionPanel()
         }
         
         // 语音通话
         extContainerContainerLayout.findViewById<View>(R.id.btn_voice_call_ext)?.setOnClickListener {
-            startVoiceCall()
+            // 启动音频通话Activity
+            val intent = android.content.Intent(this, com.lanxin.im.trtc.AudioCallActivity::class.java)
+            intent.putExtra("peer_id", peerId)
+            intent.putExtra("peer_name", tvTitle.text.toString())
+            startActivity(intent)
             toggleExtensionPanel()
         }
         
