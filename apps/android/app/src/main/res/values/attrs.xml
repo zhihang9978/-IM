@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="OptionItemView">
+        <attr name="start_src" format="reference" />
+        <attr name="start_tint" format="color" />
+        <attr name="end_src" format="reference" />
+        <attr name="title" format="string" />
+        <attr name="desc" format="string" />
+        <attr name="badge_count" format="integer" />
+        <attr name="show_arrow_indicator" format="boolean" />
+        <attr name="show_divider" format="boolean" />
+        <attr name="divider_align_to_title" format="boolean" />
+    </declare-styleable>
+</resources>

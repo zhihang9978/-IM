@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 朋友圈 -->
+        <com.lanxin.im.widget.OptionItemView
+            android:id="@+id/momentOptionItemView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:show_arrow_indicator="true"
+            app:title="朋友圈" />
+
+        <!-- 群组功能组 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id/scanOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:title="扫一扫" />
+
+            <com.lanxin.im.widget.OptionItemView
+                android:id="@+id:searchOptionItemView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:show_arrow_indicator="true"
+                app:show_divider="false"
+                app:title="搜索" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
