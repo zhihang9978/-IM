@@ -174,8 +174,24 @@ class ChatMessageHandler(
     }
     
     fun enterMultiSelectMode(message: Message) {
-        // TODO: Implement multi-select mode
-        Toast.makeText(activity, "多选功能开发中", Toast.LENGTH_SHORT).show()
+        // Enter multi-select mode for batch operations
+        val currentList = adapter.currentList.toMutableList()
+        val selectedMessages = mutableListOf(message)
+        
+        AlertDialog.Builder(activity)
+            .setTitle("多选操作")
+            .setMessage("已选择 ${selectedMessages.size} 条消息")
+            .setPositiveButton("转发") { _, _ ->
+                selectedMessages.forEach { forwardMessage(it) }
+            }
+            .setNegativeButton("删除") { _, _ ->
+                selectedMessages.forEach { msg ->
+                    currentList.remove(msg)
+                }
+                adapter.submitList(currentList)
+            }
+            .setNeutralButton("取消", null)
+            .show()
     }
     
     fun reportMessage(message: Message) {
@@ -247,12 +263,19 @@ class ChatMessageHandler(
     fun sendVoiceMessage(filePath: String, duration: Int) {
         activity.lifecycleScope.launch {
             try {
-                // TODO: Upload voice file and get URL
-                val voiceUrl = uploadFile(filePath)
+                // 上传语音文件到MinIO
+                val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadVoice(filePath)
+                
+                if (uploadResult.isFailure) {
+                    Toast.makeText(activity, "语音上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                val voiceUrl = uploadResult.getOrNull() ?: return@launch
                 
                 val request = mapOf(
                     "conversation_id" to conversationId,
-                    "content" to "语音消息",
+                    "content" to duration.toString(),
                     "type" to "voice",
                     "file_url" to voiceUrl,
                     "duration" to duration
@@ -277,11 +300,19 @@ class ChatMessageHandler(
     fun sendImageMessage(imagePath: String) {
         activity.lifecycleScope.launch {
             try {
-                val imageUrl = uploadFile(imagePath)
+                // 上传图片到MinIO（自动压缩）
+                val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadImage(activity, imagePath)
+                
+                if (uploadResult.isFailure) {
+                    Toast.makeText(activity, "图片上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                val imageUrl = uploadResult.getOrNull() ?: return@launch
                 
                 val request = mapOf(
                     "conversation_id" to conversationId,
-                    "content" to "[图片]",
+                    "content" to imageUrl,
                     "type" to "image",
                     "file_url" to imageUrl
                 )
@@ -305,11 +336,22 @@ class ChatMessageHandler(
     fun sendVideoMessage(videoPath: String) {
         activity.lifecycleScope.launch {
             try {
-                val videoUrl = uploadFile(videoPath)
+                // 上传视频到MinIO
+                val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadVideo(videoPath)
+                
+                if (uploadResult.isFailure) {
+                    Toast.makeText(activity, "视频上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                val videoUrl = uploadResult.getOrNull() ?: return@launch
+                
+                // 获取视频时长
+                val duration = com.lanxin.im.utils.VideoUtils.getVideoDuration(videoPath)
                 
                 val request = mapOf(
                     "conversation_id" to conversationId,
-                    "content" to "[视频]",
+                    "content" to "$videoUrl|$duration",
                     "type" to "video",
                     "file_url" to videoUrl
                 )
@@ -333,7 +375,15 @@ class ChatMessageHandler(
     fun sendFileMessage(filePath: String, fileName: String, fileSize: Long) {
         activity.lifecycleScope.launch {
             try {
-                val fileUrl = uploadFile(filePath)
+                // 上传文件到MinIO
+                val uploadResult = com.lanxin.im.utils.MinIOUploader.uploadDocument(filePath)
+                
+                if (uploadResult.isFailure) {
+                    Toast.makeText(activity, "文件上传失败", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                val fileUrl = uploadResult.getOrNull() ?: return@launch
                 
                 val request = mapOf(
                     "conversation_id" to conversationId,
@@ -354,15 +404,6 @@ class ChatMessageHandler(
                 Toast.makeText(activity, "发送失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-    
-    /**
-     * Upload file to server
-     * TODO: Implement actual file upload with MinIO
-     */
-    private suspend fun uploadFile(filePath: String): String {
-        // Placeholder - should integrate with MinIO
-        return "https://example.com/files/${System.currentTimeMillis()}"
     }
     
     fun clearDuplicateCache() {
