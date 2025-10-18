@@ -247,7 +247,7 @@ class ChatActivity : AppCompatActivity() {
         
         // 初始化语音录制器和播放器
         voiceRecorder = VoiceRecorder(this)
-        voicePlayer = VoicePlayer(this)
+        voicePlayer = VoicePlayer()
         
         // 绑定扩展面板按钮 (WildFire IM style)
         setupExtensionPanelButtons()
