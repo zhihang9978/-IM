@@ -3,6 +3,7 @@
     <!-- Primary Colors -->
     <color name="primary">#007AFF</color>
     <color name="primary_dark">#0056B3</color>
+    <color name="primary_light">#5DADE2</color>
     <color name="accent">#FF9500</color>
     
     <!-- Background Colors -->
