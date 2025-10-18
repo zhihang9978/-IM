@@ -1,6 +1,5 @@
 import { Card, Row, Col, DatePicker, Select, Space, Spin } from 'antd'
 import ReactECharts from 'echarts-for-react'
-import * as echarts from 'echarts'
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
 

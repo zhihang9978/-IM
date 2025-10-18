@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, Table, Button, Input, Select, Space, Tag, Progress, message as antdMessage, Modal } from 'antd'
-import { SearchOutlined, DownloadOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { SearchOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import api from '../../services/api'
