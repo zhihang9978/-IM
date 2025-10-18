@@ -623,6 +623,57 @@ func (h *AdminHandler) DeleteFile(c *gin.Context) {
 	})
 }
 
+func (h *AdminHandler) GetAllGroups(c *gin.Context) {
+	db := mysql.GetDB()
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "Database unavailable",
+		})
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	keyword := c.Query("keyword")
+
+	offset := (page - 1) * pageSize
+
+	query := db.Model(&model.Group{})
+
+	if keyword != "" {
+		query = query.Where("name LIKE ?", "%"+keyword+"%")
+	}
+
+	var total int64
+	query.Count(&total)
+
+	var groups []model.Group
+	query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&groups)
+
+	for i := range groups {
+		var owner model.User
+		db.First(&owner, groups[i].OwnerID)
+		groups[i].Owner = owner
+
+		var memberCount int64
+		db.Model(&model.GroupMember{}).Where("group_id = ?", groups[i].ID).Count(&memberCount)
+		groups[i].MemberCount = int(memberCount)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "success",
+		"data": gin.H{
+			"list":       groups,
+			"total":      total,
+			"page":       page,
+			"page_size":  pageSize,
+			"total_page": (total + int64(pageSize) - 1) / int64(pageSize),
+		},
+	})
+}
+
 func (h *AdminHandler) GetStorageStats(c *gin.Context) {
 	db := mysql.GetDB()
 	if db == nil {

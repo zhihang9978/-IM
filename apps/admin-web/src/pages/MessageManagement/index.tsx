@@ -1,28 +1,69 @@
-import { useState } from 'react'
-import { Card, Table, Button, Input, DatePicker, Select, Space, Tag } from 'antd'
+import { useState, useEffect } from 'react'
+import { Card, Table, Button, Input, DatePicker, Select, Space, Tag, message as antdMessage } from 'antd'
 import { SearchOutlined, DownloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
+import api from '../../services/api'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
 
 interface Message {
-  id: number;
-  sender: string;
-  receiver: string;
-  content: string;
-  type: string;
-  status: string;
-  created_at: string;
+  id: number
+  sender_id: number
+  receiver_id: number
+  sender_name?: string
+  receiver_name?: string
+  content: string
+  type: string
+  status: string
+  created_at: string
 }
 
 function MessageManagement() {
-  const [messages] = useState<Message[]>([])
-  const [loading] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [messageType, setMessageType] = useState<string>()
   const [dateRange, setDateRange] = useState<any>()
+
+  useEffect(() => {
+    loadMessages()
+  }, [])
+
+  const loadMessages = async () => {
+    setLoading(true)
+    try {
+      const data = await api.get('/admin/messages')
+      setMessages(data || [])
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+      antdMessage.error('加载消息列表失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = () => {
+    loadMessages()
+  }
+
+  const handleExport = async () => {
+    try {
+      const data = await api.get('/admin/messages/export')
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `messages_${dayjs().format('YYYYMMDD_HHmmss')}.json`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      antdMessage.success('导出成功')
+    } catch (error) {
+      console.error('Export failed:', error)
+      antdMessage.error('导出失败')
+    }
+  }
 
   // 表格列定义
   const columns: ColumnsType<Message> = [
@@ -34,15 +75,17 @@ function MessageManagement() {
     },
     {
       title: '发送者',
-      dataIndex: 'sender',
-      key: 'sender',
+      dataIndex: 'sender_name',
+      key: 'sender_name',
       width: 150,
+      render: (name: string, record: Message) => name || `用户${record.sender_id}`,
     },
     {
       title: '接收者',
-      dataIndex: 'receiver',
-      key: 'receiver',
+      dataIndex: 'receiver_name',
+      key: 'receiver_name',
       width: 150,
+      render: (name: string, record: Message) => name || `用户${record.receiver_id}`,
     },
     {
       title: '消息内容',
@@ -129,11 +172,11 @@ function MessageManagement() {
             onChange={setDateRange}
           />
           
-          <Button type="primary" icon={<SearchOutlined />}>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
             搜索
           </Button>
           
-          <Button icon={<DownloadOutlined />}>
+          <Button icon={<DownloadOutlined />} onClick={handleExport}>
             导出
           </Button>
         </Space>

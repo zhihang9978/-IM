@@ -193,6 +193,8 @@ func setupRouter(cfg *config.Config, hub *websocket.Hub, producer *kafka.Produce
 		admin.DELETE("/messages/:id", adminHandler.DeleteMessage)
 		admin.GET("/messages/export", adminHandler.ExportMessages)
 
+		admin.GET("/groups", adminHandler.GetAllGroups)
+
 		admin.GET("/files", adminHandler.GetAllFiles)
 		admin.DELETE("/files/:id", adminHandler.DeleteFile)
 		admin.GET("/storage/stats", adminHandler.GetStorageStats)
